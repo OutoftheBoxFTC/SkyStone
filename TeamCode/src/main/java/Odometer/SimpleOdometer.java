@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import debug.SmartTelemetry;
 import hardware.ReadData;
+import math.Vector2;
 import math.Vector3;
 
 public class SimpleOdometer {
@@ -12,6 +13,7 @@ public class SimpleOdometer {
     double y = 0;
     long lastTime;
     Vector3 lastCoords;
+    Vector2 offsets;
     protected final static double RADIUS_RATIO = (290.49/430.43);
     Vector3 position, velocity;
     SmartTelemetry telemetry;
@@ -26,16 +28,17 @@ public class SimpleOdometer {
         double forward = ((data.getLeft() + data.getRight())/2);
         double rotDiff = data.getRight() - forward;
         double aux = (data.getAux() - (rotDiff * RADIUS_RATIO));
-        lastCoords = new Vector3(forward, aux, data.getGyro());
+        lastCoords = new Vector3(forward, data.getAux(), data.getGyro());
+        offsets = new Vector2(forward, aux);
         lastTime = System.currentTimeMillis();
         position.set(new Vector3(0, 0, Math.toDegrees(data.getGyro())));
     }
 
     public void update(ReadData data){
-        double forward = ((data.getLeft() + data.getRight())/2);
+        double forward = ((data.getLeft() + data.getRight())/2) - offsets.getA();
         double rotDiff = data.getRight() - forward;
         double rotInc = data.getGyro() - lastCoords.getC();
-        double aux = (data.getAux() - (rotInc * 0.0423583858));
+        double aux = ((data.getAux() -  offsets.getB()) - (rotInc * 0.0423583858));
         double forwardInc = forward - lastCoords.getA();
         double auxInc = aux - lastCoords.getB();
         double r = (Math.sqrt((forwardInc * forwardInc) + (auxInc * auxInc)));

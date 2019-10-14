@@ -3,6 +3,7 @@ package hardware;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -24,8 +25,8 @@ public class Hardware implements Runnable {
     private ArrayList<ReadData> dataBuffer;
     private ArrayList<double[]> drivePowerBuffer;
 
-    private SmartMotor a, b, c, d;
-    private ExpansionHubEx hub;
+    private SmartMotor a, b, c, d, intakeLeft, intakeRight;
+    private ExpansionHubEx hub, hub2;
 
     private ArrayList<SmartMotor> driveMotors;
 
@@ -40,6 +41,8 @@ public class Hardware implements Runnable {
     private ArrayList<HardwareDevice> registeredDevices, enabledDevices;
 
     private CalibrationData calibration;
+
+    private double intakePower;
 
     public Hardware(LinearOpMode opmode, SmartTelemetry telemetry){
         this.opMode = opmode;
@@ -60,6 +63,9 @@ public class Hardware implements Runnable {
             hub = getOrNull(map, ExpansionHubEx.class, "hub");
             RobotLog.i("this is a test");
         }
+        if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)){
+            hub2 = getOrNull(map, ExpansionHubEx.class, "hub2");
+        }
         if(enabledDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
             a = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "a"));
             b = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "b"));
@@ -72,6 +78,10 @@ public class Hardware implements Runnable {
             driveMotors.add(b);
             driveMotors.add(c);
             driveMotors.add(d);
+            a.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            b.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            c.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
         if(enabledDevices.contains(HardwareDevice.GYRO)) {
             imu = getOrNull(map, BNO055IMU.class, "imu");
@@ -79,12 +89,17 @@ public class Hardware implements Runnable {
                 initIMU();
             }
         }
+        if(enabledDevices.contains(HardwareDevice.OTHER_MOTORS)){
+            intakeLeft = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "intakeLeft"));
+            intakeRight = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "intakeRight"));
+            intakeRight.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
+        }
     }
 
     public void calibrate(){
         //calibrates all analog devices
-        if(registeredDevices.contains(HardwareDevice.HUB_1_BULK)) {
-            calibration.addHub1BulkData(hub.getBulkInputData());
+        if(registeredDevices.contains(HardwareDevice.HUB_2_BULK)) {
+            calibration.addHub2BulkData(hub2.getBulkInputData());
         }
         if(registeredDevices.contains(HardwareDevice.GYRO)){
             calibration.addGyroData(imu);
@@ -107,6 +122,10 @@ public class Hardware implements Runnable {
         drivePowerBuffer.add(new double[]{a, b, c, d});
     }
 
+    public void intake(double power){
+        intakePower = power;
+    }
+
     @Override
     public void run() {
         ArrayList<HardwareDevice> enabledDevices = new ArrayList<>();
@@ -124,10 +143,18 @@ public class Hardware implements Runnable {
                     }
                 }
             }
+            if(enabledDevices.contains(HardwareDevice.OTHER_MOTORS)){
+                intakeLeft.setPower(intakePower);
+                intakeRight.setPower(intakePower);
+            }
             ReadData data = new ReadData(calibration);
             if(enabledDevices.contains(HardwareDevice.HUB_1_BULK)) {
                 RevBulkData rawData = hub.getBulkInputData();
                 data.addHub1BulkData(rawData);
+            }
+            if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)){
+                RevBulkData rawData = hub2.getBulkInputData();
+                data.addHub2BulkData(rawData);
             }
             if(enabledDevices.contains(HardwareDevice.GYRO)){
                 data.addGyro(imu);
@@ -216,6 +243,7 @@ public class Hardware implements Runnable {
         HUB_1_BULK,
         HUB_2_BULK,
         PIXYCAM,
-        GYRO
+        GYRO,
+        OTHER_MOTORS
     }
 }

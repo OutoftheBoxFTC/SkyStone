@@ -28,6 +28,8 @@ public abstract class BasicOpmode extends LinearOpMode {
     protected SmartGamepad gamepad1, gamepad2;
     protected StateMachine stateMachine;
     private ExecutorService threadManager;
+    protected static final double TRANSLATION_FACTOR = 0.0010329132;
+
 
     private double driveLoopPriority;
 

@@ -70,4 +70,8 @@ public class Vector2 {
     public double distanceTo(Vector2 vector){
         return Math.sqrt(Math.pow(vector.a - a, 2) + Math.pow(vector.b - b, 2));
     }
+
+    public String toString(){
+        return "X: " + a + " Y: " + b;
+    }
 }

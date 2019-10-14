@@ -12,6 +12,9 @@ public class CalibrationData {
     private double gyroOffset;
 
     public void addHub1BulkData(RevBulkData data){
+
+    }
+    public void addHub2BulkData(RevBulkData data){
         leftOffset = data.getMotorCurrentPosition(ReadData.LEFT);
         rightOffset = -data.getMotorCurrentPosition(ReadData.RIGHT);
         auxOffset = -data.getMotorCurrentPosition(ReadData.AUX);

@@ -24,7 +24,7 @@ import state.motion.TurnCorrectionVector;
 public class MovementTest extends BasicOpmode {
     protected static final double TRANSLATION_FACTOR = 0.0010329132;
     public MovementTest() {
-        super(0.3, false);
+        super(1, false);
     }
 
     @Override
@@ -32,13 +32,14 @@ public class MovementTest extends BasicOpmode {
         final SimpleOdometer odometer;
         final Vector3 position, velocity;
         robot.enableDevice(Hardware.HardwareDevice.HUB_1_BULK);
+        robot.enableDevice(Hardware.HardwareDevice.HUB_2_BULK);
         robot.enableDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
         robot.enableDevice(Hardware.HardwareDevice.GYRO);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity, telemetry);
         DriveToPointBuilder builder = new DriveToPointBuilder(stateMachine, new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1));
-        DriveState firstMovement = new CorrectionVector(stateMachine, new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1), velocity, new Vector3(0, 18, 0), 0, Terminator.NONE(), 0.2, odometer);
+        DriveState firstMovement = new CorrectionVector(stateMachine, new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1), position, new Vector3(0, 24, 0), 0, Terminator.NONE(), 0.4, odometer, telemetry);
         DriveState firstRotation = new TurnCorrectionVector(stateMachine, new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1), 0.01, 270, 1, position, "Move");
         HashMap<String, DriveState> driveStates = new HashMap<>();
         HashMap<String, LogicState> states = new HashMap<>();

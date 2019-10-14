@@ -3,6 +3,7 @@ package state.motion;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import Odometer.SimpleOdometer;
+import debug.SmartTelemetry;
 import drivetrain.RobotDrive;
 import hardware.ReadData;
 import math.Matrix22;
@@ -16,15 +17,16 @@ public class CorrectionVector extends VelocityDriveState {
     Vector2 target;
     Vector2 start;
     Vector3 velocities, position;
-    double targetRot, offset, kp, tolerance, AoA, power;
+    double targetRot, kp, tolerance, AoA, power;
+    boolean finished;
     Terminator terminator;
     SimpleOdometer odometer;
-
-    public CorrectionVector(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector3 target, double AoA, Terminator terminator, double power, SimpleOdometer odometer){
+    SmartTelemetry telemetry;
+    public CorrectionVector(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector3 target, double AoA, Terminator terminator, double power, SimpleOdometer odometer, SmartTelemetry telemetry){
         super(stateMachine, robotDrive);
         this.position = position;
         this.target = new Vector2(target.getA(), target.getB());
-        this.AoA = AoA + 90;
+        this.AoA = AoA - 90;
         this.terminator = terminator;
         targetRot = new Vector2(position.getA(), position.getB()).angleTo(new Vector2(target.getA(), target.getB()));
         this.power = power;
@@ -33,11 +35,11 @@ public class CorrectionVector extends VelocityDriveState {
         this.tolerance = 1;
         this.kp = 0.2;
         this.odometer = odometer;
+        this.telemetry = telemetry;
     }
     @Override
     public void init(ReadData data){
-        odometer.start(data);
-        offset = (data.getLeft() + data.getRight())/2;
+
     }
 
     @Override
@@ -46,7 +48,7 @@ public class CorrectionVector extends VelocityDriveState {
     }
 
     public void update(ReadData data) {
-        if((!terminator.shouldTerminate(data)) && !finished()) {
+        if((!terminator.shouldTerminate(data)) && !finished) {
             double slope = (start.getB() - target.getB()) / (start.getA() - position.getA());
             //Matrix22 formulaMatrix = new Matrix22(slope, -1, (-1 / slope), -1).inverse();
             //Vector2 solutionAnswers = new Vector2(-target.getB() + (slope * target.getA()), -position.getB() + (-1 / slope * position.getA()));
@@ -55,12 +57,13 @@ public class CorrectionVector extends VelocityDriveState {
             //double y = new Vector2(position.getA(), position.getB()).distanceTo(target);
             //double x = position.getA() - target.getA();
             double mainr = new Vector2(position.getA(), position.getB()).distanceTo(target);
-            double maintheta = (Math.PI/2) - Math.atan2(target.getB(), target.getA());
+            double maintheta = (Math.PI/2) - Math.atan2(target.getB() - position.getB(), target.getA() - position.getA());
             double x = mainr * Math.cos(maintheta);
             double y = mainr * Math.sin(maintheta);
-            if(x <= (5)){
+            telemetry.setHeader("Powers", new Vector3(x, y, mainr).toString());
+            if(mainr <= (1)){
                 velocities = Vector3.ZERO();
-                deactivateDriveState();
+                finished = true;
             }else {
                 Vector2 coordinates = new Vector2(x, y);
                 double theta = Math.atan2(y,x);
@@ -72,6 +75,7 @@ public class CorrectionVector extends VelocityDriveState {
                 x = Math.max(x, -power);
                 y = Math.min(y, power);
                 y = Math.max(y, -power);
+                double rotation = (targetRot - Math.toDegrees(data.getGyro())) * 0.01;
                 velocities.set(new Vector3(x, y, 0));
             }
         }else{

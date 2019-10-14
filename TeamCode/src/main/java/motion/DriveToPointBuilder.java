@@ -16,6 +16,6 @@ public class DriveToPointBuilder {
         this.drive = robotDrive;
     }
     public  DriveState create(Vector3 position, Vector3 velocity, Vector3 target, double AoA, Terminator terminator, double power){
-        return new CorrectionVector(machine, drive, position, target, AoA, terminator, power, null);
+        return new CorrectionVector(machine, drive, position, target, AoA, terminator, power, null, null);
     }
 }
