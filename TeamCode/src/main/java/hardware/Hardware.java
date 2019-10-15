@@ -27,7 +27,7 @@ public class Hardware implements Runnable {
     private ArrayList<double[]> drivePowerBuffer;
 
     private SmartMotor a, b, c, d;
-    private ExpansionHubEx hub1;
+    private ExpansionHubEx hub1, hub2;
 
     private ArrayList<SmartMotor> driveMotors;
 
@@ -60,6 +60,9 @@ public class Hardware implements Runnable {
         calibration = new CalibrationData();
         if(registeredDevices.contains(HardwareDevice.HUB_1_BULK)) {
             hub1 = getOrNull(map, ExpansionHubEx.class, "hub1");
+        }
+        if(registeredDevices.contains(HardwareDevice.HUB_2_BULK)){
+            hub2 = getOrNull(map, ExpansionHubEx.class, "hub2");
         }
         if(registeredDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
             a = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "a"));
@@ -129,6 +132,10 @@ public class Hardware implements Runnable {
             if(enabledDevices.contains(HardwareDevice.HUB_1_BULK)) {
                 RevBulkData rawData = hub1.getBulkInputData();
                 data.addHub1BulkData(rawData);
+            }
+            if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)){
+                RevBulkData rawData = hub2.getBulkInputData();
+                data.addHub2BulkData(rawData);
             }
             if(enabledDevices.contains(HardwareDevice.GYRO)){
                 data.addGyro(imu);

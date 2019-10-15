@@ -10,7 +10,7 @@ public class ReadData {
     private int left, right, aux, vLeft, vRight, vAux;
     private double gyro;
     private CalibrationData calibration;
-    private long hub1BulkTime, gyroTime;
+    private long hub1BulkTime, hub2BulkTime, gyroTime;
 
     public ReadData(CalibrationData calibration){
         this.calibration = calibration;
@@ -78,5 +78,9 @@ public class ReadData {
         vLeft = data.getMotorVelocity(LEFT);
         vRight = data.getMotorVelocity(RIGHT);
         vAux = data.getMotorVelocity(AUX);
+    }
+
+    public void addHub2BulkData(RevBulkData data){
+        this.hub2BulkTime = System.nanoTime();
     }
 }

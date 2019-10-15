@@ -31,6 +31,7 @@ public class DriverControllerTest extends BasicOpmode {
     protected void setup() {
         robot.registerDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
         robot.registerDevice(Hardware.HardwareDevice.HUB_1_BULK);
+        robot.registerDevice(Hardware.HardwareDevice.HUB_2_BULK);
         //telemetry.enableLogger();
         HashMap<String, LogicState> logicStates = new HashMap<>();
         HashMap<String, DriveState> driveStates = new HashMap<>();
