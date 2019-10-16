@@ -2,12 +2,10 @@ package opmode.opencv;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.vuforia.Rectangle;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -15,56 +13,39 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@TeleOp(name = "Skystone Finder")
-public class SkystoneFinder extends LinearOpMode {
+@TeleOp(name = "Algorithm Test")
+public class AlgorithmTest extends LinearOpMode {
     OpenCvCamera webcam;
-    int x1, y1, x2, y2;
-    private Point[] points;
+    private Point[] color1, color2;
+    double[] ratio;
     @Override
     public void runOpMode() {
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = new OpenCvWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         webcam.openCameraDevice();
-        points = new Point[]{};
+        color1 = new Point[]{new Point(92, 81), new Point(438, 230)};
+        color2 = new Point[]{new Point(92, 450), new Point(438, 600)};
+        ratio = new double[3];
         webcam.setPipeline(new OpenCvPipeline() {
-
             @Override
             public Mat processFrame(Mat input) {
-                double[] color1 = avgColor(input, points[0], points[1]), color2 = avgColor(input, points[2], points[3]);
-                double avg1 = (color1[0]+color1[1]+color1[2])/3, avg2 = (color2[0]+color1[1]+color1[2])/3;
+                double[] value1 = avgColor(input, color1[0], color1[1]);
+                double[] value2 = avgColor(input, color2[0], color2[1]);
+                ratio[0] = value1[0]/value2[0];
+                ratio[1] = value1[1]/value2[1];
+                ratio[2] = value1[2]/value2[2];
+                Imgproc.rectangle(input, color1[0], color1[1], new Scalar(255, 255, 255));
+                Imgproc.rectangle(input, color2[0], color2[1], new Scalar(255, 0, 0));
                 return input;
             }
         });
         webcam.startStreaming(640, 480, OpenCvCameraRotation.SIDEWAYS_RIGHT);
         waitForStart();
         while (opModeIsActive()) {
-            if(gamepad1.dpad_up){
-                y1--;
-            } else if(gamepad1.dpad_down){
-                y1++;
-            }
-            if(gamepad1.dpad_left){
-                x1--;
-            } else if(gamepad1.dpad_right){
-                x1++;
-            }
-
-            if(gamepad2.dpad_up){
-                y2--;
-            } else if(gamepad2.dpad_down){
-                y2++;
-            }
-            if(gamepad2.dpad_left){
-                x2--;
-            } else if(gamepad2.dpad_right){
-                x2++;
-            }
-            telemetry.addData("x1", x1);
-            telemetry.addData("x2", x2);
-            telemetry.addData("y1", y1);
-            telemetry.addData("y2", y2);
+            telemetry.addData("ratio1", ratio[0]);
+            telemetry.addData("ratio2", ratio[1]);
+            telemetry.addData("ratio3", ratio[2]);
             telemetry.update();
-            sleep(10*(gamepad1.a?2:1));
         }
     }
 
