@@ -67,6 +67,10 @@ public class ReadData {
 
     public void addHub1BulkData(RevBulkData data){
         hub1BulkTime = System.nanoTime();
+    }
+
+    public void addHub2BulkData(RevBulkData data){
+        this.hub2BulkTime = System.nanoTime();
         left = data.getMotorCurrentPosition(LEFT);
         right = -data.getMotorCurrentPosition(RIGHT);
         aux = -data.getMotorCurrentPosition(AUX);
@@ -78,9 +82,5 @@ public class ReadData {
         vLeft = data.getMotorVelocity(LEFT);
         vRight = data.getMotorVelocity(RIGHT);
         vAux = data.getMotorVelocity(AUX);
-    }
-
-    public void addHub2BulkData(RevBulkData data){
-        this.hub2BulkTime = System.nanoTime();
     }
 }

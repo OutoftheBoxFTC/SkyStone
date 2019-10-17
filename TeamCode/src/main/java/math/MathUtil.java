@@ -96,4 +96,22 @@ public class MathUtil {
         }
         return bullShitC(x*polarity)*polarity;
     }
+
+    /**
+     *
+     * @param a angle a
+     * @param b angle b
+     * @return smallest signed angular change from a to b
+     */
+    public static double angleDelta(double a, double b){
+        double tau = Math.PI*2;
+        a = ((a%tau)+tau)%tau;
+        b = ((a%tau)+tau)%tau;
+        //ensures between 0 and 2pi
+        double d = b-a;
+        if(d>Math.PI){
+            d = Math.PI*2-d;
+        }
+        return d;
+    }
 }

@@ -34,6 +34,7 @@ public class WebcamExample extends LinearOpMode {
                 b = avgColor[0];
                 g = avgColor[1];
                 r = avgColor[2];
+
                 return input;
             }
         });

@@ -90,6 +90,9 @@ public class Hardware implements Runnable {
         if(registeredDevices.contains(HardwareDevice.HUB_1_BULK)) {
             calibration.addHub1BulkData(hub1.getBulkInputData());
         }
+        if(registeredDevices.contains(HardwareDevice.HUB_2_BULK)){
+            calibration.addHub2BulkData(hub2.getBulkInputData());
+        }
         if(registeredDevices.contains(HardwareDevice.GYRO)){
             calibration.addGyroData(imu);
         }
