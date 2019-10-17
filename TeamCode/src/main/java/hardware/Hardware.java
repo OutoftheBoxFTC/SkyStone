@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import java.util.ArrayList;
@@ -44,6 +45,8 @@ public class Hardware implements Runnable {
 
     private double intakePower;
 
+    private Servo foundationLeft, foundationRight;
+
     public Hardware(LinearOpMode opmode, SmartTelemetry telemetry){
         this.opMode = opmode;
         driveMotors = new ArrayList<>();
@@ -60,7 +63,7 @@ public class Hardware implements Runnable {
         HardwareMap map = opMode.hardwareMap;
         calibration = new CalibrationData();
         if(enabledDevices.contains(HardwareDevice.HUB_1_BULK)) {
-            hub = getOrNull(map, ExpansionHubEx.class, "hub");
+            hub = getOrNull(map, ExpansionHubEx.class, "hub1");
             RobotLog.i("this is a test");
         }
         if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)){
@@ -78,10 +81,10 @@ public class Hardware implements Runnable {
             driveMotors.add(b);
             driveMotors.add(c);
             driveMotors.add(d);
-            a.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            b.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            c.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            d.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            a.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            b.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            c.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            d.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
         if(enabledDevices.contains(HardwareDevice.GYRO)) {
             imu = getOrNull(map, BNO055IMU.class, "imu");
@@ -94,14 +97,18 @@ public class Hardware implements Runnable {
             intakeRight = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "intakeRight"));
             intakeRight.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
         }
+        if(enabledDevices.contains(HardwareDevice.SERVOS)){
+            foundationLeft = getOrNull(map.servo, "fLeft");
+            foundationRight = getOrNull(map.servo, "fRight");
+        }
     }
 
     public void calibrate(){
         //calibrates all analog devices
-        if(registeredDevices.contains(HardwareDevice.HUB_2_BULK)) {
+        if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)) {
             calibration.addHub2BulkData(hub2.getBulkInputData());
         }
-        if(registeredDevices.contains(HardwareDevice.GYRO)){
+        if(enabledDevices.contains(HardwareDevice.GYRO)){
             calibration.addGyroData(imu);
         }
     }
@@ -124,6 +131,16 @@ public class Hardware implements Runnable {
 
     public void intake(double power){
         intakePower = power;
+    }
+
+    public void latchOn(){
+        foundationLeft.setPosition(0.29);
+        foundationRight.setPosition(0.7);
+    }
+
+    public void latchOff(){
+        foundationLeft.setPosition(0.7);
+        foundationRight.setPosition(0.29);
     }
 
     @Override
@@ -244,6 +261,7 @@ public class Hardware implements Runnable {
         HUB_2_BULK,
         PIXYCAM,
         GYRO,
+        SERVOS,
         OTHER_MOTORS
     }
 }

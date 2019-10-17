@@ -29,16 +29,15 @@ public class SimpleOdometer {
         double rotDiff = data.getRight() - forward;
         double aux = (data.getAux() - (rotDiff * RADIUS_RATIO));
         lastCoords = new Vector3(forward, data.getAux(), data.getGyro());
-        offsets = new Vector2(forward, aux);
         lastTime = System.currentTimeMillis();
         position.set(new Vector3(0, 0, Math.toDegrees(data.getGyro())));
     }
 
     public void update(ReadData data){
-        double forward = ((data.getLeft() + data.getRight())/2) - offsets.getA();
+        double forward = ((data.getLeft() + data.getRight())/2);
         double rotDiff = data.getRight() - forward;
         double rotInc = data.getGyro() - lastCoords.getC();
-        double aux = ((data.getAux() -  offsets.getB()) - (rotInc * 0.0423583858));
+        double aux = ((data.getAux()) - (rotInc * 0.0423583858));
         double forwardInc = forward - lastCoords.getA();
         double auxInc = aux - lastCoords.getB();
         double r = (Math.sqrt((forwardInc * forwardInc) + (auxInc * auxInc)));

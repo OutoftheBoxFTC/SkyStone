@@ -15,9 +15,13 @@ public class OrientationTerminator extends Terminator {
     @Override
     public boolean shouldTerminate(ReadData data) {
         Vector2 coordinates = new Vector2(position.getA(), position.getB());
-        Vector2 targetCoords = new Vector2(position.getA(), position.getB());
+        Vector2 targetCoords = new Vector2(target.getA(), target.getB());
         double distance = coordinates.distanceTo(targetCoords);
         double rotation = Math.abs(position.getC() - target.getC());
-        return (distance <= movementTolerance && rotation <= rotationTolerance);
+        return (distance <= movementTolerance);
+    }
+
+    public boolean shouldTerminateRotation(){
+        return Math.abs(position.getC() - target.getC()) < rotationTolerance;
     }
 }
