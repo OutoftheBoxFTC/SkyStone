@@ -1,8 +1,10 @@
 package state;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
+import debug.SmartTelemetry;
 import hardware.ReadData;
 import math.Vector4;
 
@@ -20,7 +22,6 @@ public class StateMachine {
     public StateMachine(){
         driveStates = new HashMap<>();
         logicStates = new HashMap<>();
-
         activeLogicStates = new ArrayList<>();
         activatedLogicStates = new ArrayList<>();
         activeDriveState = null;
@@ -91,13 +92,13 @@ public class StateMachine {
     }
 
     public void setActiveDriveState(String state){
-        if(activatedDriveState == null){
+        if(activeDriveState == null){
             activatedDriveState = driveStates.get(state);
             activateLogic(state);
         }
         else {
-            if(!activatedDriveState.getStateName().equals(state)){
-                deactivatedLogicStates.add(driveStates.get(state));
+            if(!activeDriveState.getStateName().equals(state)){
+                deactivateLogic(activeDriveState.stateName);
                 activatedDriveState = driveStates.get(state);
                 activateLogic(state);
             }

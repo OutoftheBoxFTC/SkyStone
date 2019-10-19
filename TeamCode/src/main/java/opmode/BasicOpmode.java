@@ -68,7 +68,9 @@ public abstract class BasicOpmode extends LinearOpMode {
             stateMachine.update(data);
             while (driveIterations >= 1) {
                 Vector4 wheels = stateMachine.getDriveVelocities();
-                robot.drive(wheels.getA(), wheels.getB(), wheels.getC(), wheels.getD());
+                if(!debug) {
+                    robot.drive(wheels.getA(), wheels.getB(), wheels.getC(), wheels.getD());
+                }
                 driveIterations--;
             }
             driveIterations += driveLoopPriority;
