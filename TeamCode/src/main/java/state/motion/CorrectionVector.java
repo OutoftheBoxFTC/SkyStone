@@ -17,11 +17,11 @@ public class CorrectionVector extends VelocityDriveState {
     Vector2 target;
     Vector2 start;
     Vector3 velocities, position;
-    double targetRot, kp, tolerance, AoA, power;
+    double targetRot, kp, tolerance, AoA, power, firstX, firstY;
     boolean finished;
     Terminator terminator;
     SimpleOdometer odometer;
-    private static final double kPStrafe = 0.075, kPForward = 0.25;
+    private static final double kPStrafe = 0.25, kPForward = 0.25;
     String nextstate;
     public CorrectionVector(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector3 target, double AoA, Terminator terminator, double power, SimpleOdometer odometer, String nextState){
         super(stateMachine, robotDrive);
@@ -29,7 +29,7 @@ public class CorrectionVector extends VelocityDriveState {
         this.target = new Vector2(target.getA(), target.getB());
         this.AoA = AoA - 90;
         this.terminator = terminator;
-        targetRot = new Vector2(position.getA(), position.getB()).angleTo(new Vector2(target.getA(), target.getB()));
+        targetRot = target.getC();
         this.power = power;
         this.start = new Vector2(position.getA(), position.getB());
         this.velocities = Vector3.ZERO();
@@ -37,6 +37,8 @@ public class CorrectionVector extends VelocityDriveState {
         this.kp = 0.2;
         this.odometer = odometer;
         this.nextstate = nextState;
+        firstX = 0;
+        firstY = 0;
     }
     @Override
     public void init(ReadData data){
@@ -61,8 +63,17 @@ public class CorrectionVector extends VelocityDriveState {
             double theta = Math.atan2(y,x);
             double r = Math.sqrt((y * y) + (x * x));
             theta += Math.toRadians(AoA);
+            theta += data.getGyro();
             x = r * Math.cos(theta);
             y = r * Math.sin(theta);
+            if(firstX == 0){
+                firstX = Math.abs(x);
+                firstY = Math.abs(y);
+                firstX = Math.max(firstX, 1);
+                firstY = Math.max(firstY, 1);
+            }
+            x = x / firstX;
+            y = y / firstY;
             x = Math.min(x, power);
             x = Math.max(x, -power);
             y = Math.min(y, power);
@@ -82,8 +93,8 @@ public class CorrectionVector extends VelocityDriveState {
     }
 
     public void deactivateDriveState(){
-        deactivateThis();
         stateMachine.setActiveDriveState(nextstate);
+        deactivateThis();
     }
 
     public boolean finished(){

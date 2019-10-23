@@ -10,6 +10,7 @@ import Odometer.SimpleOdometer;
 import drivetrain.MecanumDrive;
 import hardware.Hardware;
 import hardware.ReadData;
+import hardware.Sensors.Pixycam2Provider;
 import math.Vector3;
 import math.Vector4;
 import motion.DriveToPointBuilder;
@@ -34,6 +35,7 @@ public class BlueAutonomous extends BasicOpmode {
         robot.enableDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
         robot.enableDevice(Hardware.HardwareDevice.GYRO);
         robot.enableDevice(Hardware.HardwareDevice.SERVOS);
+        robot.enableDevice(Hardware.HardwareDevice.PIXYCAM);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity, telemetry);
@@ -57,6 +59,8 @@ public class BlueAutonomous extends BasicOpmode {
                     stateMachine.setActiveDriveState("driveToFoundation");
                     stateMachine.activateLogic("Orientation");
                     stateMachine.activateLogic("latchOn");
+                    stateMachine.activateLogic("latchOff");
+                    stateMachine.activateLogic("pixyData");
                     odometer.start(data);
                     deactivateThis();
                 }
@@ -78,38 +82,57 @@ public class BlueAutonomous extends BasicOpmode {
             }
         });
 
-        final OrientationTerminator driveToFoundationTerminator = new OrientationTerminator(position, new Vector3(0, -18, 180), 4, 1);
-        driveStates.put("driveToFoundation", builder.create(new Vector3(0, -18, 0), 0, driveToFoundationTerminator, 0.25, "waitForServos"));
+        final OrientationTerminator driveToFoundationTerminator = new OrientationTerminator(position, new Vector3(9, -17, 180), 4, 1);
+        driveStates.put("driveToFoundation", builder.create(new Vector3(9, -17, 0), 0, driveToFoundationTerminator, 0.25, "end"));
         states.put("latchOn", new LogicState(stateMachine) {
+            long timer = 0;
             @Override
             public void update(ReadData data) {
-                if(driveToFoundationTerminator.shouldTerminate(data)){
+                if(driveToFoundationTerminator.shouldTerminate(data) && timer == 0){
                    robot.latchOn();
-                   deactivateThis();
+                   timer = System.currentTimeMillis() + 1500;
                 }
-            }
-        });
-        driveStates.put("waitForServos", new VelocityDriveState(stateMachine, drive) {
-            long timer;
-            @Override
-            public void init(ReadData data){
-                timer = System.currentTimeMillis() + 1500;
-            }
-            @Override
-            public void update(ReadData data){
-                if(System.currentTimeMillis() > timer){
-                    deactivateThis();
+                if(timer != 0 && System.currentTimeMillis() > timer){
                     stateMachine.setActiveDriveState("driveBack");
+                    deactivateThis();
                 }
-            }
-            @Override
-            protected Vector3 getRobotVelocity() {
-                return Vector3.ZERO();
+                telemetry.setHeader("Time", timer - System.currentTimeMillis());
             }
         });
-        final OrientationTerminator driveFoundationBack = new OrientationTerminator(position, new Vector3(0, 18, -90), 4, 1);
-        driveStates.put("driveBack", builder.create(new Vector3(0, 18, 0), 0, driveFoundationBack, 0.25, "end"));
-        driveStates.put("turnToSkystones", builder.turn(0.01, -90, "end", driveFoundationBack));
+        final OrientationTerminator driveFoundationBack = new OrientationTerminator(position, new Vector3(9, -1, 90), 4, 25);
+        driveStates.put("driveBack", builder.create(new Vector3(9, -1, 0), 0, driveFoundationBack, 0.7, "turnToSkystones"));
+        states.put("latchOff", new LogicState(stateMachine) {
+            long timer = 0;
+            @Override
+            public void update(ReadData data) {
+                if(driveFoundationBack.shouldTerminateRotation() && timer == 0){
+                    robot.latchOff();
+                    timer = System.currentTimeMillis() + 1500;
+                }
+                if(timer != 0 && System.currentTimeMillis() > timer){
+                    stateMachine.setActiveDriveState("driveToSkystones");
+                    deactivateThis();
+                }
+                telemetry.setHeader("Time", timer - System.currentTimeMillis());
+            }
+        });
+        final OrientationTerminator driveToSkystones = new OrientationTerminator(position, new Vector3(-10, -8, -90), 4, 1);
+        driveStates.put("turnToSkystones", builder.turn(0.01, 90, "driveToSkystones", driveToSkystones));
+        driveStates.put("driveToSkystones", builder.create(new Vector3(-5, -8, 90), 0, driveToSkystones, 1, "turnToSeeSkystones"));
+        final OrientationTerminator turnToSeeSkystones = new OrientationTerminator(position, new Vector3(0, 0, 10), 0, 1);
+        driveStates.put("turnToSeeSkystones", builder.turn(0.01, 10, "end", turnToSeeSkystones));
+        states.put("pixyData", new LogicState(stateMachine) {
+            long timer = 0;
+            @Override
+            public void update(ReadData data) {
+                if(driveToSkystones.shouldTerminate(data) && timer == 0) {
+                    timer = 1;
+                }
+                if(timer == 1){
+                    telemetry.setHeader("Y", robot.getPixy().getY());
+                }
+            }
+        });
         stateMachine.appendDriveStates(driveStates);
         stateMachine.appendLogicStates(states);
         stateMachine.activateLogic("init");

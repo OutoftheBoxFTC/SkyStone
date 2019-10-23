@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -14,6 +15,7 @@ import java.util.Map;
 
 import debug.FPSDebug;
 import debug.SmartTelemetry;
+import hardware.Sensors.Pixycam;
 import revextensions2.ExpansionHubEx;
 import revextensions2.ExpansionHubMotor;
 import revextensions2.RevBulkData;
@@ -46,6 +48,8 @@ public class Hardware implements Runnable {
     private double intakePower;
 
     private Servo foundationLeft, foundationRight;
+
+    private Pixycam pixy;
 
     public Hardware(LinearOpMode opmode, SmartTelemetry telemetry){
         this.opMode = opmode;
@@ -100,6 +104,9 @@ public class Hardware implements Runnable {
         if(enabledDevices.contains(HardwareDevice.SERVOS)){
             foundationLeft = getOrNull(map.servo, "fLeft");
             foundationRight = getOrNull(map.servo, "fRight");
+        }
+        if(enabledDevices.contains(HardwareDevice.PIXYCAM)){
+            pixy = map.get(Pixycam.class, "pixy");
         }
     }
 
@@ -253,6 +260,10 @@ public class Hardware implements Runnable {
     public Hardware disableDevice(HardwareDevice device){
         enabledDevices.remove(device);
         return this;
+    }
+
+    public Pixycam getPixy(){
+        return pixy;
     }
 
     public enum HardwareDevice {

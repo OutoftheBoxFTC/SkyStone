@@ -97,7 +97,7 @@ public class StateMachine {
         }
         else {
             if(!activatedDriveState.getStateName().equals(state)){
-                deactivateLogic(activatedDriveState.stateName);
+                deactivatedLogicStates.add(driveStates.get(state));
                 activatedDriveState = driveStates.get(state);
                 activateLogic(state);
             }
