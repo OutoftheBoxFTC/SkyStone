@@ -20,7 +20,14 @@ public class PixycamTests extends BasicOpmode {
             long timer = 0;
             @Override
             public void update(ReadData data) {
+                if(timer == 0 || System.currentTimeMillis() > timer) {
+                    robot.getPixy().queueData();
+                    timer = System.currentTimeMillis() + 25;
+                }
                 telemetry.setHeader("X", robot.getPixy().getY());
+                for(int i = 0; i < robot.getPixy().getShorts().size(); i ++){
+                    telemetry.setHeader(String.valueOf(i), robot.getPixy().getShorts().get(i));
+                }
             }
         });
         stateMachine.appendLogicStates(states);

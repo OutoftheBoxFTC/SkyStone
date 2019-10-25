@@ -34,6 +34,9 @@ public class TurnCorrectionVector extends VelocityDriveState {
             correction = ((360 + targetAngle) - Math.toDegrees(data.getGyro()));
         }
         correction *= kp;
+        if(correction < 0.1){
+            correction = 0.1;
+        }
         if(terminator.shouldTerminateRotation()){
             deactivateThis();
             stateMachine.setActiveDriveState(nextState);
