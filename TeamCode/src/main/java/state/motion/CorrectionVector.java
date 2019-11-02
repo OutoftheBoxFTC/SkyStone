@@ -21,7 +21,7 @@ public class CorrectionVector extends VelocityDriveState {
     boolean finished;
     Terminator terminator;
     SimpleOdometer odometer;
-    private static final double kPStrafe = 0.25, kPForward = 0.25;
+    private double kPStrafe = 0.25, kPForward = 0.25, specialFor, specialStr;
     String nextstate;
     public CorrectionVector(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector3 target, double AoA, Terminator terminator, double power, SimpleOdometer odometer, String nextState){
         super(stateMachine, robotDrive);
@@ -39,6 +39,27 @@ public class CorrectionVector extends VelocityDriveState {
         this.nextstate = nextState;
         firstX = 0;
         firstY = 0;
+        specialFor = 1;
+        specialStr = 1;
+    }
+    public CorrectionVector(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector3 target, double AoA, Terminator terminator, double power, SimpleOdometer odometer, String nextState, double kpStrafe, double kpForward){
+        super(stateMachine, robotDrive);
+        this.position = position;
+        this.target = new Vector2(target.getA(), target.getB());
+        this.AoA = AoA - 90;
+        this.terminator = terminator;
+        targetRot = target.getC();
+        this.power = power;
+        this.start = new Vector2(position.getA(), position.getB());
+        this.velocities = Vector3.ZERO();
+        this.tolerance = 1;
+        this.kp = 0.2;
+        this.odometer = odometer;
+        this.nextstate = nextState;
+        firstX = 0;
+        firstY = 0;
+        this.specialStr = kpStrafe;
+        this.specialFor = kpForward;
     }
     @Override
     public void init(ReadData data){
@@ -52,6 +73,7 @@ public class CorrectionVector extends VelocityDriveState {
 
     public void update(ReadData data) {
         if((!terminator.shouldTerminate(data)) && !finished) {
+            RobotLog.i("Target: " + target.toString() + " Position: " + position.toString());
             double slope = (start.getB() - target.getB()) / (start.getA() - position.getA());
             double mainr = new Vector2(position.getA(), position.getB()).distanceTo(target);
             double maintheta = (Math.PI/2) - Math.atan2(target.getB() - position.getB(), target.getA() - position.getA());
@@ -78,6 +100,8 @@ public class CorrectionVector extends VelocityDriveState {
             x = Math.max(x, -power);
             y = Math.min(y, power);
             y = Math.max(y, -power);
+            y *= specialFor;
+            x *= specialStr;
             double rotation = (targetRot - Math.toDegrees(data.getGyro()));
             if(rotation > 180){
                 rotation = (targetRot - (360 + Math.toDegrees(data.getGyro())));

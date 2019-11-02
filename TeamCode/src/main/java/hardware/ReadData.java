@@ -10,6 +10,7 @@ public class ReadData {
     public static final int LEFT = 1, AUX = 2, RIGHT = 0;
     private int left, right, aux, vLeft, vRight, vAux;
     private double gyro;
+    private short pixyY;
     private CalibrationData calibration;
     private long hub1BulkTime, gyroTime;
 

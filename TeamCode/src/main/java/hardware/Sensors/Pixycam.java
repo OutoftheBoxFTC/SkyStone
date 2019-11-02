@@ -98,9 +98,10 @@ public class Pixycam extends I2cDeviceSynchDevice<I2cDeviceSynch> {
     }
 
     public void queueData(){
-        byte[] data = this.deviceClient.read(0, 16);
+        this.deviceClient.write(0, request);
+        byte[] data = this.deviceClient.read(0, 20);
         shorts = endianToShort(data);
-        if(!shorts.get(0).equals(shorts.get(1))){
+        if(shorts.get(2).equals(0)){
             shorts = prevShorts;
         }else{
             prevShorts = shorts;
@@ -112,11 +113,11 @@ public class Pixycam extends I2cDeviceSynchDevice<I2cDeviceSynch> {
     }
 
     public short getX(){
-        return shorts.get(4);
+        return shorts.get(5);
     }
 
     public short getY(){
-        return shorts.get(5);
+        return shorts.get(6);
     }
 
     public short getWidth(){
@@ -143,5 +144,9 @@ public class Pixycam extends I2cDeviceSynchDevice<I2cDeviceSynch> {
             shorts.add(bb.getShort());
         }
         return shorts;
+    }
+
+    public List<Short> getPrevShorts(){
+        return prevShorts;
     }
 }

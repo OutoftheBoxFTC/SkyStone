@@ -45,7 +45,7 @@ public class Hardware implements Runnable {
 
     private CalibrationData calibration;
 
-    private double intakePower;
+    private double intakePower, intakeMod;
 
     private Servo foundationLeft, foundationRight;
 
@@ -64,10 +64,12 @@ public class Hardware implements Runnable {
     }
 
     public void init(){
+        intakeMod = 0.3;
         HardwareMap map = opMode.hardwareMap;
         calibration = new CalibrationData();
         if(enabledDevices.contains(HardwareDevice.HUB_1_BULK)) {
             hub = getOrNull(map, ExpansionHubEx.class, "hub1");
+            hub.setPhoneChargeEnabled(true);
             RobotLog.i("this is a test");
         }
         if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)){
@@ -137,7 +139,13 @@ public class Hardware implements Runnable {
     }
 
     public void intake(double power){
+        intakeMod = 1;
         intakePower = power;
+    }
+
+    public void variedIntake(double power){
+        intakePower = power;
+        intakeMod = -0.3;
     }
 
     public void latchOn(){
@@ -146,8 +154,24 @@ public class Hardware implements Runnable {
     }
 
     public void latchOff(){
-        foundationLeft.setPosition(0.7);
-        foundationRight.setPosition(0.29);
+        foundationLeft.setPosition(0.93);
+        foundationRight.setPosition(0.04);
+    }
+
+    public void startDump(){
+        foundationLeft.setPosition(0.81);
+        foundationRight.setPosition(0.16);
+    }
+
+    public void intakeLeft(double power){
+        intakeMod = 0;
+        intakePower = power;
+    }
+
+    public void turnBrakeOff(){
+        for(SmartMotor s : driveMotors){
+            s.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        }
     }
 
     @Override
@@ -168,7 +192,7 @@ public class Hardware implements Runnable {
                 }
             }
             if(enabledDevices.contains(HardwareDevice.OTHER_MOTORS)){
-                intakeLeft.setPower(intakePower);
+                intakeLeft.setPower(intakePower * intakeMod);
                 intakeRight.setPower(intakePower);
             }
             ReadData data = new ReadData(calibration);
@@ -198,6 +222,8 @@ public class Hardware implements Runnable {
             dataLogged = true;
         }
     }
+
+
 
     public ReadData newData(){
         while (!dataLogged);

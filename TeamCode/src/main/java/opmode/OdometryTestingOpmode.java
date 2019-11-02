@@ -14,23 +14,24 @@ public class OdometryTestingOpmode extends BasicOpmode {
     public OdometryTestingOpmode() {
         super(0, false);
     }
-
+    double adjustment = 0;
     @Override
     protected void setup() {
         final SimpleOdometer odometer;
         final Vector3 position, velocity;
         robot.enableDevice(Hardware.HardwareDevice.HUB_1_BULK);
+        robot.enableDevice(Hardware.HardwareDevice.HUB_2_BULK);
+        robot.enableDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
         robot.enableDevice(Hardware.HardwareDevice.GYRO);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
-        odometer = new SimpleOdometer(0.00105141415, position, velocity, telemetry);
         HashMap<String, LogicState> states = new HashMap<>();
         states.put("init", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
                 if(opModeIsActive()){
                     stateMachine.activateLogic("Tracking");
-                    odometer.start(data);
+                    adjustment = data.getAux();
                     deactivateThis();
                 }
             }
@@ -38,10 +39,9 @@ public class OdometryTestingOpmode extends BasicOpmode {
         states.put("Tracking", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
-                odometer.update(data);
-                telemetry.setHeader("Position", position);
-                telemetry.setHeader("Velocity", velocity);
-                telemetry.setHeader("raw", new Vector3(data.getLeft(), data.getRight(), data.getAux()));
+                telemetry.setHeader("AuxRaw", data.getAux() - adjustment);
+                telemetry.setHeader("AuxFactor", ((data.getAux()-adjustment) / Math.PI));
+                telemetry.setHeader("AuxDisplacement", 0.0423583858-((data.getAux()-adjustment) / Math.PI));
             }
         });
         stateMachine.appendLogicStates(states);

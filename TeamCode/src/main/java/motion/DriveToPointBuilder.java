@@ -26,6 +26,10 @@ public class DriveToPointBuilder {
     public DriveState create(Vector3 target, double AoA, Terminator terminator, double power, String nextState){
         return new CorrectionVector(machine, drive, position, target, AoA, terminator, power, odometer, nextState);
     }
+
+    public DriveState createSpecial(Vector3 target, double AoA, Terminator terminator, double power, String nextState, double kpForward, double kpStrafe){
+        return new CorrectionVector(machine, drive, position, target, AoA, terminator, power, odometer, nextState, kpStrafe, kpForward);
+    }
     public DriveState turn(double kP, double angle, String nextState, OrientationTerminator terminator){
         return new TurnCorrectionVector(machine, drive, kP, angle, 0, position, nextState, terminator);
     }

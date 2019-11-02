@@ -17,7 +17,7 @@ public class OrientationTerminator extends Terminator {
         Vector2 coordinates = new Vector2(position.getA(), position.getB());
         Vector2 targetCoords = new Vector2(target.getA(), target.getB());
         double distance = coordinates.distanceTo(targetCoords);
-        double rotation = Math.abs(position.getC() - target.getC());
+        double rotation = Math.abs(position.getC() - (target.getC()>0 ? target.getC() : (360-Math.abs(target.getC()))));
         return (distance <= movementTolerance);
     }
 

@@ -24,9 +24,12 @@ public class PixycamTests extends BasicOpmode {
                     robot.getPixy().queueData();
                     timer = System.currentTimeMillis() + 25;
                 }
-                telemetry.setHeader("X", robot.getPixy().getY());
+                //telemetry.setHeader("X", robot.getPixy().getY());
                 for(int i = 0; i < robot.getPixy().getShorts().size(); i ++){
                     telemetry.setHeader(String.valueOf(i), robot.getPixy().getShorts().get(i));
+                }
+                for(int i = 0; i < robot.getPixy().getPrevShorts().size(); i ++){
+                    telemetry.setHeader("YEET " + String.valueOf(i), robot.getPixy().getPrevShorts().get(i));
                 }
             }
         });

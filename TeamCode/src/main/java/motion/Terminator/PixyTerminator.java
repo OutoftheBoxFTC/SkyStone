@@ -15,6 +15,6 @@ public class PixyTerminator extends Terminator {
 
     @Override
     public boolean shouldTerminate(ReadData data) {
-        return (robot.getPixy().getY() > 100 && robot.getPixy().getY() < 180);
+        return (robot.getPixy().getY() > 30 && robot.getPixy().getY() < 90);
     }
 }

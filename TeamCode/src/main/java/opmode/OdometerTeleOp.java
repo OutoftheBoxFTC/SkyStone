@@ -68,7 +68,7 @@ public class OdometerTeleOp extends BasicOpmode {
                 if(gamepad1.rightTrigger != 0) {
                     robot.intake(gamepad1.rightTrigger);
                 }else {
-                    robot.intake(-gamepad1.leftTrigger);
+                    robot.variedIntake(gamepad1.leftTrigger);
                 }
             }
         });
@@ -80,6 +80,7 @@ public class OdometerTeleOp extends BasicOpmode {
                     stateMachine.setActiveDriveState("FieldCentric");
                     stateMachine.activateLogic("intake");
                     odometer.start(data);
+                    robot.turnBrakeOff();
                     deactivateThis();
 
                 }

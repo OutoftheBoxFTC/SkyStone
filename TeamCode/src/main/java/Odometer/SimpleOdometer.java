@@ -37,7 +37,7 @@ public class SimpleOdometer {
         double forward = ((data.getLeft() + data.getRight())/2);
         double rotDiff = data.getRight() - forward;
         double rotInc = data.getGyro() - lastCoords.getC();
-        double aux = ((data.getAux()) - (rotInc * 0.0423583858));
+        double aux = ((data.getAux()) - (rotInc * 1735));
         double forwardInc = forward - lastCoords.getA();
         double auxInc = aux - lastCoords.getB();
         double r = (Math.sqrt((forwardInc * forwardInc) + (auxInc * auxInc)));
