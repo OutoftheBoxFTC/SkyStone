@@ -6,7 +6,7 @@ import State.*;
 import Hardware.*;
 
 public abstract class BasicOpmode extends LinearOpMode {
-    private Hardware robot;
+    protected Hardware robot;
     StateMachine statemachine;
     StateMachineSwitcher stateMachineSwitcher;
     double driveLoopIterations, currentLoops;
@@ -25,17 +25,19 @@ public abstract class BasicOpmode extends LinearOpMode {
         HardwareData hardware = new HardwareData(System.currentTimeMillis());
         currentLoops = 1;
         while(!isStopRequested()){
+            hardware.setTimestamp(System.currentTimeMillis());
             SensorData sensors = robot.update(hardware);
+            telemetry.addData("Hardware Latency", System.currentTimeMillis() - hardware.getTimestamp());
+            telemetry.addData("Sensors Latency", System.currentTimeMillis() - sensors.getTimestamp());
             statemachine.update(sensors, hardware);
             if(currentLoops <= 0){
-                hardware.setMotorPowers(statemachine.getDriveVelocities());
+                hardware.setMotorPowers(statemachine.getDriveVelocities(sensors));
                 currentLoops = 1;
             }
             currentLoops -= (1/driveLoopIterations);
+            telemetry.update();
         }
     }
 
     public abstract void setup();
-
-    public abstract void run();
 }

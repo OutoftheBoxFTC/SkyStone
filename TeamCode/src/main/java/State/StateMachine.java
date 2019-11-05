@@ -63,10 +63,10 @@ public class StateMachine {
         deactivatedLogicStates.clear();
     }
 
-    public Vector4 getDriveVelocities(){
+    public Vector4 getDriveVelocities(SensorData sensors){
         Vector4 velocity = new Vector4(0, 0, 0, 0);
         if(activeDriveState!=null){
-            velocity = activeDriveState.getWheelVelocities();
+            velocity = activeDriveState.getWheelVelocities(sensors);
         }
         return velocity;
     }

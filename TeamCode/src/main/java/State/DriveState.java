@@ -9,5 +9,5 @@ public abstract class DriveState extends LogicState {
         super(stateMachine);
     }
 
-    public abstract Vector4 getWheelVelocities();
+    public abstract Vector4 getWheelVelocities(SensorData sensors);
 }

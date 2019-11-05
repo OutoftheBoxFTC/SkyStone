@@ -6,6 +6,11 @@ import math.Vector4;
 public class HardwareData {
     private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight;
     private long timestamp;
+
+    /**
+     * Creates a new Hardware Data instance
+     * @param timestamp the current timestamp for debug
+     */
     public HardwareData(long timestamp){
         this.timestamp = timestamp;
         frontLeftMotor = 0;
@@ -18,12 +23,25 @@ public class HardwareData {
         intakeLeft = 0;
     }
 
+    /**
+     * Sets the motor powers
+     * @param frontLeftMotor
+     * @param frontRightMotor
+     * @param backLeftMotor
+     * @param backRightMotor
+     */
+
     public void setMotorPowers(double frontLeftMotor, double frontRightMotor, double backLeftMotor, double backRightMotor){
         this.frontLeftMotor = frontLeftMotor;
         this.frontRightMotor = frontRightMotor;
         this.backLeftMotor = backLeftMotor;
         this.backRightMotor = backRightMotor;
     }
+
+    /**
+     * Sets the motor powers
+     * @param motorPowers a vector4 containing {frontLeft, frontRight, backLeft, backRight}
+     */
 
     public void setMotorPowers(Vector4 motorPowers){
         this.frontLeftMotor = motorPowers.getA();
@@ -32,15 +50,52 @@ public class HardwareData {
         this.backRightMotor = motorPowers.getD();
     }
 
+    /**
+     * Sets the latch servo positions
+     * @param leftLatch
+     * @param rightLatch
+     */
+
     public void setLatchServos(double leftLatch, double rightLatch){
         this.latchLeft = leftLatch;
         this.latchRight = rightLatch;
     }
 
+    /**
+     * Sets the latch servo positions
+     * @param positions a vector2 containing {left, right}
+     */
+
+    public void setLatchServos(Vector2 positions){
+        this.latchLeft = positions.getA();
+        this.latchRight = positions.getB();
+    }
+
+    /**
+     * Sets the intake powers
+     * @param intakeLeft
+     * @param intakeRight
+     */
+
     public void setIntakePowers(double intakeLeft, double intakeRight){
         this.intakeLeft = intakeLeft;
         this.intakeRight = intakeRight;
     }
+
+    /**
+     * Sets the intake powers
+     * @param power the power to set both intake motors to
+     */
+
+    public void setIntakePowers(double power){
+        this.intakeLeft = power;
+        this.intakeRight = power;
+    }
+
+    /**
+     * Sets the timestamp for debug
+     * @param timestamp
+     */
 
     public void setTimestamp(long timestamp){
         this.timestamp = timestamp;
@@ -79,6 +134,11 @@ public class HardwareData {
         positions.setB(intakeRight);
         return positions;
     }
+
+    /**
+     * Gets the timestamp
+     * @return the timestamp
+     */
 
     public long getTimestamp(){
         return timestamp;

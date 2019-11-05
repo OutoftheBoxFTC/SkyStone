@@ -26,11 +26,21 @@ public class Hardware {
     private ArrayList<HardwareDevices> enabledDevices;
     private CalibrationSystem calibration;
     private BNO055IMU imu;
+
+    /**
+     * Creats a new Hardware
+     * @param opmode the opmode
+     * @param telemetry telemetry for debug
+     */
     public Hardware(OpMode opmode, Telemetry telemetry){
         this.opmode = opmode;
         this.telemetry = telemetry;
         enabledDevices = new ArrayList<>();
     }
+
+    /**
+     * initializes the hardware, assigning enabled devices from the hardware map
+     */
     public void init(){
         HardwareMap map = opmode.hardwareMap;
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)){
@@ -54,6 +64,9 @@ public class Hardware {
         }
     }
 
+    /**
+     * Calibrates all enabled devices. Must be called before update
+     */
     public void calibrate(){
         calibration = new CalibrationSystem();
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
@@ -67,6 +80,11 @@ public class Hardware {
         }
     }
 
+    /**
+     * updates all sensors and hardware devices from the HardwareData
+     * @param data HardwareData class to assign all hardware devices values
+     * @return SensorData class containing new sensor data
+     */
     public SensorData update(HardwareData data){
         SensorData sensors = new SensorData(calibration, System.currentTimeMillis());
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)){
@@ -106,22 +124,39 @@ public class Hardware {
         return null;
     }
 
+    /**
+     * Enables all hardware devices
+     */
     public void enableAll(){
         enabledDevices.add(HardwareDevices.DRIVE_MOTORS);
         enabledDevices.add(HardwareDevices.LATCH_SERVOS);
         enabledDevices.add(HardwareDevices.INTAKE_MOTORS);
         enabledDevices.add(HardwareDevices.GYRO);
     }
+
+    /**
+     * Enables specific hardware deivice
+     * @param device device to enable
+     */
     public void enableDevice(HardwareDevices device){
         if(!enabledDevices.contains(device)){
             enabledDevices.add(device);
         }
     }
+
+    /**
+     * Disables specific hardware device
+     * @param device the device to disable
+     */
     public void disableDevice(HardwareDevices device){
         if(enabledDevices.contains(device)){
             enabledDevices.remove(device);
         }
     }
+
+    /**
+     * Enumaltion of all HardwareDevices
+     */
     public enum HardwareDevices{
         DRIVE_MOTORS,
         LATCH_SERVOS,

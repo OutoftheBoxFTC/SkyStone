@@ -41,6 +41,13 @@ public class Vector4 {
         this.d = d;
     }
 
+    public void set(Vector4 v){
+        this.a = v.a;
+        this.b = v.b;
+        this.c = v.c;
+        this.d = v.d;
+    }
+
     public Vector4 add(Vector4 v){
         return new Vector4(v.a+a, v.b+b, v.c+c, v.d+d);
     }
