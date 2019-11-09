@@ -86,7 +86,6 @@ public class Hardware {
      * updates all sensors and hardware devices from the HardwareData
      * @param data HardwareData class to assign all hardware devices values
      * @return SensorData class containing new sensor data
-     *
      */
     public SensorData update(HardwareData data){
         SensorData sensors = new SensorData(calibration, System.currentTimeMillis());
