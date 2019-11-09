@@ -95,10 +95,6 @@ public class Hardware {
             frontRight.setPower(motorPowers.getB());
             backLeft.setPower(motorPowers.getC());
             backRight.setPower(motorPowers.getD());
-            frontLeft.updateMotor();
-            frontRight.updateMotor();
-            backRight.updateMotor();
-            backLeft.updateMotor();
         }
         if(enabledDevices.contains(HardwareDevices.LATCH_SERVOS)){
             Vector2 servoPositions = data.getLatchPositions();

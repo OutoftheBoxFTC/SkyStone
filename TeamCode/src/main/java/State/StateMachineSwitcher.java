@@ -2,6 +2,7 @@ package State;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import Hardware.HardwareData;
 import Hardware.SensorData;
@@ -35,5 +36,9 @@ public class StateMachineSwitcher {
         managerList.get(index).stop();
         index = managerList.indexOf(manager);
         managerList.get(index).start();
+    }
+
+    public String getActiveManager(){
+        return managerList.get(index).getClass().getName();
     }
 }

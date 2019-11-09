@@ -4,8 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 public class SmartMotor {
     private DcMotor motor;
-    private double power;
-    private boolean updated;
+    private double power, previousPower;
 
     /**
      * Creates a new Smart Motor. Smart Motors do not send duplicate power send commands
@@ -14,7 +13,7 @@ public class SmartMotor {
     public SmartMotor(DcMotor motor){
         this.motor = motor;
         power = 0;
-        updated = false;
+        previousPower = 0;
     }
 
     /**
@@ -30,11 +29,11 @@ public class SmartMotor {
      * @param power the power to set [-1, 1]
      */
     public void setPower(double power){
-        if(this.power != power){
+        if(Math.abs(power-previousPower) > 0.005){
+            previousPower = power;
             this.power = power;
-            updated = true;
+            motor.setPower(power);
         }
-        updated = true; //DELETE
     }
 
     /**
@@ -43,15 +42,5 @@ public class SmartMotor {
      */
     public double getMotorPower(){
         return power;
-    }
-
-    /**
-     * Updates the motor, setting the motor power if the set power is different
-     */
-    public void updateMotor(){
-        if(updated){
-            motor.setPower(power);
-            updated = false;
-        }
     }
 }

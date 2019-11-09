@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class SmartServo {
     private Servo servo;
-    private double position;
+    private double position, prevPosition;
     private boolean updated;
 
     /**
@@ -14,6 +14,7 @@ public class SmartServo {
     public SmartServo(Servo servo){
         this.servo = servo;
         position = 0;
+        prevPosition = 0;
         updated = false;
     }
 
@@ -22,20 +23,11 @@ public class SmartServo {
      * @param position the position to set the servo to
      */
     public void setPosition(double position){
-        if(this.position != position){
+        if(Math.abs(position - prevPosition) > 0.005){
             this.position = position;
             updated = true;
-        }
-        updated = true; //DELETE
-    }
-
-    /**
-     * Sets the servo position, if the new position is different than the old one
-     */
-    public void updateServo(){
-        if(updated){
+            prevPosition = position;
             servo.setPosition(position);
-            updated = false;
         }
     }
 

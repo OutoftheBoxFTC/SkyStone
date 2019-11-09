@@ -10,6 +10,7 @@ public abstract class BasicOpmode extends LinearOpMode {
     StateMachine statemachine;
     StateMachineSwitcher stateMachineSwitcher;
     double driveLoopIterations, currentLoops;
+    protected static final double TRANSLATION_FACTOR = (0.0010329132/2);
     public BasicOpmode(double driveLoopIterations){
         this.driveLoopIterations = driveLoopIterations;
     }
@@ -29,6 +30,7 @@ public abstract class BasicOpmode extends LinearOpMode {
             SensorData sensors = robot.update(hardware);
             telemetry.addData("Hardware Latency", System.currentTimeMillis() - hardware.getTimestamp());
             telemetry.addData("Sensors Latency", System.currentTimeMillis() - sensors.getTimestamp());
+            telemetry.addData("Active Manager", stateMachineSwitcher.getActiveManager());
             statemachine.update(sensors, hardware);
             if(currentLoops <= 0){
                 hardware.setMotorPowers(statemachine.getDriveVelocities(sensors));
