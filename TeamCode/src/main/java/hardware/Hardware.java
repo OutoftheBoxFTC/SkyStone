@@ -18,13 +18,10 @@ import java.util.Map;
 import debug.FPSDebug;
 import debug.SmartTelemetry;
 
-public class Hardware implements Runnable {
-    private static final long MIN_WAIT_TIME=1000000;
-
+public class Hardware {
     private LinearOpMode opMode;
 
-    private ArrayList<ReadData> dataBuffer;
-    private ArrayList<double[]> drivePowerBuffer;
+    private double[] drivePowers;
 
     private SmartMotor a, b, c, d;
     private ExpansionHubEx hub1, hub2;
@@ -35,8 +32,6 @@ public class Hardware implements Runnable {
 
     private BNO055IMU imu;
 
-    private boolean dataLogged;
-
     private SmartTelemetry telemetry;
 
     private ArrayList<HardwareDevice> registeredDevices, enabledDevices;
@@ -46,13 +41,11 @@ public class Hardware implements Runnable {
     public Hardware(LinearOpMode opmode, SmartTelemetry telemetry){
         this.opMode = opmode;
         driveMotors = new ArrayList<>();
-        dataBuffer = new ArrayList<>();
-        drivePowerBuffer = new ArrayList<>();
+        drivePowers = new double[4];
         registeredDevices = new ArrayList<>();
         enabledDevices = new ArrayList<>();
         fpsDebug = new FPSDebug(telemetry, "Hardware");
         this.telemetry = telemetry;
-        dataLogged = false;
     }
 
     public void init(){
@@ -111,60 +104,33 @@ public class Hardware implements Runnable {
     }
 
     public void drive(double a, double b, double c, double d){
-        drivePowerBuffer.add(new double[]{a, b, c, d});
+        drivePowers = new double[]{a, b, c, d};
     }
 
-    @Override
-    public void run() {
-        ArrayList<HardwareDevice> enabledDevices = new ArrayList<>();
-        while (!opMode.isStopRequested()){
-            long startTime = System.nanoTime();
-            fpsDebug.startIncrement();
-            boolean drivePowersBuffered = !drivePowerBuffer.isEmpty();
-            if(enabledDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
-                if (drivePowersBuffered) {
-                    double[] drivePowers = drivePowerBuffer.get(0);
-                    if (drivePowers != null) {
-                        for (int i = 0; i < 4; i++) {
-                            driveMotors.get(i).setPower(drivePowers[i]);
-                        }
-                    }
-                }
+    public ReadData update() {
+        fpsDebug.startIncrement();
+        double[] drivePowers = this.drivePowers;
+        if (drivePowers != null) {
+            for (int i = 0; i < 4; i++) {
+                driveMotors.get(i).setPower(drivePowers[i]);
             }
-            ReadData data = new ReadData(calibration);
-            if(enabledDevices.contains(HardwareDevice.HUB_1_BULK)) {
-                RevBulkData rawData = hub1.getBulkInputData();
-                data.addHub1BulkData(rawData);
-            }
-            if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)){
-                RevBulkData rawData = hub2.getBulkInputData();
-                data.addHub2BulkData(rawData);
-            }
-            if(enabledDevices.contains(HardwareDevice.GYRO)){
-                data.addGyro(imu);
-            }
-
-            if(drivePowersBuffered){
-                //HOPEFULLY by now main loop is waiting for calibration and not about to send drive powers lol
-                drivePowerBuffer.remove(0);
-            }
-
-            fpsDebug.endIncrement();
-            fpsDebug.update();
-            dataBuffer.add(data);
-            while (System.nanoTime()-startTime<MIN_WAIT_TIME);
-            enabledDevices.clear();
-            enabledDevices.addAll(this.enabledDevices);
-            dataLogged = true;
         }
-    }
 
-    public ReadData newData(){
-        while (!dataLogged);
-        dataLogged = false;
-        fpsDebug.queryFPS();
-        ReadData data = dataBuffer.get(dataBuffer.size()-1);
-        dataBuffer.remove(dataBuffer.size()-1);
+        ReadData data = new ReadData(calibration);
+        if(enabledDevices.contains(HardwareDevice.HUB_1_BULK)) {
+            RevBulkData rawData = hub1.getBulkInputData();
+            data.addHub1BulkData(rawData);
+        }
+        if(enabledDevices.contains(HardwareDevice.HUB_2_BULK)){
+            RevBulkData rawData = hub2.getBulkInputData();
+            data.addHub2BulkData(rawData);
+        }
+        if(enabledDevices.contains(HardwareDevice.GYRO)){
+            data.addGyro(imu);
+        }
+
+        fpsDebug.endIncrement();
+        fpsDebug.update();
         return data;
     }
 

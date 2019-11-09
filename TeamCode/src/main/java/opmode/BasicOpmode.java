@@ -5,8 +5,6 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import debug.FPSDebug;
 import debug.SmartTelemetry;
@@ -27,7 +25,6 @@ public abstract class BasicOpmode extends LinearOpMode {
     protected SmartTelemetry telemetry;
     protected SmartGamepad gamepad1, gamepad2;
     protected StateMachine stateMachine;
-    private ExecutorService threadManager;
 
     private double driveLoopPriority;
 
@@ -45,7 +42,6 @@ public abstract class BasicOpmode extends LinearOpMode {
         stateMachine = new StateMachine();
         if (!debug) {
             robot = new Hardware(this, telemetry);
-            threadManager = Executors.newFixedThreadPool(1);
         }
         gamepad1 = new SmartGamepad(super.gamepad1);
         gamepad2 = new SmartGamepad(super.gamepad2);
@@ -54,13 +50,12 @@ public abstract class BasicOpmode extends LinearOpMode {
             RobotLog.i("We are not in Debug Mode");
             robot.init();
             robot.calibrate();
-            threadManager.execute(robot);
         }
         double driveIterations = 0;
         while (!isStopRequested()){
             ReadData data = null;
             if(!debug) {
-                data = robot.newData();//stalls here until hardware loop obtains new data
+                data = robot.update();//stalls here until hardware loop obtains new data
             }
             fpsDebug.startIncrement();
             gamepad1.update();
@@ -85,7 +80,6 @@ public abstract class BasicOpmode extends LinearOpMode {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        threadManager.shutdown();
     }
 
     protected abstract void setup();
