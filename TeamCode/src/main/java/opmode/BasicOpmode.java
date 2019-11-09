@@ -34,6 +34,7 @@ public abstract class BasicOpmode extends LinearOpMode {
                 hardware.setMotorPowers(statemachine.getDriveVelocities(sensors));
                 currentLoops = 1;
             }
+            stateMachineSwitcher.update(sensors, hardware);
             currentLoops -= (1/driveLoopIterations);
             telemetry.update();
         }

@@ -19,6 +19,8 @@ public abstract class StateMachineManager {
     public abstract void setup();
 
     public void start(){
+        stateMachine.appendDriveStates(driveState);
+        stateMachine.appendLogicStates(logicStates);
         for(String state : logicStates.keySet()){
             stateMachine.activateLogic(state);
         }

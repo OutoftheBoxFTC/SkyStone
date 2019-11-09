@@ -16,6 +16,7 @@ import Hardware.HardwareDevices.SmartMotor;
 import Hardware.HardwareDevices.SmartServo;
 import math.Vector2;
 import math.Vector4;
+import revextensions2.ExpansionHubEx;
 
 public class Hardware {
     private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight;
@@ -26,6 +27,7 @@ public class Hardware {
     private ArrayList<HardwareDevices> enabledDevices;
     private CalibrationSystem calibration;
     private BNO055IMU imu;
+    private ExpansionHubEx hub1, hub2;
 
     /**
      * Creats a new Hardware
@@ -93,6 +95,10 @@ public class Hardware {
             frontRight.setPower(motorPowers.getB());
             backLeft.setPower(motorPowers.getC());
             backRight.setPower(motorPowers.getD());
+            frontLeft.updateMotor();
+            frontRight.updateMotor();
+            backRight.updateMotor();
+            backLeft.updateMotor();
         }
         if(enabledDevices.contains(HardwareDevices.LATCH_SERVOS)){
             Vector2 servoPositions = data.getLatchPositions();

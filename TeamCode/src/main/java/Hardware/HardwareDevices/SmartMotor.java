@@ -34,6 +34,7 @@ public class SmartMotor {
             this.power = power;
             updated = true;
         }
+        updated = true; //DELETE
     }
 
     /**

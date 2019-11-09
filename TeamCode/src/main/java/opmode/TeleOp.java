@@ -9,7 +9,7 @@ import State.LogicState;
 import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
-
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends BasicOpmode {
     public TeleOp() {
         super(1);

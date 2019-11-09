@@ -26,6 +26,7 @@ public class SmartServo {
             this.position = position;
             updated = true;
         }
+        updated = true; //DELETE
     }
 
     /**

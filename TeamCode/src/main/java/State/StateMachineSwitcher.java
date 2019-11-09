@@ -12,6 +12,9 @@ public class StateMachineSwitcher {
     public void start(StateMachineManager... managers){
         managerList = new ArrayList<>();
         managerList.addAll(Arrays.asList(managers));
+        for(StateMachineManager manager : managers){
+            manager.setup();
+        }
         managerList.get(index).start();
     }
     public void update(SensorData sensors, HardwareData hardware){
