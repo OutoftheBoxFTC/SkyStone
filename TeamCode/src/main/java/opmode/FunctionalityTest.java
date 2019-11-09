@@ -32,6 +32,7 @@ public class FunctionalityTest extends BasicOpmode {
     protected void setup() {
         robot.registerDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
         robot.registerDevice(Hardware.HardwareDevice.HUB_1_BULK);
+        robot.registerDevice(Hardware.HardwareDevice.HUB_2_BULK);
         robot.registerDevice(Hardware.HardwareDevice.GYRO);
         HashMap<String, LogicState> logicStates = new HashMap<>();
         logicStates.put("init", new LogicState(stateMachine) {

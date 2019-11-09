@@ -38,7 +38,7 @@ public abstract class BasicOpmode extends LinearOpMode {
     @Override
     public void runOpMode() {
         this.telemetry = new SmartTelemetry(super.telemetry);
-        fpsDebug = new FPSDebug(telemetry, "Main Loop");
+        fpsDebug = new FPSDebug(telemetry, "Loop");
         stateMachine = new StateMachine();
         if (!debug) {
             robot = new Hardware(this, telemetry);
@@ -53,11 +53,11 @@ public abstract class BasicOpmode extends LinearOpMode {
         }
         double driveIterations = 0;
         while (!isStopRequested()){
+            fpsDebug.startIncrement();
             ReadData data = null;
             if(!debug) {
                 data = robot.update();//stalls here until hardware loop obtains new data
             }
-            fpsDebug.startIncrement();
             gamepad1.update();
             gamepad2.update();
             stateMachine.update(data);
