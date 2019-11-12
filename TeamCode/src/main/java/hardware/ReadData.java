@@ -66,7 +66,7 @@ public class ReadData {
     }
 
     public void addHub1BulkData(RevBulkData data){
-        hub1BulkTime = System.nanoTime();
+        this.hub1BulkTime = System.nanoTime();
     }
 
     public void addHub2BulkData(RevBulkData data){

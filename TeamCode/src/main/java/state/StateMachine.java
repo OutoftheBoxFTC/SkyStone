@@ -1,10 +1,8 @@
 package state;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
-import debug.SmartTelemetry;
 import hardware.ReadData;
 import math.Vector4;
 

@@ -8,6 +8,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvPipeline;
+import org.openftc.easyopencv.OpenCvWebcam;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.ExpansionHubMotor;
 import org.openftc.revextensions2.RevBulkData;
@@ -25,6 +30,8 @@ public class Hardware {
 
     private SmartMotor a, b, c, d;
     private ExpansionHubEx hub1, hub2;
+    private OpenCvCamera wc1;
+    private OpenCvPipeline pipeline;
 
     private ArrayList<SmartMotor> driveMotors;
 
@@ -57,6 +64,11 @@ public class Hardware {
         if(registeredDevices.contains(HardwareDevice.HUB_2_BULK)){
             hub2 = getOrNull(map, ExpansionHubEx.class, "hub2");
         }
+        if(registeredDevices.contains(HardwareDevice.WEBCAM_1)){
+            int cameraMonitorViewId = map.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", map.appContext.getPackageName());
+            wc1 = new OpenCvWebcam(map.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+            wc1.openCameraDevice();
+        }
         if(registeredDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
             a = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "a"));
             b = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "b"));
@@ -86,6 +98,12 @@ public class Hardware {
         if(registeredDevices.contains(HardwareDevice.HUB_2_BULK)){
             calibration.addHub2BulkData(hub2.getBulkInputData());
         }
+        if(registeredDevices.contains(HardwareDevice.WEBCAM_1)){
+            if(pipeline != null){
+                wc1.setPipeline(pipeline);
+            }
+            wc1.startStreaming(640, 480, OpenCvCameraRotation.SIDEWAYS_LEFT);
+        }
         if(registeredDevices.contains(HardwareDevice.GYRO)){
             calibration.addGyroData(imu);
         }
@@ -109,10 +127,13 @@ public class Hardware {
 
     public ReadData update() {
         fpsDebug.startIncrement();
-        double[] drivePowers = this.drivePowers;
-        if (drivePowers != null) {
-            for (int i = 0; i < 4; i++) {
-                driveMotors.get(i).setPower(drivePowers[i]);
+
+        if(enabledDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
+            double[] drivePowers = this.drivePowers;
+            if (drivePowers != null) {
+                for (int i = 0; i < 4; i++) {
+                    driveMotors.get(i).setPower(drivePowers[i]);
+                }
             }
         }
 
@@ -132,6 +153,10 @@ public class Hardware {
         fpsDebug.endIncrement();
         fpsDebug.update();
         return data;
+    }
+
+    public void setPipeline(OpenCvPipeline pipeline) {
+        this.pipeline = pipeline;
     }
 
     /**
@@ -192,11 +217,16 @@ public class Hardware {
         return this;
     }
 
+    public void stop(){
+        wc1.stopStreaming();
+        wc1.closeCameraDevice();
+    }
+
     public enum HardwareDevice {
         DRIVE_MOTORS,
         HUB_1_BULK,
         HUB_2_BULK,
-        PIXYCAM,
+        WEBCAM_1,
         GYRO
     }
 }

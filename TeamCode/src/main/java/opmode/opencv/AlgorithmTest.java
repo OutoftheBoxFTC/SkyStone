@@ -1,5 +1,6 @@
 package opmode.opencv;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -14,6 +15,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 @TeleOp(name = "Algorithm Test")
+@Disabled
 public class AlgorithmTest extends LinearOpMode {
     OpenCvCamera webcam;
     private Point[] color1, color2;
