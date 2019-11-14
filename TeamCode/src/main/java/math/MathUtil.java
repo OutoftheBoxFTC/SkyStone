@@ -106,11 +106,11 @@ public class MathUtil {
     public static double angleDelta(double a, double b){
         double tau = Math.PI*2;
         a = ((a%tau)+tau)%tau;
-        b = ((a%tau)+tau)%tau;
+        b = ((b%tau)+tau)%tau;
         //ensures between 0 and 2pi
         double d = b-a;
         if(d>Math.PI){
-            d = Math.PI*2-d;
+            d = tau-d;
         }
         return d;
     }

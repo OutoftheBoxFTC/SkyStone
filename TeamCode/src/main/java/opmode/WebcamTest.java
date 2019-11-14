@@ -42,15 +42,7 @@ public class WebcamTest extends BasicOpmode {
             }
         });
 
-        HashMap<String, DriveState> driveStates = new HashMap<>();
-        driveStates.put("zero", new DriveState(stateMachine) {
-            @Override
-            public Vector4 getWheelVelocities() {
-                return Vector4.ZERO();
-            }
-        });
         stateMachine.appendLogicStates(logicStates);
-        stateMachine.appendDriveStates(driveStates);
         stateMachine.activateLogic("init");
     }
 }

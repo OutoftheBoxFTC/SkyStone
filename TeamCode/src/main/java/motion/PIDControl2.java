@@ -15,15 +15,14 @@ public class PIDControl2 {
         this.kd = kd;
     }
 
-    public Vector2 evaluation(Vector2 error){
-        long now = System.nanoTime();
+    public Vector2 evaluation(Vector2 error, long timeStamp){
         if(lastTime==0){
             previousError = error;
-            lastTime = now;
-            return new Vector2(0, 0);
+            lastTime = timeStamp;
+            return error.scale(kp);
         }
-        double dt = (now-lastTime)/1.0e9;
-        lastTime = now;
+        double dt = (timeStamp-lastTime)/1.0e9;
+        lastTime = timeStamp;
         if(integralReset) {
             if (error.getA() * previousError.getA() < 0){
                 integral.setA(0);

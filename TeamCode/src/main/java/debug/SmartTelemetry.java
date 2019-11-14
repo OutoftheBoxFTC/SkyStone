@@ -99,7 +99,9 @@ public class SmartTelemetry {
     }
 
     public void stop() throws IOException {
-        connector.end();
+        if(loggerStarted) {
+            connector.end();
+        }
     }
 
     public Telemetry getTelemetry() {
