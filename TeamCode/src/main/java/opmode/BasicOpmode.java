@@ -77,6 +77,7 @@ public abstract class BasicOpmode extends LinearOpMode {
         }
         try {
             telemetry.stop();
+            robot.stop();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -15,6 +15,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 import org.openftc.revextensions2.ExpansionHubEx;
 import org.openftc.revextensions2.ExpansionHubMotor;
+import org.openftc.revextensions2.ExpansionHubServo;
 import org.openftc.revextensions2.RevBulkData;
 
 import java.util.ArrayList;
@@ -26,9 +27,10 @@ import debug.SmartTelemetry;
 public class Hardware {
     private LinearOpMode opMode;
 
-    private double[] drivePowers;
+    private double[] drivePowers, intakePowers, intakeServos;
 
-    private SmartMotor a, b, c, d;
+    private SmartMotor a, b, c, d, left, right;
+    private ExpansionHubServo leftServo, rightServo;
     private ExpansionHubEx hub1, hub2;
     private OpenCvCamera wc1;
     private OpenCvPipeline pipeline;
@@ -49,6 +51,7 @@ public class Hardware {
         this.opMode = opmode;
         driveMotors = new ArrayList<>();
         drivePowers = new double[4];
+        intakePowers = new double[2];
         registeredDevices = new ArrayList<>();
         enabledDevices = new ArrayList<>();
         fpsDebug = new FPSDebug(telemetry, "Hardware");
@@ -81,6 +84,15 @@ public class Hardware {
             driveMotors.add(b);
             driveMotors.add(c);
             driveMotors.add(d);
+        }
+        if(registeredDevices.contains(HardwareDevice.INTAKE_MOTORS)){
+            left = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "left"));
+            right = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "right"));
+
+        }
+        if(registeredDevices.contains(HardwareDevice.INTAKE_SERVOS)){
+            leftServo = (ExpansionHubServo) getOrNull(map.servo, "leftServo");
+            rightServo = (ExpansionHubServo) getOrNull(map.servo, "rightServo");
         }
         if(registeredDevices.contains(HardwareDevice.GYRO)) {
             imu = getOrNull(map, BNO055IMU.class, "imu");
@@ -125,15 +137,34 @@ public class Hardware {
         drivePowers = new double[]{a, b, c, d};
     }
 
+    public void intake(double l, double r){
+        intakePowers = new double[]{l, r};
+    }
+
+    public void intakeServos(double l, double r){
+        intakeServos = new double[]{l, r};
+    }
+
     public ReadData update() {
         fpsDebug.startIncrement();
-
         if(enabledDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
             double[] drivePowers = this.drivePowers;
             if (drivePowers != null) {
                 for (int i = 0; i < 4; i++) {
                     driveMotors.get(i).setPower(drivePowers[i]);
                 }
+            }
+        }
+        if(enabledDevices.contains(HardwareDevice.INTAKE_MOTORS)){
+            if(intakePowers != null){
+                left.setPower(intakePowers[0]);
+                right.setPower(intakePowers[1]);
+            }
+        }
+        if(enabledDevices.contains(HardwareDevice.INTAKE_SERVOS)){
+            if(intakeServos != null){
+                leftServo.setPosition(intakeServos[0]);
+                rightServo.setPosition(intakeServos[1]);
             }
         }
 
@@ -224,6 +255,8 @@ public class Hardware {
 
     public enum HardwareDevice {
         DRIVE_MOTORS,
+        INTAKE_MOTORS,
+        INTAKE_SERVOS,
         HUB_1_BULK,
         HUB_2_BULK,
         WEBCAM_1,
