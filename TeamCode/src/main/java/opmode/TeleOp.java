@@ -123,6 +123,22 @@ public class TeleOp extends BasicOpmode {
                         }
                     }
                 });
+                logicStates.put("intakeServos", new LogicState(stateMachine) {
+                    double position = 0;
+                    long timePrev = 0;
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(gamepad2.right_bumper){
+                            position += 0.1 * ((System.currentTimeMillis() - timePrev)/1000);
+                        }else if(gamepad2.left_bumper){
+                            position -= 0.1 * ((System.currentTimeMillis() - timePrev)/1000);
+                        }
+                        position = Math.min(position, 1);
+                        position = Math.max(position, 0);
+                        hardware.setIntakeServos(position, 1-position);
+                        timePrev = System.currentTimeMillis();
+                    }
+                });
             }
 
             @Override

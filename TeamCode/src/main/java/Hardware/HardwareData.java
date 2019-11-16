@@ -4,7 +4,7 @@ import math.Vector2;
 import math.Vector4;
 
 public class HardwareData {
-    private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight;
+    private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight;
     private long timestamp;
 
     /**
@@ -21,6 +21,8 @@ public class HardwareData {
         latchLeft = 0;
         intakeRight = 0;
         intakeLeft = 0;
+        intakeServoLeft = 0;
+        intakeServoRight = 0;
     }
 
     /**
@@ -133,6 +135,27 @@ public class HardwareData {
         positions.setA(intakeLeft);
         positions.setB(intakeRight);
         return positions;
+    }
+
+    /**
+     * Sets the intake servos
+     * @param left the left servo position
+     * @param right the right servo position
+     */
+
+    public void setIntakeServos(double left, double right){
+        intakeServoLeft = left;
+        intakeServoRight = right;
+    }
+
+    /**
+     * Sets the intake servos
+     * @param positions a vector2 containing the latch positions in the order [left, right]
+     */
+
+    public void setIntakeServos(Vector2 positions){
+        intakeServoLeft = positions.getA();
+        intakeServoRight = positions.getB();
     }
 
     /**

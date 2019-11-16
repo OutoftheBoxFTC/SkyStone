@@ -48,7 +48,6 @@ public class MathUtil {
         }
         return out;
     }
-
     //does fucking who knows what in the negative domain space
     private static double bullShitS(double x){
         double out = 0.015467;

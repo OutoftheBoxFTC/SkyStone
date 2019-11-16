@@ -4,8 +4,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 public class SmartServo {
     private Servo servo;
-    private double position, prevPosition;
-    private boolean updated;
+    private double position;
 
     /**
      * Creates a new Smart Servos. Smart Servos do not send duplicate power send commands
@@ -14,8 +13,6 @@ public class SmartServo {
     public SmartServo(Servo servo){
         this.servo = servo;
         position = 0;
-        prevPosition = 0;
-        updated = false;
     }
 
     /**
@@ -23,10 +20,8 @@ public class SmartServo {
      * @param position the position to set the servo to
      */
     public void setPosition(double position){
-        if(Math.abs(position - prevPosition) > 0.005){
+        if(this.position != position){
             this.position = position;
-            updated = true;
-            prevPosition = position;
             servo.setPosition(position);
         }
     }
