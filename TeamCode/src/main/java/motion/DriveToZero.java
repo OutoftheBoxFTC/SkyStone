@@ -54,8 +54,8 @@ public class DriveToZero extends VelocityDriveState {
                 rotationControl.reset();
                 wasInDistance = true;
             }
-            Vector3 fieldVelocity = new Vector3(translationControl.evaluation(fieldTranslation), rotationControl.evaluation(position.getC()));
-            robotVelocity = transformToRobot(fieldVelocity);
+            //Vector3 fieldVelocity = new Vector3(translationControl.evaluation(fieldTranslation), rotationControl.evaluation(position.getC()));
+            //robotVelocity = transformToRobot(fieldVelocity);
         } else {
             if(wasInDistance) {
                 rotationControl.reset();

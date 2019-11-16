@@ -16,6 +16,11 @@ import state.LogicState;
  * X: Front right wheel fwd (b)
  * A: Back left wheel fwd (c)
  * B: Back right wheel fwd (d)
+ * Right Bumper: Right Lift
+ * Left Bumper: Left Lift
+ * Right Trigger: Upper Servo
+ * Left Trigger: Lower Servo
+ *
  *
  * When moving robot fwd, left and right increases
  * When rotating cc, aux and right increases, left decreases
@@ -34,6 +39,12 @@ public class FunctionalityTest extends BasicOpmode {
         robot.registerDevice(Hardware.HardwareDevice.HUB_1_BULK);
         robot.registerDevice(Hardware.HardwareDevice.HUB_2_BULK);
         robot.registerDevice(Hardware.HardwareDevice.GYRO);
+        //robot.registerDevice(Hardware.HardwareDevice.WEBCAM_1);
+        robot.registerDevice(Hardware.HardwareDevice.INTAKE_MOTORS);
+        robot.registerDevice(Hardware.HardwareDevice.INTAKE_SERVOS);
+        //robot.registerDevice(Hardware.HardwareDevice.LIFT_MOTORS);
+        //robot.registerDevices(Hardware.HardwareDevice.LIFT_SERVOS);
+
         HashMap<String, LogicState> logicStates = new HashMap<>();
         logicStates.put("init", new LogicState(stateMachine) {
             @Override

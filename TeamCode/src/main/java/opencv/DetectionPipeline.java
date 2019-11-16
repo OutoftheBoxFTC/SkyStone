@@ -6,11 +6,17 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import math.Vector2;
+import math.Vector3;
+
 public class DetectionPipeline extends OpenCvPipeline {
+    private int detection;
+    private Vector3 position;
 
-    private int pos;
-    public DetectionPipeline(){
+    private Vector2 skystone1, skystone2;
 
+    public DetectionPipeline(Vector3 position){
+        this.position = position;
     }
 
     @Override
@@ -34,6 +40,6 @@ public class DetectionPipeline extends OpenCvPipeline {
     }
 
     public int getDetectedPosition(){
-        return pos;
+        return 0;//TODO finish
     }
 }

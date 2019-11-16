@@ -27,10 +27,10 @@ import debug.SmartTelemetry;
 public class Hardware {
     private LinearOpMode opMode;
 
-    private double[] drivePowers, intakePowers, intakeServos;
+    private double[] drivePowers, intakePowers, intakeServos, liftPowers, liftServos;
 
-    private SmartMotor a, b, c, d, left, right;
-    private ExpansionHubServo leftServo, rightServo;
+    private SmartMotor leadingLeft, leadingRight, trailingLeft, trailingRight, leftIntake, rightIntake, leftLift, rightLift;
+    private ExpansionHubServo leftServo, rightServo, lowerServo, upperServo;
     private ExpansionHubEx hub1, hub2;
     private OpenCvCamera wc1;
     private OpenCvPipeline pipeline;
@@ -50,8 +50,13 @@ public class Hardware {
     public Hardware(LinearOpMode opmode, SmartTelemetry telemetry){
         this.opMode = opmode;
         driveMotors = new ArrayList<>();
+
         drivePowers = new double[4];
         intakePowers = new double[2];
+        intakeServos = new double[2];
+        liftPowers = new double[2];
+        liftServos = new double[2];
+
         registeredDevices = new ArrayList<>();
         enabledDevices = new ArrayList<>();
         fpsDebug = new FPSDebug(telemetry, "Hardware");
@@ -73,32 +78,40 @@ public class Hardware {
             wc1.openCameraDevice();
         }
         if(registeredDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
-            a = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "a"));
-            b = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "b"));
-            c = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "c"));
-            d = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "d"));
+            leadingLeft = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "ll"));
+            leadingRight = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "lr"));
+            trailingLeft = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "tl"));
+            trailingRight = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "tr"));
 
-            b.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
-            d.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
-            driveMotors.add(a);
-            driveMotors.add(b);
-            driveMotors.add(c);
-            driveMotors.add(d);
+            leadingRight.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
+            trailingRight.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
+            driveMotors.add(leadingLeft);
+            driveMotors.add(leadingRight);
+            driveMotors.add(trailingLeft);
+            driveMotors.add(trailingRight);
         }
         if(registeredDevices.contains(HardwareDevice.INTAKE_MOTORS)){
-            left = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "left"));
-            right = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "right"));
+            leftIntake = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "leftIntake"));
+            rightIntake = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "rightIntake"));
 
         }
         if(registeredDevices.contains(HardwareDevice.INTAKE_SERVOS)){
-            leftServo = (ExpansionHubServo) getOrNull(map.servo, "leftServo");
-            rightServo = (ExpansionHubServo) getOrNull(map.servo, "rightServo");
+            leftServo = (ExpansionHubServo) getOrNull(map.servo, "leftIntakeServo");
+            rightServo = (ExpansionHubServo) getOrNull(map.servo, "rightIntakeServo");
+        }
+        if(registeredDevices.contains(HardwareDevice.LIFT_MOTORS)){
+            leftLift = (SmartMotor) getOrNull(map.dcMotor, "leftLift");
+            rightLift = (SmartMotor) getOrNull(map.dcMotor, "rightLift");
         }
         if(registeredDevices.contains(HardwareDevice.GYRO)) {
             imu = getOrNull(map, BNO055IMU.class, "imu");
             if(imu != null) {
                 initIMU();
             }
+        }
+        if(registeredDevices.contains(HardwareDevice.LIFT_SERVOS)){
+            lowerServo = (ExpansionHubServo) getOrNull(map.servo, "lowerServo");
+            upperServo = (ExpansionHubServo) getOrNull(map.servo, "upperServo");
         }
     }
 
@@ -119,6 +132,14 @@ public class Hardware {
         if(registeredDevices.contains(HardwareDevice.GYRO)){
             calibration.addGyroData(imu);
         }
+        if(registeredDevices.contains(HardwareDevice.INTAKE_SERVOS)){
+            leftServo.setPosition(0);
+            rightServo.setPosition(0);
+        }
+        if(registeredDevices.contains(HardwareDevice.LIFT_SERVOS)){
+            upperServo.setPosition(0);
+            lowerServo.setPosition(0);
+        }
     }
 
     private void initIMU(){
@@ -137,12 +158,16 @@ public class Hardware {
         drivePowers = new double[]{a, b, c, d};
     }
 
-    public void intake(double l, double r){
-        intakePowers = new double[]{l, r};
+    public void intake(double left, double right){
+        intakePowers = new double[]{left, right};
     }
 
-    public void intakeServos(double l, double r){
-        intakeServos = new double[]{l, r};
+    public void intakeServos(double left, double right){
+        intakeServos = new double[]{left, right};
+    }
+
+    public void lift(double upper, double lower){
+        liftPowers = new double[]{upper, lower};
     }
 
     public ReadData update() {
@@ -157,14 +182,20 @@ public class Hardware {
         }
         if(enabledDevices.contains(HardwareDevice.INTAKE_MOTORS)){
             if(intakePowers != null){
-                left.setPower(intakePowers[0]);
-                right.setPower(intakePowers[1]);
+                leftIntake.setPower(intakePowers[0]);
+                rightIntake.setPower(intakePowers[1]);
             }
         }
         if(enabledDevices.contains(HardwareDevice.INTAKE_SERVOS)){
             if(intakeServos != null){
                 leftServo.setPosition(intakeServos[0]);
                 rightServo.setPosition(intakeServos[1]);
+            }
+        }
+        if(enabledDevices.contains(HardwareDevice.LIFT_MOTORS)){
+            if(intakePowers != null){
+                leftLift.setPower(liftPowers[0]);
+                rightLift.setPower(liftPowers[1]);
             }
         }
 
@@ -234,6 +265,13 @@ public class Hardware {
         return this;
     }
 
+    public Hardware registerDevices(HardwareDevice... devices){
+        for(HardwareDevice device : devices){
+            registerDevice(device);
+        }
+        return this;
+    }
+
     public Hardware enableDevice(HardwareDevice device){
         if(registeredDevices.contains(device)) {
             enabledDevices.add(device);
@@ -242,9 +280,7 @@ public class Hardware {
     }
 
     public Hardware disableDevice(HardwareDevice device){
-        if(enabledDevices.contains(device)) {
-            enabledDevices.remove(device);
-        }
+        enabledDevices.remove(device);
         return this;
     }
 
@@ -260,6 +296,8 @@ public class Hardware {
         HUB_1_BULK,
         HUB_2_BULK,
         WEBCAM_1,
-        GYRO
+        GYRO,
+        LIFT_MOTORS,
+        LIFT_SERVOS
     }
 }

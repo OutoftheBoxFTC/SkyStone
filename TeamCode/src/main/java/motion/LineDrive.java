@@ -33,7 +33,7 @@ public class LineDrive extends VelocityDriveState {
     public void update(ReadData data) {
 
         if(new Vector2(position).distanceTo(target)<1){
-            nearTargetControl.evaluation()
+
         }
     }
 

@@ -21,9 +21,9 @@ public class WebcamTest extends BasicOpmode {
     @Override
     protected void setup() {
         robot.registerDevice(Hardware.HardwareDevice.WEBCAM_1);
-        final DetectionPipeline pipeline = new DetectionPipeline();
+        //final DetectionPipeline pipeline = new DetectionPipeline();
 
-        robot.setPipeline(pipeline);
+        //robot.setPipeline(pipeline);
         HashMap<String, LogicState> logicStates = new HashMap<>();
 
         logicStates.put("init", new LogicState(stateMachine) {
@@ -38,7 +38,7 @@ public class WebcamTest extends BasicOpmode {
         logicStates.put("detect", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
-                telemetry.setHeader("position", pipeline.getDetectedPosition());
+               // telemetry.setHeader("position", pipeline.getDetectedPosition());
             }
         });
 
