@@ -1,5 +1,6 @@
 package opmode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import state.LogicState;
 import state.Orientation;
 
 @TeleOp(name = "Driver Controller Test")
+@Disabled
 public class DriverControllerTest extends BasicOpmode {
     private MecanumDrive drive;
     private Vector3 position, velocity;

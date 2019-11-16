@@ -6,6 +6,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -93,7 +94,6 @@ public class Hardware {
         if(registeredDevices.contains(HardwareDevice.INTAKE_MOTORS)){
             leftIntake = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "leftIntake"));
             rightIntake = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "rightIntake"));
-
         }
         if(registeredDevices.contains(HardwareDevice.INTAKE_SERVOS)){
             leftServo = (ExpansionHubServo) getOrNull(map.servo, "leftIntakeServo");
@@ -133,12 +133,14 @@ public class Hardware {
             calibration.addGyroData(imu);
         }
         if(registeredDevices.contains(HardwareDevice.INTAKE_SERVOS)){
-            leftServo.setPosition(0);
-            rightServo.setPosition(0);
+            intakeServos(0, 0);
         }
         if(registeredDevices.contains(HardwareDevice.LIFT_SERVOS)){
             upperServo.setPosition(0);
             lowerServo.setPosition(0);
+        }
+        if(registeredDevices.contains(HardwareDevice.INTAKE_SERVOS)){
+            rightIntake.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
         }
     }
 
@@ -163,7 +165,7 @@ public class Hardware {
     }
 
     public void intakeServos(double left, double right){
-        intakeServos = new double[]{left, right};
+        intakeServos = new double[]{1-left, right};
     }
 
     public void lift(double upper, double lower){

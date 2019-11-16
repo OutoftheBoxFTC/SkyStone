@@ -1,5 +1,6 @@
 package opmode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.HashMap;
@@ -8,10 +9,11 @@ import hardware.ReadData;
 import state.LogicState;
 
 @TeleOp(name = "Bee Movie")
+@Disabled
 public class BeeMovie extends BasicOpmode {
     private static final String[] script = new String[]{
             "Bee Movie\n"+
-                    "According to all known laws\n"+
+                    "According two all known laws\n"+
                     "of aviation,",
             "there is no way a bee\n"+
                     "should be able to fly.",

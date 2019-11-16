@@ -15,6 +15,6 @@ public class DriverControl extends VelocityDriveState {
 
     @Override
     public Vector3 getRobotVelocity() {
-        return new Vector3(driverController.rightStickX, -driverController.rightStickY, driverController.leftStickX);
+        return new Vector3(driverController.leftStickX, -driverController.leftStickY, -driverController.rightStickX);
     }
 }

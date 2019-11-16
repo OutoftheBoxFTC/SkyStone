@@ -20,6 +20,7 @@ import state.LogicState;
 import state.Orientation;
 
 @TeleOp(name = "Simple Odometry Test")
+
 public class SimpleOdometryTest extends BasicOpmode {
     private Odometer odometer;
     private Vector3 position1, position2, velocity;
