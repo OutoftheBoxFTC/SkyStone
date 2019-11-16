@@ -121,6 +121,8 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             intakeLeft.setPower(data.getIntakePowers().getA());
             intakeRight.setPower(data.getIntakePowers().getB());
+            intakeServoLeft.setPosition(data.getIntakeServoLeft());
+            intakeServoRight.setPosition(data.getIntakeServoRight());
         }
         if(enabledDevices.contains(HardwareDevices.GYRO)) {
             Orientation orientation = imu.getAngularOrientation();

@@ -117,9 +117,9 @@ public class TeleOp extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad2.right_trigger > 0){
-                            hardware.setIntakePowers(gamepad2.right_trigger, gamepad2.right_trigger * -0.5);
+                            hardware.setIntakePowers(gamepad2.right_trigger, -gamepad2.right_trigger);
                         }else{
-                            hardware.setIntakePowers(-gamepad2.left_trigger, -gamepad2.left_trigger * -0.5);
+                            hardware.setIntakePowers(-gamepad2.left_trigger, gamepad2.left_trigger);
                         }
                     }
                 });
@@ -129,9 +129,9 @@ public class TeleOp extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad2.right_bumper){
-                            position += 0.1 * ((System.currentTimeMillis() - timePrev)/1000);
+                            position += 0.5 * ((System.currentTimeMillis() - timePrev)/1000.0);
                         }else if(gamepad2.left_bumper){
-                            position -= 0.1 * ((System.currentTimeMillis() - timePrev)/1000);
+                            position -= 0.5 * ((System.currentTimeMillis() - timePrev)/1000.0);
                         }
                         position = Math.min(position, 1);
                         position = Math.max(position, 0);
