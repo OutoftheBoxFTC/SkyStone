@@ -13,15 +13,14 @@ public class PIDControl {
         this.kd = kd;
     }
 
-    public double evaluation(double error){
-        long now = System.nanoTime();
+    public double evaluation(double error, long timeStamp){
         if(lastTime==0){
             previousError = error;
-            lastTime = now;
-            return 0;
+            lastTime = timeStamp;
+            return error*kp;
         }
-        double dt = (now-lastTime)/1.0e9;
-        lastTime = now;
+        double dt = (timeStamp-lastTime)/1.0e9;
+        lastTime = timeStamp;
         if(integralReset) {
             if (error * previousError < 0){
                 integral = 0;

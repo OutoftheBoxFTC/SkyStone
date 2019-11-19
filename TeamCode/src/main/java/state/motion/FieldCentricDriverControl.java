@@ -1,10 +1,11 @@
-package motion;
+package state.motion;
 
 import drivetrain.MecanumDrive;
 import hardware.controller.SmartGamepad;
 import math.Matrix22;
 import math.Vector2;
 import math.Vector3;
+import motion.DriverControl;
 import state.StateMachine;
 
 public class FieldCentricDriverControl extends DriverControl {

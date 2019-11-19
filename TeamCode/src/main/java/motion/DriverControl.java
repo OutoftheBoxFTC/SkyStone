@@ -4,6 +4,7 @@ import drivetrain.MecanumDrive;
 import hardware.controller.SmartGamepad;
 import math.Vector3;
 import state.StateMachine;
+import state.motion.VelocityDriveState;
 
 public class DriverControl extends VelocityDriveState {
     private SmartGamepad driverController;

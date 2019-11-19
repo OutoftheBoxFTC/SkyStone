@@ -1,4 +1,4 @@
-package motion;
+package state.motion;
 
 import drivetrain.RobotDrive;
 import math.Vector3;

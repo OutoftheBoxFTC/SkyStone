@@ -9,7 +9,7 @@ import hardware.Hardware;
 import hardware.ReadData;
 import math.Vector3;
 import math.Vector4;
-import motion.VelocityDriveState;
+import state.motion.VelocityDriveState;
 import odometry.Odometer;
 import odometry.SimpleOdometer;
 import state.DriveState;
