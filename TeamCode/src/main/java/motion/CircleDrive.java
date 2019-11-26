@@ -40,16 +40,10 @@ public class CircleDrive extends VelocityDriveState {
         lastTime = data.getHub1BulkTime();
         Vector2 delta = rotationMatrix(-position.getC()).transform(targetPoint.add(new Vector2(position).scale(-1)));
         this.signedRadius =(delta.getA()*delta.getA()+delta.getB()*delta.getB())/2/delta.getB();
-        if(Math.abs(delta.getB())<0.01){
-            signedRadius = Double.POSITIVE_INFINITY;
-            ffRotation = 0;
-            center = new Vector2(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-        } else {
-            //positive when angle change to target is positive. Negative respectively.
-            Vector2 center = new Vector2(0, signedRadius);
-            this.center.set(rotationMatrix(position.getC()).transform(center).add(new Vector2(position)));
-            ffRotation = RADIUS / signedRadius * power;
-        }
+        //positive when angle change to target is positive. Negative respectively.
+        Vector2 center = new Vector2(0, signedRadius);
+        this.center.set(rotationMatrix(position.getC()).transform(center).add(new Vector2(position)));
+        ffRotation = RADIUS/signedRadius*power;
     }
 
     @Override
@@ -68,9 +62,6 @@ public class CircleDrive extends VelocityDriveState {
     private Vector3 getVelocity(Vector3 position, long timeStamp){
         double angleToPosition = center.angleTo(new Vector2(position));
         double targetRotation = (angleToPosition+Math.PI/2*MathUtil.sgn(signedRadius));
-        if(signedRadius == Double.POSITIVE_INFINITY){
-            angleToPosition = 0;
-        }
         Vector2 feedFwdTranslation = new Vector2(power, 0);
         feedFwdTranslation = rotationMatrix(targetRotation).transform(feedFwdTranslation);
         Vector3 feedFwd = new Vector3(feedFwdTranslation, ffRotation);
