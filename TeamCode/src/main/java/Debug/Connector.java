@@ -1,5 +1,7 @@
 package Debug;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
 
 import java.io.*;
@@ -13,8 +15,8 @@ public class Connector {
     private static Connector instance = new Connector();
     private DatagramSocket socket;
     private Vector3 orientation = Vector3.ZERO();
-    private List<String> telemetry, telemetryHeaders, sensorIO;
-    private RootObject rootObject = new RootObject(new Coordinates(), new SensorIO(), new TelemetryData());
+    private List<String> telemetry, telemetryHeaders, sensorIO, positions;
+    private RootObject rootObject = new RootObject(new Coordinates(), new SensorIO(), new TelemetryData(), new PathCoordinates());
     private OutputStream stream;
     private DatagramPacket packet;
     private Receiver reciever;
@@ -28,6 +30,7 @@ public class Connector {
         telemetry = new ArrayList<>();
         telemetryHeaders = new ArrayList<>();
         sensorIO = new ArrayList<>();
+        positions = new ArrayList<>();
         socket = new DatagramSocket(1119);
         socket.setReuseAddress(true);
         socket.setBroadcast(true);
@@ -59,12 +62,28 @@ public class Connector {
         orientation = position;
     }
 
+    public void addPathCoordinates(HashMap<String, String> map){
+        ArrayList<String> temp = new ArrayList<>();
+        for(String s : map.keySet()){
+            temp.add(s + ": " + map.get(s));
+        }
+        positions.addAll(temp);
+    }
+
+    public void addTurnCoordinates(HashMap<String, String> map){
+        ArrayList<String> temp = new ArrayList<>();
+        for(String s : map.keySet()){
+            temp.add(s + ": " + map.get(s));
+        }
+    }
+
     public void update() throws IOException {
         rootObject.TelemetryData.Data = telemetry;
         rootObject.SensorIO.data = sensorIO;
         rootObject.Coordinates.x = orientation.getA();
         rootObject.Coordinates.y = orientation.getB();
         rootObject.Coordinates.rot = orientation.getC();
+        rootObject.PathCoordinates.positions = positions;
         String json = SimpleGson.getInstance().toJson(rootObject);
         byte[] toSend = json.getBytes();
         int sendLen = toSend.length;
@@ -79,8 +98,12 @@ public class Connector {
     public RecievePacket getDataFromMaster(long timeout) {
         timeout = timeout + System.currentTimeMillis();
         while(timeout > System.currentTimeMillis() && !reciever.run());
-        RecievePacket format = SimpleGson.getInstance().fromJson(reciever.getPacket(), RecievePacket.class);
-        return format;
+        String s = reciever.getPacket();
+        if(!s.equals("No Data")) {
+            RecievePacket format = SimpleGson.getInstance().fromJson(s, RecievePacket.class);
+            return format;
+        }
+        return null;
     }
 
     public void end() throws IOException {

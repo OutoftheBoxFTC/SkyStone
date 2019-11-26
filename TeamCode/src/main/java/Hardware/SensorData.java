@@ -1,6 +1,10 @@
 package Hardware;
+
+import math.Vector3;
+
 public class SensorData {
-    private double leftEncoder, rightEncoder, auxEncoder, gyro, pixyData;
+    private double leftEncoder, rightEncoder, auxEncoder, gyro;
+    private byte[] pixy;
     private long timestamp;
     CalibrationSystem calibration;
     public SensorData(CalibrationSystem calibration, long timestamp){
@@ -18,6 +22,9 @@ public class SensorData {
     public double getLeft(){
         return leftEncoder;
     }
+    public void setPixy(byte[] pixy){
+        this.pixy = pixy;
+    }
     public double getRight(){
         return rightEncoder;
     }
@@ -26,6 +33,9 @@ public class SensorData {
     }
     public double getGyro(){
         return gyro;
+    }
+    public byte[] getPixy(){
+        return pixy;
     }
     public long getTimestamp(){
         return timestamp;

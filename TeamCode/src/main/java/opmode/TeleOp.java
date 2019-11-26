@@ -72,6 +72,11 @@ public class TeleOp extends BasicOpmode {
                         }
                     }
                 });
+                logicStates.put("Odometer", new LogicState(stateMachine) {
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        telemetry.addData("Factor", sensors.getAux() / Math.toDegrees(sensors.getGyro()));                    }
+                });
             }
 
             @Override

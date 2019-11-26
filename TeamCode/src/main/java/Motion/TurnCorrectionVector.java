@@ -25,6 +25,9 @@ public class TurnCorrectionVector extends DriveState {
             correction = ((360 + targetAngle) - Math.toDegrees(sensors.getGyro()));
         }
         correction *= kp;
+        if(Math.abs(correction) < 0.15){
+            correction = (correction/Math.abs(correction)) * 0.15;
+        }
     }
 
     @Override

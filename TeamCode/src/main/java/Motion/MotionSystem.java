@@ -22,4 +22,8 @@ public class MotionSystem {
     public RelativeCorrectionVector driveForward(Vector3 target, double power){
         return new RelativeCorrectionVector(stateMachine, position, target, power, odometer);
     }
+
+    public TurnCorrectionVector turn(Vector3 target){
+        return new TurnCorrectionVector(stateMachine, 0.011, target.getC(), position);
+    }
 }

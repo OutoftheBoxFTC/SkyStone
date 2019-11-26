@@ -15,7 +15,9 @@ import java.util.ArrayList;
 
 import Hardware.HardwareDevices.SmartMotor;
 import Hardware.HardwareDevices.SmartServo;
+import Hardware.Sensors.Pixycam;
 import math.Vector2;
+import math.Vector3;
 import math.Vector4;
 import revextensions2.ExpansionHubEx;
 
@@ -28,8 +30,7 @@ public class Hardware {
     private ArrayList<HardwareDevices> enabledDevices;
     private CalibrationSystem calibration;
     private BNO055IMU imu;
-    private ExpansionHubEx hub1, hub2;
-
+    private Pixycam pixy;
     /**
      * Creats a new Hardware
      * @param opmode the opmode
@@ -51,6 +52,10 @@ public class Hardware {
             frontRight = new SmartMotor(getOrNull(map, DcMotor.class, "lr"));
             backLeft = new SmartMotor(getOrNull(map, DcMotor.class, "tl"));
             backRight = new SmartMotor(getOrNull(map, DcMotor.class, "tr"));
+            frontLeft.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            frontRight.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            backLeft.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            backRight.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         }
         if(enabledDevices.contains(HardwareDevices.ODOMETRY)){
             //odometryRightMotor = getOrNull(map, DcMotor.class, "odometryR");
@@ -78,6 +83,9 @@ public class Hardware {
             parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
             imu.initialize(parameters);
         }
+        if(enabledDevices.contains(HardwareDevices.PIXYCAM)){
+            pixy = getOrNull(map, Pixycam.class, "pixyLeft");
+        }
     }
 
     /**
@@ -86,7 +94,7 @@ public class Hardware {
     public void calibrate(){
         calibration = new CalibrationSystem();
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
-            //calibration.setOdometryEncoders(odometryRightMotor.getCurrentPosition(), odometryLeftMotor.getCurrentPosition(), backRight.getMotor().getCurrentPosition());
+            calibration.setOdometryEncoders(-intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.GYRO)) {
             Orientation orientation = imu.getAngularOrientation();
@@ -116,7 +124,7 @@ public class Hardware {
             //rightLatch.setPosition(servoPositions.getB());
         }
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
-            //sensors.setOdometryEncoders(odometryRightMotor.getCurrentPosition(), odometryLeftMotor.getCurrentPosition(), backRight.getMotor().getCurrentPosition());
+            sensors.setOdometryEncoders(-intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             intakeLeft.setPower(data.getIntakePowers().getA());
@@ -127,6 +135,9 @@ public class Hardware {
             double yaw = orientation.firstAngle;
             double tau = Math.PI * 2;
             sensors.setGyro(((yaw % tau) + tau) % tau);
+        }
+        if(enabledDevices.contains(HardwareDevices.PIXYCAM)){
+            sensors.setPixy(pixy.getCoordinateColor());
         }
         return sensors;
     }
@@ -153,6 +164,7 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.INTAKE);
         enabledDevices.add(HardwareDevices.GYRO);
         enabledDevices.add(HardwareDevices.ODOMETRY);
+        enabledDevices.add(HardwareDevices.PIXYCAM);
     }
 
     /**
@@ -175,6 +187,18 @@ public class Hardware {
         }
     }
 
+    public Vector3 getAllGyroAngles(){
+        Orientation orientation = imu.getAngularOrientation();
+        double yaw = orientation.firstAngle;
+        double tau = Math.PI * 2;
+        double firstRot = (((yaw % tau) + tau) % tau);
+        yaw = orientation.secondAngle;
+        double secondRot = (((yaw % tau) + tau) % tau);
+        yaw = orientation.thirdAngle;
+        double thirdRot = (((yaw % tau) + tau) % tau);
+        return new Vector3(firstRot, secondRot, thirdRot);
+    }
+
     /**
      * Enumaltion of all HardwareDevices
      */
@@ -183,6 +207,7 @@ public class Hardware {
         LATCH_SERVOS,
         INTAKE,
         GYRO,
-        ODOMETRY
+        ODOMETRY,
+        PIXYCAM
     }
 }

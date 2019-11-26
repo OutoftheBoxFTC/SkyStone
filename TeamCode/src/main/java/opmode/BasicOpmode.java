@@ -2,9 +2,12 @@ package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import java.io.IOException;
+
 import Debug.Connector;
 import State.*;
 import Hardware.*;
+import math.Vector3;
 
 public abstract class BasicOpmode extends LinearOpMode {
     protected Hardware robot;
@@ -13,6 +16,7 @@ public abstract class BasicOpmode extends LinearOpMode {
     double driveLoopIterations, currentLoops;
     boolean debug;
     protected static final double TRANSLATION_FACTOR = (0.0010329132/2);
+    long timer = 0;
     public BasicOpmode(double driveLoopIterations){
         this.driveLoopIterations = driveLoopIterations;
         debug = false;
@@ -24,10 +28,17 @@ public abstract class BasicOpmode extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         statemachine = new StateMachine();
         robot = new Hardware(this, telemetry);
         stateMachineSwitcher = new StateMachineSwitcher();
+        if(debug) {
+            try {
+                Connector.getInstance().start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         setup();
         robot.init();
         robot.calibrate();
@@ -43,15 +54,26 @@ public abstract class BasicOpmode extends LinearOpMode {
                 Connector.getInstance().addTelemetry("Hardware Latency", System.currentTimeMillis() - hardware.getTimestamp());
                 Connector.getInstance().addTelemetry("Sensors Latency", System.currentTimeMillis() - sensors.getTimestamp());
                 Connector.getInstance().addTelemetry("Active Manager", stateMachineSwitcher.getActiveManager());
+                Connector.getInstance().addSensorIO("Gyro: " + robot.getAllGyroAngles().toString());
             }
             statemachine.update(sensors, hardware);
+            currentLoops -= (1/driveLoopIterations);
             if(currentLoops <= 0){
                 hardware.setMotorPowers(statemachine.getDriveVelocities(sensors));
                 currentLoops = 1;
             }
             stateMachineSwitcher.update(sensors, hardware);
-            currentLoops -= (1/driveLoopIterations);
             telemetry.update();
+            if(debug) {
+                try {
+                    if(System.currentTimeMillis() > timer) {
+                        Connector.getInstance().update();
+                        timer = System.currentTimeMillis() + 10;
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

@@ -1,5 +1,7 @@
 package Debug;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -15,7 +17,7 @@ public class Receiver {
         try {
             socket = new DatagramSocket(2026);
             socket.setReuseAddress(true);
-            socket.setSoTimeout(1000);
+            socket.setSoTimeout(100);
         } catch (SocketException e) {
             e.printStackTrace();
         }
@@ -30,6 +32,7 @@ public class Receiver {
         try {
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("255.255.255.255"), 2026);
             socket.receive(packet);
+            RobotLog.ii("Packet", new String(packet.getData()));
             packetBuffer.add(packet);
         }catch (IOException e) {
             e.printStackTrace();
@@ -48,8 +51,10 @@ public class Receiver {
             if (packetBuffer.size() > 1) {
                 packetBuffer.remove(0);
             }
-            return new String(toReturn.getData());
+            String s = new String(toReturn.getData()).substring(0, new String(toReturn.getData()).indexOf('}') + 1);
+            return s;
         }else{
+            RobotLog.e("No Data");
             return "No Data";
         }
     }

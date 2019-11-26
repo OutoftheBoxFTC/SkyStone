@@ -58,7 +58,6 @@ public class CorrectionVector extends DriveState {
     }
 
     public void update(SensorData sensors, HardwareData hardware) {
-        RobotLog.i("Target: " + target.toString() + " Position: " + position.toString());
         double slope = (start.getB() - target.getB()) / (start.getA() - position.getA());
         double mainr = new Vector2(position.getA(), position.getB()).distanceTo(target);
         double maintheta = (Math.PI/2) - Math.atan2(target.getB() - position.getB(), target.getA() - position.getA());
@@ -72,18 +71,20 @@ public class CorrectionVector extends DriveState {
         theta += sensors.getGyro();
         x = r * Math.cos(theta);
         y = r * Math.sin(theta);
-        if(firstX == 0){
-            firstX = Math.abs(x);
-            firstY = Math.abs(y);
-            firstX = Math.max(firstX, 1);
-            firstY = Math.max(firstY, 1);
+        if(Math.abs(x) < 5){
+            x *= 0.1;
         }
-        x = x / firstX;
-        y = y / firstY;
-        x *= power;
-        y *= power;
+        if(Math.abs(y) < 5){
+            y *= 0.1;
+        }
         y *= specialFor;
         x *= specialStr;
+        double comb = Math.abs(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+        x = x/comb;
+        y = y/comb;
+        x *= power;
+        y *= power;
+        RobotLog.i("Target: " + target.toString() + " Position: " + position.toString() + " Power: " + new Vector2(x, y).toString());
         double rotation = (targetRot - Math.toDegrees(sensors.getGyro()));
         if(rotation > 180){
             rotation = (targetRot - (360 + Math.toDegrees(sensors.getGyro())));
@@ -91,7 +92,7 @@ public class CorrectionVector extends DriveState {
             rotation = ((360 + targetRot) - Math.toDegrees(sensors.getGyro()));
         }
         rotation *= 0.01;
-        velocities.set(MecanumSystem.translate(new Vector3(x, y, rotation)));
+        velocities.set(MecanumSystem.translate(new Vector3(y, -x, rotation)));
     }
 
     public void deactivateDriveState(){

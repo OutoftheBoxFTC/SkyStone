@@ -1,9 +1,8 @@
-package Debug;
+package Debug.JsonFormat;
 
 import java.util.List;
 
-public class RecievePacket {
-    public long timestamp;
+public class PathCoordinates {
     public List<String> positions;
     public List<String> turns;
 }

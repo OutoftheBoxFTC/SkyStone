@@ -7,6 +7,7 @@ import Hardware.SensorData;
 
 public abstract class StateMachineManager {
     public HashMap<String, LogicState> logicStates;
+    public HashMap<String, LogicState> exemptedLogicstates;
     public HashMap<String, DriveState> driveState;
     public boolean terminate;
     public StateMachine stateMachine;
@@ -14,6 +15,7 @@ public abstract class StateMachineManager {
         this.stateMachine = stateMachine;
         logicStates = new HashMap<>();
         driveState = new HashMap<>();
+        exemptedLogicstates = new HashMap<>();
     }
 
     public abstract void setup();
@@ -21,6 +23,7 @@ public abstract class StateMachineManager {
     public void start(){
         stateMachine.appendDriveStates(driveState);
         stateMachine.appendLogicStates(logicStates);
+        stateMachine.appendLogicStates(exemptedLogicstates);
         for(String state : logicStates.keySet()){
             stateMachine.activateLogic(state);
         }
