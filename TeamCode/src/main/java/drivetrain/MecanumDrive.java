@@ -30,12 +30,14 @@ public class MecanumDrive extends RobotDrive {
 
     @Override
     public Vector4 getWheelVelocities(Vector3 velocity) {
+        velocity = new Vector3(-velocity.getB(), velocity.getA(), velocity.getC());
         return velocityTransformation.transform(velocity);
     }
 
     @Override
     public Vector3 getRobotVelocity(Vector4 wheels) {
-        return wheelTransformation.transform(wheels);
+        Vector3 velocity = wheelTransformation.transform(wheels);
+        return new Vector3(velocity.getB(), -velocity.getB(), velocity.getC());
     }
 
     public enum Polarity{

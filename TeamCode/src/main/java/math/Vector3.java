@@ -16,6 +16,12 @@ public class Vector3 {
         this.c = c;
     }
 
+    public Vector3(Vector3 v){
+        a = v.a;
+        b = v.b;
+        c = v.c;
+    }
+
     public double getC() {
         return c;
     }

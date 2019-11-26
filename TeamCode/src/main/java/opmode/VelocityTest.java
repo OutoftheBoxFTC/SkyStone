@@ -29,7 +29,7 @@ public class VelocityTest extends BasicOpmode {
         robot.registerDevice(Hardware.HardwareDevice.HUB_2_BULK)
                 .registerDevice(Hardware.HardwareDevice.HUB_1_BULK)
                 .registerDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
-        position = Vector3.ZERO();
+        position = new Vector3(0, 0, Math.PI/2);
         velocity = Vector3.ZERO();
         drive = new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1);
 

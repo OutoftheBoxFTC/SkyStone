@@ -27,7 +27,7 @@ public class Teleop extends BasicOpmode {
                 .registerDevices(Hardware.HardwareDevice.INTAKE_SERVOS)
                 .registerDevice(Hardware.HardwareDevice.GYRO);
         final MecanumDrive drive = new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1);
-        final Vector3 position = new Vector3(0, 0, 0);
+        final Vector3 position = new Vector3(0, 0, Math.PI/2);
 
         HashMap<String, LogicState> logicStates = new HashMap<>();
         HashMap<String, DriveState> driveStates = new HashMap<>();
@@ -68,7 +68,7 @@ public class Teleop extends BasicOpmode {
         logicStates.put("run", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
-                position.setC(data.getGyro());
+                position.setC(data.getGyro()+Math.PI/2);
                 if(gamepad1.rightTrigger>0){
                     robot.intake(-gamepad1.rightTrigger, -gamepad1.rightTrigger);
                 }

@@ -52,9 +52,7 @@ public class CircleTest extends BasicOpmode {
             }
         });
 
-
-        driveStates.put("circle", new CircleDrive(stateMachine, drive, position, new Vector2(-40, 0), 1, telemetry));
-
+        driveStates.put("circle", new CircleDrive(stateMachine, drive, position, new Vector2(-40, 0), 0.5));
 
         stateMachine.appendDriveStates(driveStates);
         stateMachine.appendLogicStates(logicStates);
