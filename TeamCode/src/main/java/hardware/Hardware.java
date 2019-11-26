@@ -6,7 +6,6 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -34,6 +33,9 @@ public class Hardware {
     private ExpansionHubServo leftServo, rightServo, lowerServo, upperServo;
     private ExpansionHubEx hub1, hub2;
     private OpenCvCamera wc1;
+    private Pixycam leftPixy, rightPixy;
+
+
     private OpenCvPipeline pipeline;
 
     private ArrayList<SmartMotor> driveMotors;
@@ -77,6 +79,12 @@ public class Hardware {
             int cameraMonitorViewId = map.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", map.appContext.getPackageName());
             wc1 = new OpenCvWebcam(map.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
             wc1.openCameraDevice();
+        }
+        if(registeredDevices.contains(HardwareDevice.PIXY_LEFT)){
+            leftPixy = getOrNull(map, Pixycam.class, "leftPixy");
+        }
+        if(registeredDevices.contains(HardwareDevice.PIXY_RIGHT)){
+            rightPixy = getOrNull(map, Pixycam.class, "rightPixy");
         }
         if(registeredDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
             leadingLeft = new SmartMotor((ExpansionHubMotor) getOrNull(map.dcMotor, "ll"));
@@ -213,9 +221,16 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevice.GYRO)){
             data.addGyro(imu);
         }
+        if(enabledDevices.contains(HardwareDevice.PIXY_LEFT)){
+            data.addLeftPixy(leftPixy);
+        }
+        if(enabledDevices.contains(HardwareDevice.PIXY_RIGHT)){
+            data.addRightPixy(rightPixy);
+        }
 
         fpsDebug.endIncrement();
         fpsDebug.update();
+        fpsDebug.queryFPS();
         return data;
     }
 
@@ -298,6 +313,8 @@ public class Hardware {
         HUB_1_BULK,
         HUB_2_BULK,
         WEBCAM_1,
+        PIXY_LEFT,
+        PIXY_RIGHT,
         GYRO,
         LIFT_MOTORS,
         LIFT_SERVOS

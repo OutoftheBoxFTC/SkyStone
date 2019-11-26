@@ -101,7 +101,7 @@ public class MathUtil {
      *
      * @param a angle a
      * @param b angle b
-     * @return smallest signed angular change from a to b
+     * @return smallest signed counterclockwise angular change from a to b
      */
     public static double angleDelta(double a, double b){
         double tau = Math.PI*2;
@@ -113,5 +113,9 @@ public class MathUtil {
             d = tau-d;
         }
         return d;
+    }
+
+    public static int sgn(double a){
+        return a<0?-1:1;
     }
 }

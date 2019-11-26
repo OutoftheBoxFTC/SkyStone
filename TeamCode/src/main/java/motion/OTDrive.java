@@ -7,7 +7,7 @@ import state.StateMachine;
 import state.motion.VelocityDriveState;
 
 public class OTDrive extends VelocityDriveState {
-    private static final double RADIUS = 9.25, V_MAX = 36, TIME_ADV = 0.001;
+    private static final double RADIUS = 9.25, V_MAX = 39.1433457, TIME_ADV = 0.001;
 
     private Vector3 target, position, previousPosition, velocity;
     private long lastTime;

@@ -1,5 +1,7 @@
 package hardware;
 
+import android.graphics.Rect;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -8,12 +10,15 @@ import org.openftc.revextensions2.RevBulkData;
 public class ReadData {
     public static final int LEFT = 2, AUX = 1, RIGHT = 2;
     private int left, right, aux, vLeft, vRight, vAux;
+    private Rect leftPixyBound, rightPixyBound;
     private double gyro;
     private CalibrationData calibration;
     private long hub1BulkTime, hub2BulkTime, gyroTime;
 
     public ReadData(CalibrationData calibration){
         this.calibration = calibration;
+        leftPixyBound = new Rect();
+        rightPixyBound = new Rect();
     }
 
     public int getLeft() {
@@ -42,6 +47,14 @@ public class ReadData {
 
     public double getGyro() {
         return gyro;
+    }
+
+    public Rect getLeftPixyBound() {
+        return leftPixyBound;
+    }
+
+    public Rect getRightPixyBound() {
+        return rightPixyBound;
     }
 
     public long getGyroTime() {
@@ -85,5 +98,17 @@ public class ReadData {
             right -= calibration.getRightOffset();
         }
         vRight = data.getMotorVelocity(RIGHT);
+    }
+
+    public void addLeftPixy(Pixycam leftPixy){
+        leftPixy.queueData();
+        int x = leftPixy.getX(), y = leftPixy.getY();
+        leftPixyBound.set(x-leftPixy.getX(), y-leftPixy.getY(), x+leftPixy.getX(), y+leftPixy.getY());
+    }
+
+    public void addRightPixy(Pixycam rightPixy){
+        rightPixy.queueData();
+        int x = rightPixy.getX(), y = rightPixy.getY();
+        rightPixyBound.set(x-rightPixy.getX(), y-rightPixy.getY(), x+rightPixy.getX(), y+rightPixy.getY());
     }
 }

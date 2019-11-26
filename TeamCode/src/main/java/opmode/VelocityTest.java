@@ -80,6 +80,8 @@ public class VelocityTest extends BasicOpmode {
                 if(flipped&&position.getC()>initialR){
                     long dt = data.getHub1BulkTime()-start;
                     vR = (Math.PI*2+(position.getC()-initialR))/((double)dt)*1.0e9;
+                    deactivateThis();
+                    stateMachine.activateLogic("run");
                 }
                 previousR = position.getC();
             }

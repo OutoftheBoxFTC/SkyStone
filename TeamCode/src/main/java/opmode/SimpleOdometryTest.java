@@ -97,7 +97,7 @@ public class SimpleOdometryTest extends BasicOpmode {
         });
 
         //TODO tune these and create some kind of global tuning reference system
-        driveStates.put("Drive To Zero", new DriveToZero(position1, new PIDControl2(1, 1, 1), new PIDControl(1, 1, 1), stateMachine, drive));
+        //driveStates.put("Drive To Zero", new DriveToZero(position1, new PIDControl2(1, 1, 1), new PIDControl(1, 1, 1), stateMachine, drive));
         stateMachine.appendDriveStates(driveStates);
         stateMachine.appendLogicStates(logicStates);
         stateMachine.setActiveDriveState("None");

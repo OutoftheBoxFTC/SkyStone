@@ -52,11 +52,7 @@ public class Vector2 {
 
     public double angleTo(Vector2 v){
         Vector2 d = add(v.scale(-1)).normalize();
-        double angle = Math.acos(d.getA());
-        if(d.getB()<0){
-            return Math.PI*2-angle;
-        }
-        return angle;
+        return Math.atan2(d.b, d.a);
     }
 
     public Vector2 normalize() {
@@ -69,5 +65,10 @@ public class Vector2 {
 
     public double distanceTo(Vector2 vector){
         return Math.sqrt(Math.pow(vector.a - a, 2) + Math.pow(vector.b - b, 2));
+    }
+
+    public void set(Vector2 v) {
+        this.a = v.a;
+        this.b = v.b;
     }
 }

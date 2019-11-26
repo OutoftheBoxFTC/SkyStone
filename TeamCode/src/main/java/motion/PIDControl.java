@@ -13,6 +13,11 @@ public class PIDControl {
         this.kd = kd;
     }
 
+    public PIDControl(double kp, double ki, double kd, boolean integralReset){
+        this(kp, ki, kd);
+        this.integralReset = integralReset;
+    }
+
     public double evaluation(double error, long timeStamp){
         if(lastTime==0){
             previousError = error;
