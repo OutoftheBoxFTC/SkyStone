@@ -1,5 +1,6 @@
 package motion;
 
+import debug.SmartTelemetry;
 import drivetrain.RobotDrive;
 import hardware.ReadData;
 import math.MathUtil;
@@ -23,8 +24,9 @@ public class CircleDrive extends VelocityDriveState {
     private PIDControl radialControl, rotationControl;
 
     private double ffRotation;
+    private SmartTelemetry telemetry;
 
-    public CircleDrive(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector2 targetPoint, double power) {
+    public CircleDrive(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector2 targetPoint, double power, SmartTelemetry telemetry) {
         super(stateMachine, robotDrive);
         this.position = position;
         this.targetPoint = targetPoint;
@@ -32,18 +34,24 @@ public class CircleDrive extends VelocityDriveState {
         center = Vector2.ZERO();
         radialControl = new PIDControl(0.1, 0, 0);
         rotationControl = new PIDControl(0.3, 0.2, 0, false);
+        this.telemetry = telemetry;
     }
 
     @Override
     public void init(ReadData data) {
         super.init(data);
         lastTime = data.getHub1BulkTime();
-        Vector2 delta = rotationMatrix(-position.getC()).transform(targetPoint.add(new Vector2(position).scale(-1)));
+        Vector2 delta = rotationMatrix(position.getC()).transform(targetPoint.add(new Vector2(position).scale(-1)));
         this.signedRadius =(delta.getA()*delta.getA()+delta.getB()*delta.getB())/2/delta.getB();
         //positive when angle change to target is positive. Negative respectively.
-        Vector2 center = new Vector2(0, signedRadius);
-        this.center.set(rotationMatrix(position.getC()).transform(center).add(new Vector2(position)));
+        Vector2 center = new Vector2(signedRadius, 0);
+        this.center.set(rotationMatrix(-position.getC()).transform(center).add(new Vector2(position)));
         ffRotation = RADIUS/signedRadius*power;
+        telemetry.setHeader("center", center);
+        telemetry.setHeader("ffRotation", ffRotation);
+        telemetry.setHeader("delta", delta);
+        telemetry.setHeader("radius", signedRadius);
+        previousPosition = position;
     }
 
     @Override
@@ -55,17 +63,20 @@ public class CircleDrive extends VelocityDriveState {
             Vector3 velocity = position.subtract(previousPosition).scale(1 / dt);
             newPosition = newPosition.add(velocity.scale(TIME_ADV));
         }
+        telemetry.setHeader("newPosition", newPosition);
         velocity = getVelocity(newPosition, data.getHub1BulkTime());
+        telemetry.setHeader("velocity", velocity);
         previousPosition = position;
     }
 
     private Vector3 getVelocity(Vector3 position, long timeStamp){
         double angleToPosition = center.angleTo(new Vector2(position));
         double targetRotation = (angleToPosition+Math.PI/2*MathUtil.sgn(signedRadius));
+        telemetry.setHeader("target rotation", targetRotation);
         Vector2 feedFwdTranslation = new Vector2(power, 0);
         feedFwdTranslation = rotationMatrix(targetRotation).transform(feedFwdTranslation);
         Vector3 feedFwd = new Vector3(feedFwdTranslation, ffRotation);
-
+        telemetry.setHeader("ff", feedFwd);
         double distance = center.distanceTo(new Vector2(position));
         double radialCorrection = radialControl.evaluation(Math.abs(signedRadius)-distance, timeStamp);
 
@@ -74,6 +85,7 @@ public class CircleDrive extends VelocityDriveState {
         Vector2 radialCorrectionVector = new Vector2(radialCorrection, 0);
         radialCorrectionVector = rotationMatrix(angleToPosition).transform(radialCorrectionVector);//rotate so +x is in +radial direction
         Vector3 correction = new Vector3(radialCorrectionVector, rotationCorrection);
+        telemetry.setHeader("correction", correction);
         return transformToRobot(feedFwd.add(correction));
     }
 

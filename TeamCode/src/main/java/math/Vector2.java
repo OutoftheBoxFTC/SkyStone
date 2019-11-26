@@ -71,4 +71,9 @@ public class Vector2 {
         this.a = v.a;
         this.b = v.b;
     }
+
+    @Override
+    public String toString() {
+        return "A: " + a + ", B: " + b;
+    }
 }
