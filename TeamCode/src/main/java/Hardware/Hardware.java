@@ -19,11 +19,9 @@ import Hardware.Sensors.Pixycam;
 import math.Vector2;
 import math.Vector3;
 import math.Vector4;
-import revextensions2.ExpansionHubEx;
 
 public class Hardware {
     private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight;
-    private DcMotor odometryRightMotor, odometryLeftMotor;
     private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight;
     private OpMode opmode;
     private Telemetry telemetry;
@@ -62,8 +60,8 @@ public class Hardware {
             //odometryLeftMotor = getOrNull(map, DcMotor.class, "odometryL");
         }
         if(enabledDevices.contains(HardwareDevices.LATCH_SERVOS)){
-            //leftLatch = new SmartServo(getOrNull(map, Servo.class, "leftLatch"));
-            //rightLatch = new SmartServo(getOrNull(map, Servo.class, "rightLatch"));
+            leftLatch = new SmartServo(getOrNull(map, Servo.class, "leftLatch"));
+            rightLatch = new SmartServo(getOrNull(map, Servo.class, "rightLatch"));
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             intakeLeft = new SmartMotor(getOrNull(map, DcMotor.class, "leftIntake"));
@@ -83,8 +81,10 @@ public class Hardware {
             parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
             imu.initialize(parameters);
         }
-        if(enabledDevices.contains(HardwareDevices.PIXYCAM)){
+        if(enabledDevices.contains(HardwareDevices.LEFT_PIXY)){
             pixy = getOrNull(map, Pixycam.class, "pixyLeft");
+        }else if(enabledDevices.contains(HardwareDevices.RIGHT_PIXY)){
+            pixy = getOrNull(map, Pixycam.class, "pixyRight");
         }
     }
 
@@ -104,6 +104,10 @@ public class Hardware {
         }
     }
 
+    public void calibrate(CalibrationSystem calibration){
+        this.calibration = calibration;
+    }
+
     /**
      * updates all sensors and hardware devices from the HardwareData
      * @param data HardwareData class to assign all hardware devices values
@@ -120,8 +124,8 @@ public class Hardware {
         }
         if(enabledDevices.contains(HardwareDevices.LATCH_SERVOS)){
             Vector2 servoPositions = data.getLatchPositions();
-            //leftLatch.setPosition(servoPositions.getA());
-            //rightLatch.setPosition(servoPositions.getB());
+            leftLatch.setPosition(servoPositions.getA());
+            rightLatch.setPosition(servoPositions.getB());
         }
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
             sensors.setOdometryEncoders(-intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
@@ -129,6 +133,8 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             intakeLeft.setPower(data.getIntakePowers().getA());
             intakeRight.setPower(data.getIntakePowers().getB());
+            intakeServoLeft.setPosition(data.getIntakeServos().getA());
+            intakeServoRight.setPosition(data.getIntakeServos().getB());
         }
         if(enabledDevices.contains(HardwareDevices.GYRO)) {
             Orientation orientation = imu.getAngularOrientation();
@@ -136,7 +142,7 @@ public class Hardware {
             double tau = Math.PI * 2;
             sensors.setGyro(((yaw % tau) + tau) % tau);
         }
-        if(enabledDevices.contains(HardwareDevices.PIXYCAM)){
+        if(enabledDevices.contains(HardwareDevices.LEFT_PIXY) || enabledDevices.contains(HardwareDevices.RIGHT_PIXY)){
             sensors.setPixy(pixy.getCoordinateColor());
         }
         return sensors;
@@ -164,7 +170,6 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.INTAKE);
         enabledDevices.add(HardwareDevices.GYRO);
         enabledDevices.add(HardwareDevices.ODOMETRY);
-        enabledDevices.add(HardwareDevices.PIXYCAM);
     }
 
     /**
@@ -199,6 +204,10 @@ public class Hardware {
         return new Vector3(firstRot, secondRot, thirdRot);
     }
 
+    public CalibrationSystem getCalibration(){
+        return calibration;
+    }
+
     /**
      * Enumaltion of all HardwareDevices
      */
@@ -208,6 +217,7 @@ public class Hardware {
         INTAKE,
         GYRO,
         ODOMETRY,
-        PIXYCAM
+        LEFT_PIXY,
+        RIGHT_PIXY
     }
 }

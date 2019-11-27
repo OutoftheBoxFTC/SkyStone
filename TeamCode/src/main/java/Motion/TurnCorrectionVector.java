@@ -8,13 +8,14 @@ import math.Vector3;
 import math.Vector4;
 
 public class TurnCorrectionVector extends DriveState {
-    double targetAngle, kp, correction;
+    double targetAngle, kp, correction, power;
     Vector3 position;
-    public TurnCorrectionVector(StateMachine stateMachine, double kp, double angle, Vector3 position){
+    public TurnCorrectionVector(StateMachine stateMachine, double kp, double angle, Vector3 position, double power){
         super(stateMachine);
         this.kp = kp;
         targetAngle = angle;
         this.position = position;
+        this.power = power;
     }
     @Override
     public void update(SensorData sensors, HardwareData hardware) {
@@ -25,8 +26,8 @@ public class TurnCorrectionVector extends DriveState {
             correction = ((360 + targetAngle) - Math.toDegrees(sensors.getGyro()));
         }
         correction *= kp;
-        if(Math.abs(correction) < 0.15){
-            correction = (correction/Math.abs(correction)) * 0.15;
+        if(Math.abs(correction) < power){
+            correction = (correction/Math.abs(correction)) * power;
         }
     }
 

@@ -19,11 +19,15 @@ public class MotionSystem {
         return new CorrectionVector(stateMachine, position, target, power, odometer);
     }
 
-    public RelativeCorrectionVector driveForward(Vector3 target, double power){
-        return new RelativeCorrectionVector(stateMachine, position, target, power, odometer);
+    public CorrectionVector driveToPoint(Vector3 target, double power, double forw, double str){
+        return new CorrectionVector(stateMachine, position, target, power, odometer, forw, str);
     }
 
-    public TurnCorrectionVector turn(Vector3 target){
-        return new TurnCorrectionVector(stateMachine, 0.011, target.getC(), position);
+    public CorrectionVector driveForward(Vector3 target, double power){
+        return new CorrectionVector(stateMachine, position, target, power, odometer, true);
+    }
+
+    public TurnCorrectionVector turn(Vector3 target, double power) {
+        return new TurnCorrectionVector(stateMachine, 0.011, target.getC(), position, power);
     }
 }

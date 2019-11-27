@@ -68,7 +68,7 @@ public abstract class BasicOpmode extends LinearOpMode {
                 try {
                     if(System.currentTimeMillis() > timer) {
                         Connector.getInstance().update();
-                        timer = System.currentTimeMillis() + 10;
+                        timer = System.currentTimeMillis() + 100;
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -12,7 +12,7 @@ public class CorrectionVector extends DriveState {
     Vector3 position;
     Vector4 velocities;
     double targetRot, kp, tolerance, power, firstX, firstY;
-    boolean finished;
+    boolean finished, relative = false;
     SimpleOdometer odometer;
     private double kPStrafe = 0.25, kPForward = 0.25, specialFor, specialStr;
     public CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, SimpleOdometer odometer){
@@ -30,6 +30,23 @@ public class CorrectionVector extends DriveState {
         firstY = 0;
         specialFor = 1;
         specialStr = 1;
+    }
+    public CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, SimpleOdometer odometer, boolean relative){
+        super(stateMachine);
+        this.position = position;
+        this.target = new Vector2(target.getA(), target.getB());
+        targetRot = target.getC();
+        this.power = power;
+        this.start = new Vector2(position.getA(), position.getB());
+        this.velocities = Vector4.ZERO();
+        this.tolerance = 1;
+        this.kp = 0.2;
+        this.odometer = odometer;
+        firstX = 0;
+        firstY = 0;
+        specialFor = 1;
+        specialStr = 1;
+        this.relative = relative;
     }
     public CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, SimpleOdometer odometer, double kpStrafe, double kpForward){
         super(stateMachine);
@@ -49,7 +66,6 @@ public class CorrectionVector extends DriveState {
     }
     @Override
     public void init(SensorData sensors, HardwareData hardware){
-
     }
 
     @Override
@@ -58,6 +74,11 @@ public class CorrectionVector extends DriveState {
     }
 
     public void update(SensorData sensors, HardwareData hardware) {
+        RobotLog.ii("Marker", relative ? "True" : "False");
+        if(relative){
+            target = target.add(new Vector2(position.getA(), position.getB()));
+            relative = false;
+        }
         double slope = (start.getB() - target.getB()) / (start.getA() - position.getA());
         double mainr = new Vector2(position.getA(), position.getB()).distanceTo(target);
         double maintheta = (Math.PI/2) - Math.atan2(target.getB() - position.getB(), target.getA() - position.getA());

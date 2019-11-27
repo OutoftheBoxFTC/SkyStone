@@ -158,6 +158,10 @@ public class HardwareData {
         intakeServoRight = positions.getB();
     }
 
+    public Vector2 getIntakeServos(){
+        return new Vector2(intakeServoLeft, intakeServoRight);
+    }
+
     /**
      * Gets the timestamp
      * @return the timestamp

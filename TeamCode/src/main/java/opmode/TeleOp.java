@@ -1,5 +1,7 @@
 package opmode;
 
+import Debug.Connector;
+import Hardware.Hardware;
 import Hardware.HardwareConstants;
 import Hardware.HardwareData;
 import Hardware.SensorData;
@@ -7,17 +9,19 @@ import Motion.MecanumSystem;
 import State.DriveState;
 import State.LogicState;
 import State.StateMachineManager;
+import math.Vector2;
 import math.Vector3;
 import math.Vector4;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends BasicOpmode {
     public TeleOp() {
-        super(1);
+        super(1, true);
     }
 
     @Override
     public void setup() {
         robot.enableAll();
+        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
         StateMachineManager initManager = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -34,7 +38,7 @@ public class TeleOp extends BasicOpmode {
                 terminate = isStarted();
             }
         };
-        StateMachineManager teleOpMode1 = new StateMachineManager(statemachine) {
+        final StateMachineManager teleOpMode1 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
                 driveState.put("drive", new DriveState(stateMachine) {
@@ -45,7 +49,10 @@ public class TeleOp extends BasicOpmode {
 
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-
+                        int test = sensors.getPixy()[sensors.getPixy().length-2] & 0xFF;
+                        telemetry.addData("SkyStone?", Math.abs(test) < 180);
+                        telemetry.addData("SkyStone", Math.abs(test));
+                        telemetry.addData("SkySton", test);
                     }
                 });
                 logicStates.put("latchSystem", new LogicState(stateMachine) {
@@ -53,9 +60,6 @@ public class TeleOp extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad2.left_trigger > 0){
                             hardware.setLatchServos(HardwareConstants.LATCH_OFF);
-                        }
-                        if(gamepad2.right_trigger > 0){
-                            hardware.setLatchServos(HardwareConstants.DUMP_BLOCK);
                         }
                         if(gamepad2.x){
                             hardware.setLatchServos(HardwareConstants.LATCH_ON);
@@ -110,9 +114,6 @@ public class TeleOp extends BasicOpmode {
                         if(gamepad2.left_trigger > 0){
                             hardware.setLatchServos(HardwareConstants.LATCH_OFF);
                         }
-                        if(gamepad2.right_trigger > 0){
-                            hardware.setLatchServos(HardwareConstants.DUMP_BLOCK);
-                        }
                         if(gamepad2.x){
                             hardware.setLatchServos(HardwareConstants.LATCH_ON);
                         }
@@ -122,9 +123,9 @@ public class TeleOp extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad2.right_trigger > 0){
-                            hardware.setIntakePowers(gamepad2.right_trigger, gamepad2.right_trigger * -0.5);
+                            hardware.setIntakePowers(gamepad2.right_trigger, gamepad2.right_trigger);
                         }else{
-                            hardware.setIntakePowers(-gamepad2.left_trigger, -gamepad2.left_trigger * -0.5);
+                            hardware.setIntakePowers(-gamepad2.left_trigger, -gamepad2.left_trigger);
                         }
                     }
                 });
@@ -134,14 +135,22 @@ public class TeleOp extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad2.right_bumper){
-                            position += 0.1 * ((System.currentTimeMillis() - timePrev)/1000);
+                            position += 0.1 * ((System.currentTimeMillis() - timePrev)/1000.0);
                         }else if(gamepad2.left_bumper){
-                            position -= 0.1 * ((System.currentTimeMillis() - timePrev)/1000);
+                            position -= 0.1 * ((System.currentTimeMillis() - timePrev)/1000.0);
                         }
                         position = Math.min(position, 1);
                         position = Math.max(position, 0);
                         hardware.setIntakeServos(position, 1-position);
+                        telemetry.addData("Position", position);
                         timePrev = System.currentTimeMillis();
+                    }
+                });
+                logicStates.put("Gyro", new LogicState(stateMachine) {
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        Connector.getInstance().addOrientation(Vector2.ZERO(), Math.toDegrees(sensors.getGyro()));
+                        telemetry.addData("Gyro", Math.toDegrees(sensors.getGyro()));
                     }
                 });
             }
