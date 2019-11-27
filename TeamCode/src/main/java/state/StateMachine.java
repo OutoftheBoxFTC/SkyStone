@@ -11,53 +11,37 @@ public class StateMachine {
     private HashMap<String, LogicState> logicStates;
 
     private DriveState activeDriveState, activatedDriveState;
-    private ArrayList<LogicState> activeLogicStates;
+    private StateList activeLogicStates;
 
-    private ArrayList<LogicState> deactivatedLogicStates, activatedLogicStates;
+    private HashMap<LogicState, Integer> activatedLogicStates;
+    private ArrayList<LogicState> deactivatedLogicStates;
 
-    private HashMap<String, Long> queriedActivations;
 
     public StateMachine(){
         driveStates = new HashMap<>();
         logicStates = new HashMap<>();
-        activeLogicStates = new ArrayList<>();
-        activatedLogicStates = new ArrayList<>();
+        activeLogicStates = new StateList();
+        activatedLogicStates = new HashMap<>();
         activeDriveState = null;
         activatedDriveState = null;
-        activatedLogicStates = new ArrayList<>();
         deactivatedLogicStates = new ArrayList<>();
-        queriedActivations = new HashMap<>();
     }
 
     public void update(ReadData data){
-        for(LogicState state : activatedLogicStates){
+        for(LogicState state : activatedLogicStates.keySet()){
             state.init(data);
         }
-        activeLogicStates.addAll(activatedLogicStates);
-        activatedLogicStates.clear();
-        for(LogicState state : activeLogicStates){
-            state.update(data);
-        }
 
-        if(!queriedActivations.isEmpty()) {
-            ArrayList<String> removedQueries = new ArrayList<>();
-            for (String key : queriedActivations.keySet()) {
-                if (queriedActivations.get(key) < System.currentTimeMillis()) {
-                    activatedLogicStates.add(logicStates.get(key));
-                    removedQueries.add(key);
-                }
-            }
-            for(String key : removedQueries){
-                queriedActivations.remove(key);
-            }
-        }
+        activeLogicStates.add(activatedLogicStates);
+        activatedLogicStates.clear();
+
+        activeLogicStates.update(data);
 
         if(activatedDriveState != null){
             activeDriveState = activatedDriveState;
             activatedDriveState = null;
         }
-
-        activeLogicStates.removeAll(deactivatedLogicStates);
+        activeLogicStates.remove(deactivatedLogicStates);
         deactivatedLogicStates.clear();
     }
 
@@ -86,7 +70,11 @@ public class StateMachine {
     }
 
     public void activateLogic(String state){
-        activatedLogicStates.add(logicStates.get(state));
+        activateLogic(state, Integer.MAX_VALUE);
+    }
+
+    public void activateLogic(String state, int priority){
+        activatedLogicStates.put(logicStates.get(state), priority);
     }
 
     public void setActiveDriveState(String state){
@@ -108,20 +96,16 @@ public class StateMachine {
     }
 
     public boolean logicStateActive(String logicState){
-        return activeLogicStates.contains(logicStates.get(logicState));
+        return activeLogicStates.getLogicStates().contains(logicStates.get(logicState));
     }
 
     public boolean driveStateIsActive(String driveState){
         return activeDriveState.equals(driveStates.get(driveState));
     }
 
-    public void activateLogic(String state, long delay) {
-        //TODO finish me
-    }
-
     public String[] getActiveLogicStates() {
         ArrayList<String> activeStates = new ArrayList<>();
-        for(LogicState state : activeLogicStates){
+        for(LogicState state : activeLogicStates.getLogicStates()){
             activeStates.add(state.getStateName());
         }
         return activeStates.toArray(new String[activatedLogicStates.size()]);

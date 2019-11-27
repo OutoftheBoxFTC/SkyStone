@@ -10,18 +10,18 @@ public class AdvancedOdometer extends Odometer{
 
     private Vector3 globalRobotDynamics, globalRobotVelocityDynamics;
 
-    public AdvancedOdometer(double rotationFactor, double translationFactor, double auxRotationFactor) {
-        super(rotationFactor, translationFactor, auxRotationFactor);
+    public AdvancedOdometer(double rotationFactor, double translationFactor) {
+        super(rotationFactor, translationFactor);
     }
 
     @Override
     public AdvancedDynamicIncrements updateRobotDynamics(ReadData data) {
         int left = data.getLeft(), right = data.getRight(), aux = data.getAux();
-        double rotation = right-left, fwd = (left+right)/2.0, strafe = aux-rotation*auxRotationFactor;
+        double rotation = right-left, fwd = (left+right)/2.0, strafe = aux-rotation;
         Vector3 globalRobotDynamics = new Vector3(strafe*translationFactor, fwd*translationFactor, rotation*rotationFactor);
 
         double vLeft = data.getvLeft(), vRight = data.getvRight(), vAux = data.getvAux();
-        double vRotation = vRight-vLeft, vFwd = (vLeft+vRight)/2, vStrafe = (vAux-vRight)*auxRotationFactor;
+        double vRotation = vRight-vLeft, vFwd = (vLeft+vRight)/2, vStrafe = (vAux-vRight);//TODO make sure aux rotation factor isn't needed when doing strafe velocity
         Vector3 globalRobotVelocityDynamics = new Vector3(vStrafe*translationFactor, vFwd*translationFactor, vRotation*rotation);
 
         Vector3 positionIncrements = globalRobotDynamics.subtract(this.globalRobotDynamics),

@@ -14,13 +14,13 @@ public class HoldPosition extends VelocityDriveState {
     private PIDControl2 translationControl;
     private Vector3 velocity, position, target;
 
-    public HoldPosition(StateMachine stateMachine, RobotDrive robotDrive, Vector3 position, Vector3 target) {
+    public HoldPosition(StateMachine stateMachine, RobotDrive robotDrive, Vector3 interpolatedPosition, Vector3 target) {
         super(stateMachine, robotDrive);
         rotationControl = new PIDControl(0.3, 0.1, 0);
         translationControl = new PIDControl2(0.025, 0.1, 0);
         velocity = Vector3.ZERO();
         this.target = target;
-        this.position = position;
+        this.position = interpolatedPosition;
     }
 
     @Override
@@ -40,8 +40,7 @@ public class HoldPosition extends VelocityDriveState {
     }
 
     private Vector3 transformToRobot(Vector3 fieldVelocity){
-        double sine = Math.sin(position.getC()), cos = Math.cos(position.getC());
-        Matrix22 rotationInverse = new Matrix22(cos, sine, -sine, cos);
+        Matrix22 rotationInverse = MathUtil.rotationMatrix(position.getC());
         Vector2 robotTranslationVelocity =  rotationInverse.transform(new Vector2(fieldVelocity));
         return new Vector3(robotTranslationVelocity, fieldVelocity.getC());
     }

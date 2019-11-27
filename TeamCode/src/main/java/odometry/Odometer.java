@@ -8,20 +8,17 @@ public abstract class Odometer {
     //TODO tune me
     private static final double
             ROTATION_FACTOR = 1.398856E-4,
-            TRANSLATION_FACTOR = 0.0010329132,
-            AUX_ROTATION_FACTOR = .467625745;
+            TRANSLATION_FACTOR = 0.0010329132;
 
-    protected double rotationFactor, translationFactor, auxRotationFactor;
-    public Odometer(double rotationFactor, double translationFactor, double auxRotationFactor){
+    protected double rotationFactor, translationFactor;
+    public Odometer(double rotationFactor, double translationFactor){
         this.rotationFactor = rotationFactor;
         this.translationFactor = translationFactor;
-        this.auxRotationFactor = auxRotationFactor;
     }
 
     public Odometer(){
         this.rotationFactor = ROTATION_FACTOR;
         this.translationFactor = TRANSLATION_FACTOR;
-        this.auxRotationFactor = AUX_ROTATION_FACTOR;
     }
 
     public abstract SimpleDynamicIncrements updateRobotDynamics(ReadData data);
@@ -32,14 +29,13 @@ public abstract class Odometer {
     public void setFactors(double rotation, double translation, double auxRotation){
         rotationFactor = rotation;
         translationFactor = translation;
-        auxRotationFactor = auxRotation;
     }
 
     public Vector3 getVelocity(ReadData data){
         double left = data.getvLeft(), right = data.getvRight(), aux = data.getvAux();
         double rotation = right-left,
                 fwd = (right+left)/2,
-                strafe = aux-rotation*auxRotationFactor;
+                strafe = aux;
         return new Vector3(strafe*translationFactor, fwd*translationFactor, rotation*rotationFactor);
     }
 

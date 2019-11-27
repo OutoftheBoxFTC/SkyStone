@@ -47,7 +47,7 @@ public class Teleop extends BasicOpmode {
         logicStates.put("intakeOpen", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
-                if(gamepad1.rightBumper.isActive()&&gamepad1.rightBumper.isUpdated()){
+                if(gamepad1.rightBumper.isPressed()&&gamepad1.rightBumper.isUpdated()){
                     deactivateThis();
                     stateMachine.activateLogic("intakeClosed");
                     robot.intakeServos(0.37, 0.37);
@@ -57,7 +57,7 @@ public class Teleop extends BasicOpmode {
         logicStates.put("intakeClosed", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
-                if(gamepad1.rightBumper.isActive()&&gamepad1.rightBumper.isUpdated()){
+                if(gamepad1.rightBumper.isPressed()&&gamepad1.rightBumper.isUpdated()){
                     deactivateThis();
                     stateMachine.activateLogic("intakeOpen");
                     robot.intakeServos(0, 0);

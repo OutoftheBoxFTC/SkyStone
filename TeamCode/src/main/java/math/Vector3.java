@@ -52,6 +52,12 @@ public class Vector3 {
         this.c = c;
     }
 
+    public void set(Vector2 v, double c){
+        this.a = v.getA();
+        this.b = v.getB();
+        this.c = c;
+    }
+
     public Vector3 clone(){
         return new Vector3(a, b, c);
     }

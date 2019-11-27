@@ -182,6 +182,8 @@ public class Hardware {
 
     public ReadData update() {
         fpsDebug.startIncrement();
+        ReadData data = new ReadData(calibration);
+
         if(enabledDevices.contains(HardwareDevice.DRIVE_MOTORS)) {
             double[] drivePowers = this.drivePowers;
             if (drivePowers != null) {
@@ -190,6 +192,7 @@ public class Hardware {
                 }
             }
         }
+        data.updateDrive();
         if(enabledDevices.contains(HardwareDevice.INTAKE_MOTORS)){
             if(intakePowers != null){
                 leftIntake.setPower(intakePowers[0]);
@@ -209,7 +212,15 @@ public class Hardware {
             }
         }
 
-        ReadData data = new ReadData(calibration);
+        if(enabledDevices.contains(HardwareDevice.PIXY_LEFT)){
+            data.addLeftPixy(leftPixy);
+        }
+        if(enabledDevices.contains(HardwareDevice.PIXY_RIGHT)){
+            data.addRightPixy(rightPixy);
+        }
+        if(enabledDevices.contains(HardwareDevice.GYRO)){
+            data.addGyro(imu);
+        }
         if(enabledDevices.contains(HardwareDevice.HUB_1_BULK)) {
             RevBulkData rawData = hub1.getBulkInputData();
             data.addHub1BulkData(rawData);
@@ -218,16 +229,6 @@ public class Hardware {
             RevBulkData rawData = hub2.getBulkInputData();
             data.addHub2BulkData(rawData);
         }
-        if(enabledDevices.contains(HardwareDevice.GYRO)){
-            data.addGyro(imu);
-        }
-        if(enabledDevices.contains(HardwareDevice.PIXY_LEFT)){
-            data.addLeftPixy(leftPixy);
-        }
-        if(enabledDevices.contains(HardwareDevice.PIXY_RIGHT)){
-            data.addRightPixy(rightPixy);
-        }
-
         fpsDebug.endIncrement();
         fpsDebug.update();
         fpsDebug.queryFPS();

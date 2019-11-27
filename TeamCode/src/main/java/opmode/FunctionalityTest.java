@@ -80,7 +80,7 @@ public class FunctionalityTest extends BasicOpmode {
             @Override
             public Vector4 getWheelVelocities() {
                 //a, b, c, d
-                return new Vector4(gamepad1.y.isActive()?0.5:0, gamepad1.x.isActive()?0.5:0, gamepad1.a.isActive()?0.5:0, gamepad1.b.isActive()?0.5:0);
+                return new Vector4(gamepad1.y.isPressed()?0.5:0, gamepad1.x.isPressed()?0.5:0, gamepad1.a.isPressed()?0.5:0, gamepad1.b.isPressed()?0.5:0);
             }
         });
         stateMachine.appendLogicStates(logicStates);

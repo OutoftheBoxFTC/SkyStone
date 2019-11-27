@@ -15,7 +15,7 @@ public class Button {
         }
     }
 
-    public boolean isActive() {
+    public boolean isPressed() {
         return active;
     }
 

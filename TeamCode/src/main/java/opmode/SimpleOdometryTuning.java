@@ -105,7 +105,7 @@ public class SimpleOdometryTuning extends BasicOpmode {
         logicStates.put("Wait for A", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
-                if(gamepad1.a.isActive()){
+                if(gamepad1.a.isPressed()){
                     deactivateThis();
                     stateMachine.activateLogic("Odometer Readout");
                 }

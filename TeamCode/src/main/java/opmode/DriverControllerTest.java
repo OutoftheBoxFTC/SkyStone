@@ -19,12 +19,11 @@ import state.motion.VelocityDriveState;
 @TeleOp(name = "Driver Controller Test")
 public class DriverControllerTest extends BasicOpmode {
     private MecanumDrive drive;
-    private Vector3 position, velocity;
+    private Vector3 position;
 
     public DriverControllerTest() {
         super(0.3, false);
         position = new Vector3(0, 0, 0);
-        velocity = new Vector3(0, 0, 0);
     }
 
     @Override
@@ -47,7 +46,7 @@ public class DriverControllerTest extends BasicOpmode {
                 }
             }
         });
-        logicStates.put("orientation", new Orientation(stateMachine, new SimpleOdometer(), position, velocity){
+        logicStates.put("orientation", new Orientation(stateMachine, new SimpleOdometer(), position){
             @Override
             public void update(ReadData data) {
                 super.update(data);
@@ -66,9 +65,9 @@ public class DriverControllerTest extends BasicOpmode {
 
             @Override
             public void update(ReadData data) {
-                if(gamepad1.a.isActive()&&gamepad1.a.isUpdated()){
+                if(gamepad1.a.isPressed()&&gamepad1.a.isUpdated()){
                     stateMachine.setActiveDriveState("field centric");
-                } else if(gamepad1.b.isActive()&&gamepad1.b.isUpdated()){
+                } else if(gamepad1.b.isPressed()&&gamepad1.b.isUpdated()){
                     stateMachine.setActiveDriveState("robot centric");
                 }
 

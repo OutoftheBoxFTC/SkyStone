@@ -27,7 +27,7 @@ public class HoldPositionTest extends BasicOpmode {
         robot.registerDevice(Hardware.HardwareDevice.HUB_2_BULK);
         robot.registerDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
 
-        final Vector3 position = Vector3.ZERO(), velocity = Vector3.ZERO();
+        final Vector3 position = Vector3.ZERO();
         final MecanumDrive drive = new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1);
 
         HashMap<String, LogicState> logicStates = new HashMap<>();
@@ -42,7 +42,7 @@ public class HoldPositionTest extends BasicOpmode {
                 }
             }
         });
-        logicStates.put("orientation", new Orientation(stateMachine, new SimpleOdometer(), position, velocity){
+        logicStates.put("orientation", new Orientation(stateMachine, new SimpleOdometer(), position){
             @Override
             public void update(ReadData data) {
                 super.update(data);
@@ -53,7 +53,7 @@ public class HoldPositionTest extends BasicOpmode {
         stateMachine.appendLogicStates(logicStates);
         stateMachine.appendDriveStates(driveStates);
 
-        stateMachine.activateLogic("orientation");
+        stateMachine.activateLogic("orientation", 0);
         stateMachine.activateLogic("init");
     }
 }

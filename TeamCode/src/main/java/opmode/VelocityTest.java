@@ -17,7 +17,6 @@ import state.Orientation;
 @TeleOp(name = "VelocityTest")
 public class VelocityTest extends BasicOpmode {
     private Vector3 position;
-    private Vector3 velocity;
     private MecanumDrive drive;
     private double vR;
     public VelocityTest() {
@@ -30,7 +29,6 @@ public class VelocityTest extends BasicOpmode {
                 .registerDevice(Hardware.HardwareDevice.HUB_1_BULK)
                 .registerDevice(Hardware.HardwareDevice.DRIVE_MOTORS);
         position = new Vector3(0, 0, Math.PI/2);
-        velocity = Vector3.ZERO();
         drive = new MecanumDrive(MecanumDrive.Polarity.IN, Math.PI/4, 1);
 
         HashMap<String, DriveState> driveStates = new HashMap<>();
@@ -40,18 +38,18 @@ public class VelocityTest extends BasicOpmode {
             public void update(ReadData data) {
                 if(isStarted()){
                     deactivateThis();
-                    stateMachine.activateLogic("orientation");
+                    stateMachine.activateLogic("orientation", 0);
                     stateMachine.setActiveDriveState("controller");
                     stateMachine.activateLogic("run");
                 }
             }
         });
 
-        logicStates.put("orientation", new Orientation(stateMachine, new SimpleOdometer(), position, velocity));
+        logicStates.put("orientation", new Orientation(stateMachine, new SimpleOdometer(), position));
         logicStates.put("run", new LogicState(stateMachine) {
             @Override
             public void update(ReadData data) {
-                if(gamepad1.a.isActive()&&gamepad1.a.isUpdated()){
+                if(gamepad1.a.isPressed()&&gamepad1.a.isUpdated()){
                     deactivateThis();
                     stateMachine.activateLogic("track");
                 }

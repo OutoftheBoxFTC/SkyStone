@@ -7,6 +7,7 @@ package math;
  */
 public class MathUtil {
     private static final double S_CUTOFF = 2.2538, C_CUTOFF = 2.303;
+    public static final double TAU = Math.PI*2;
     private static final double[] S_COEFFICIENTS = new double[]{
             0.656233747738434,
             -0.115656562228975,
@@ -113,6 +114,17 @@ public class MathUtil {
             d = tau-d;
         }
         return d;
+    }
+
+    /**
+     *
+     * @param rotation the counterclockwise angle which the rotation matrix transforms
+     * @return the appropriate rotation matrix
+     */
+    public static Matrix22 rotationMatrix(double rotation){
+        double cos = Math.cos(rotation),
+                sine = Math.sin(rotation);
+        return new Matrix22(cos, -sine, sine, cos);
     }
 
     public static int sgn(double a){

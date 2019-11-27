@@ -13,12 +13,13 @@ public class ReadData {
     private Rect leftPixyBound, rightPixyBound;
     private double gyro;
     private CalibrationData calibration;
-    private long hub1BulkTime, hub2BulkTime, gyroTime;
+    private long hub1BulkTime, hub2BulkTime, gyroTime, startTime, driveUpdateTime;
 
     public ReadData(CalibrationData calibration){
         this.calibration = calibration;
         leftPixyBound = new Rect();
         rightPixyBound = new Rect();
+        startTime = System.nanoTime();
     }
 
     public int getLeft() {
@@ -63,6 +64,14 @@ public class ReadData {
 
     public long getHub1BulkTime() {
         return hub1BulkTime;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getDriveUpdateTime() {
+        return driveUpdateTime;
     }
 
     public void addGyro(BNO055IMU gyro) {
@@ -110,5 +119,9 @@ public class ReadData {
         rightPixy.queueData();
         int x = rightPixy.getX(), y = rightPixy.getY();
         rightPixyBound.set(x-rightPixy.getX(), y-rightPixy.getY(), x+rightPixy.getX(), y+rightPixy.getY());
+    }
+
+    public void updateDrive(){
+        driveUpdateTime = System.nanoTime();
     }
 }

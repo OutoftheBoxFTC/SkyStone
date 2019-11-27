@@ -8,8 +8,8 @@ import math.Vector3;
 public class SimpleOdometer extends Odometer {
     private Vector3 globalRobotDynamics, globalDynamicsOffset;
 
-    public SimpleOdometer(double rotationFactor, double translationFactor, double auxRotationFactor){
-        super(rotationFactor, translationFactor, auxRotationFactor);
+    public SimpleOdometer(double rotationFactor, double translationFactor){
+        super(rotationFactor, translationFactor);
         globalRobotDynamics = new Vector3(0, 0, 0);
         globalDynamicsOffset = new Vector3(0, 0, 0);
     }
@@ -25,7 +25,7 @@ public class SimpleOdometer extends Odometer {
 
         double newRotation = (right-left)/2;
         double newFwd = (left+right)/2;
-        double newStrafe = aux-newRotation*auxRotationFactor;
+        double newStrafe = aux-newRotation;
 
         double rotationIncrement = (newRotation-globalRobotDynamics.getC())*rotationFactor;
         double fwdIncrement = (newFwd-globalRobotDynamics.getB())*translationFactor;
@@ -43,11 +43,11 @@ public class SimpleOdometer extends Odometer {
                 rot = robotIncrements.getC();
         double cos = Math.cos(rot), sine = Math.sin(rot);
 
-        double y = (fwd*sine + strafe*(1-cos))/rot;
-        double x = (strafe*sine - fwd*(1-cos))/rot;
+        double x = (fwd*sine + strafe*(1-cos))/rot;
+        double y = (fwd*(1-cos)-strafe*sine)/rot;
         if(rot==0){
-            y=fwd;
-            x=strafe;
+            x=fwd;
+            y=-strafe;
         }
         return new Vector2(x, y);
     }
