@@ -29,7 +29,7 @@ public class OrientationTerminator extends Terminator {
     }
 
     public static boolean shouldTerminateRotation(double angle, double target, double tolerance){
-        return Math.abs(angle - target) < tolerance;
+        return Math.abs((angle - (target < 0 ? 360 + target : target))) < tolerance;
     }
 
     public boolean shouldTerminateRotation(){
