@@ -13,9 +13,7 @@ public class StateMachineSwitcher {
     public void start(StateMachineManager... managers){
         managerList = new ArrayList<>();
         managerList.addAll(Arrays.asList(managers));
-        for(StateMachineManager manager : managers){
-            manager.setup();
-        }
+        managerList.get(index).setup();
         managerList.get(index).start();
     }
     public void update(SensorData sensors, HardwareData hardware){
@@ -24,9 +22,11 @@ public class StateMachineSwitcher {
             managerList.get(index).stop();
             index ++;
             if(index < managerList.size()) {
+                managerList.get(index).setup();
                 managerList.get(index).start();
             }else{
                 index = 0;
+                managerList.get(index).setup();
                 managerList.get(index).start();
             }
         }

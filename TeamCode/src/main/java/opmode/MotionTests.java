@@ -8,6 +8,7 @@ import Debug.Connector;
 import Debug.Registers;
 import Hardware.HardwareData;
 import Hardware.SensorData;
+import Motion.MecanumSystem;
 import Motion.MotionSystem;
 import Odometer.SimpleOdometer;
 import State.DriveState;
@@ -55,7 +56,18 @@ public class MotionTests extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         odometer.update(sensors);
                         telemetry.addData("Position", position.toString());
-                        Connector.getInstance().addOrientation(position);
+                        telemetry.addData("Offset", (sensors.getAux()/sensors.getGyro()));
+                    }
+                });
+                driveState.put("drive", new DriveState(statemachine) {
+                    @Override
+                    public Vector4 getWheelVelocities(SensorData sensors) {
+                        return MecanumSystem.translate(new Vector3(0, 0, gamepad1.left_stick_x));
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+
                     }
                 });
             }

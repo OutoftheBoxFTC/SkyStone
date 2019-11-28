@@ -23,33 +23,32 @@ import State.LogicState;
 import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
-//-14
 @Autonomous
-public class BlueAutonomous extends BasicOpmode {
+public class RedAutonomous extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
-    public BlueAutonomous() {
+    public RedAutonomous() {
         super(1);
     }
 
     @Override
     public void setup() {
         robot.enableAll();
-        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
         firstSkystone = Vector3.ZERO();
         HashMap<String, String> defaults = new HashMap<>();
-        defaults.put("driveToFoundation", "4, -14, 0");
-        defaults.put("driveBack", "4, -6, 0");
-        defaults.put("driveToSeeSkystones", "-25, -10, 90");
-        defaults.put("driveToSkystone", "-45, -9, 90");
+        defaults.put("driveToFoundation", "-4, -14, 0");
+        defaults.put("driveBack", "-4, -6, 0");
+        defaults.put("driveToSeeSkystones", "25, -10, 90");
+        defaults.put("driveToSkystone", "45, -9, 90");
         defaults.put("driveToOuttake", "0, -9, 90");
-        defaults.put("driveToSkystoneV2", "-55, -12, 90");
-        defaults.put("driveToSeeSkystonesV2", "-30, -12, 90");
+        defaults.put("driveToSkystoneV2", "55, -12, 90");
+        defaults.put("driveToSeeSkystonesV2", "30, -12, 90");
         defaults.put("driveToOuttakeV2", "0, -10, 90");
-        defaults.put("park", "-15, -12, 90");
+        defaults.put("park", "15, -12, 90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
-        defaultTurns.put("turnToSkystones", "9, -1, 90");
+        defaultTurns.put("turnToSkystones", "-9, -1, 90");
         defaultTurns.put("turnToIntakeSkystone", "0, 0, 180");
         defaultTurns.put("turnToIntakeSkystoneV2", "0, 0, 145");
         registers = new Registers(defaults, defaultTurns);
@@ -285,7 +284,7 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 if(bleh){
-                    firstSkystone.set(position.getA() - 10, -12, position.getC());
+                    firstSkystone.set(position.getA() + 10, -12, position.getC());
                     bleh = false;
                 }
                 terminate = OrientationTerminator.shouldTerminateRotation(position.getC(), 180, 5);
@@ -599,7 +598,7 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void setup() {
                 terminator = new RelativeOrientationTerminator(position, new Vector3(-3, 0, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(-3, 0, 90), 0.35));
+                driveState.put("drive", system.driveForward(new Vector3(3, 0, 90), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){

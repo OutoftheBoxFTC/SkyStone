@@ -18,7 +18,7 @@ public class PixyTest extends BasicOpmode{
     @Override
     public void setup() {
         robot.enableAll();
-        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
         StateMachineManager main = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
