@@ -52,6 +52,7 @@ public class LiftSystemsTests extends BasicOpmode {
                         if(gamepad1.b){
                             hardware.setIntakeLatch(0.3678);
                         }
+                        telemetry.addData("Position", sensors.getLift());
                     }
                 });
                 logicStates.put("servo", new LogicState(statemachine) {

@@ -96,6 +96,7 @@ public class Hardware {
             liftMotorLeft = new SmartMotor(getOrNull(map, DcMotor.class, "liftMotorL"));
             liftMotorRight = new SmartMotor(getOrNull(map, DcMotor.class, "liftMotorR"));
             liftMotorLeft.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
+            calibration.setLift(liftMotorLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
             intakeLatch = new SmartServo(getOrNull(map, Servo.class, "intakeLatch"));
@@ -162,10 +163,12 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
             liftMotorLeft.setPower(data.getLiftMotors());
             liftMotorRight.setPower(data.getLiftMotors());
+            sensors.setLift(liftMotorLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.LIFT_SERVOS)){
             liftServoLeft.setPosition(data.getLiftServo().getA());
             liftServoRight.setPosition(data.getLiftServo().getB());
+
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
             intakeLatch.setPosition(data.getIntakeLatch());

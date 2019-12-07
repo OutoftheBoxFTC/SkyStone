@@ -3,7 +3,7 @@ package Hardware;
 import math.Vector3;
 
 public class SensorData {
-    private double leftEncoder, rightEncoder, auxEncoder, gyro;
+    private double leftEncoder, rightEncoder, auxEncoder, gyro, lift;
     private byte[] pixy;
     private long timestamp;
     CalibrationSystem calibration;
@@ -36,6 +36,12 @@ public class SensorData {
     }
     public byte[] getPixy(){
         return pixy;
+    }
+    public void setLift(double position){
+        this.lift = position - calibration.getLift();
+    }
+    public double getLift(){
+        return lift;
     }
     public long getTimestamp(){
         return timestamp;

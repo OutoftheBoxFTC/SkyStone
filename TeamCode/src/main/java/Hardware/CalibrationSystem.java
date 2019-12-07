@@ -4,7 +4,7 @@ package Hardware;
  * Calibration Data to calibrate everything
  */
 public class CalibrationSystem {
-    private double leftEncoder, rightEncoder, auxEncoder, gyro, pixyData;
+    private double leftEncoder, rightEncoder, auxEncoder, gyro, pixyData, lift;
     private long timestamp;
 
     /**
@@ -62,5 +62,13 @@ public class CalibrationSystem {
      */
     public double getGyro(){
         return gyro;
+    }
+
+    public void setLift(double position){
+        this.lift = position;
+    }
+
+    public double getLift(){
+        return lift;
     }
 }
