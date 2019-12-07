@@ -7,7 +7,6 @@ import java.io.IOException;
 import Debug.Connector;
 import State.*;
 import Hardware.*;
-import math.Vector3;
 
 public abstract class BasicOpmode extends LinearOpMode {
     protected Hardware robot;
@@ -75,6 +74,7 @@ public abstract class BasicOpmode extends LinearOpMode {
                 }
             }
         }
+        robot.stop();
     }
 
     public abstract void setup();
