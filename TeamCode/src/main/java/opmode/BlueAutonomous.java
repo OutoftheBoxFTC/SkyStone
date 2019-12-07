@@ -36,6 +36,7 @@ public class BlueAutonomous extends BasicOpmode {
     @Override
     public void setup() {
         robot.enableAll();
+
         robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
         firstSkystone = Vector3.ZERO();
         HashMap<String, String> defaults = new HashMap<>();
