@@ -4,7 +4,7 @@ import math.Vector2;
 import math.Vector4;
 
 public class HardwareData {
-    private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight;
+    private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight, liftMotor, liftServo, intakeLatch;
     private long timestamp;
 
     /**
@@ -160,6 +160,30 @@ public class HardwareData {
 
     public Vector2 getIntakeServos(){
         return new Vector2(intakeServoLeft, intakeServoRight);
+    }
+
+    public void setLiftMotors(double power){
+        liftMotor = power;
+    }
+
+    public double getLiftMotors(){
+        return liftMotor;
+    }
+
+    public void setLiftServo(double position){
+        liftServo = position;
+    }
+
+    public Vector2 getLiftServo(){
+        return new Vector2(liftServo, 1-liftServo);
+    }
+
+    public void setIntakeLatch(double position){
+        intakeLatch = position;
+    }
+
+    public double getIntakeLatch(){
+        return intakeLatch;
     }
 
     /**

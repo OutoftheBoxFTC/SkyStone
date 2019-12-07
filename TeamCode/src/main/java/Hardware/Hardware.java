@@ -4,6 +4,8 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -21,8 +23,8 @@ import math.Vector3;
 import math.Vector4;
 
 public class Hardware {
-    private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight;
-    private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight;
+    private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight, liftMotorLeft, liftMotorRight;
+    private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight, liftServoLeft, liftServoRight, intakeLatch;
     private OpMode opmode;
     private Telemetry telemetry;
     private ArrayList<HardwareDevices> enabledDevices;
@@ -86,6 +88,18 @@ public class Hardware {
         }else if(enabledDevices.contains(HardwareDevices.RIGHT_PIXY)){
             pixy = getOrNull(map, Pixycam.class, "pixyRight");
         }
+        if(enabledDevices.contains(HardwareDevices.LIFT_SERVOS)){
+            liftServoLeft = new SmartServo(getOrNull(map, Servo.class, "liftServoL"));
+            liftServoRight = new SmartServo(getOrNull(map, Servo.class, "liftServoR"));
+        }
+        if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
+            liftMotorLeft = new SmartMotor(getOrNull(map, DcMotor.class, "liftMotorL"));
+            liftMotorRight = new SmartMotor(getOrNull(map, DcMotor.class, "liftMotorR"));
+            liftMotorLeft.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
+        }
+        if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
+            intakeLatch = new SmartServo(getOrNull(map, Servo.class, "intakeLatch"));
+        }
     }
 
     /**
@@ -145,6 +159,17 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.LEFT_PIXY) || enabledDevices.contains(HardwareDevices.RIGHT_PIXY)){
             sensors.setPixy(pixy.getCoordinateColor());
         }
+        if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
+            liftMotorLeft.setPower(data.getLiftMotors());
+            liftMotorRight.setPower(data.getLiftMotors());
+        }
+        if(enabledDevices.contains(HardwareDevices.LIFT_SERVOS)){
+            liftServoLeft.setPosition(data.getLiftServo().getA());
+            liftServoRight.setPosition(data.getLiftServo().getB());
+        }
+        if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
+            intakeLatch.setPosition(data.getIntakeLatch());
+        }
         return sensors;
     }
 
@@ -170,6 +195,8 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.INTAKE);
         enabledDevices.add(HardwareDevices.GYRO);
         enabledDevices.add(HardwareDevices.ODOMETRY);
+        enabledDevices.add(HardwareDevices.LIFT_SERVOS);
+        enabledDevices.add(HardwareDevices.LIFT_MOTORS);
     }
 
     /**
@@ -218,6 +245,9 @@ public class Hardware {
         GYRO,
         ODOMETRY,
         LEFT_PIXY,
-        RIGHT_PIXY
+        RIGHT_PIXY,
+        LIFT_SERVOS,
+        LIFT_MOTORS,
+        INTAKE_LATCH
     }
 }
