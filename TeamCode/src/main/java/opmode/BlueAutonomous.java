@@ -407,11 +407,30 @@ public class BlueAutonomous extends BasicOpmode {
 
                     }
                 });
-                logicStates.put("lock", new LogicState(statemachine) {
+                logicStates.put("sequence", new LogicState(statemachine) {
+                    long timer = 0;
+                    int state = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setIntakeServos(HardwareConstants.LOCKED_INTAKE);
-                        terminate = true;
+                        if(state == 0){
+                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 1;
+                        }
+                        if(state == 1 && System.currentTimeMillis() > timer){
+                            hardware.setLiftServo(0);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 2;
+                        }
+                        if(state == 2 && System.currentTimeMillis() > timer){
+                            hardware.setIntakeLatch(0.85);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 3;
+                        }
+                        if(state == 3 && System.currentTimeMillis() > timer){
+                            hardware.setLiftServo(0.02);
+                            terminate = true;
+                        }
                     }
                 });
             }
@@ -455,7 +474,7 @@ public class BlueAutonomous extends BasicOpmode {
                 terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttake"), 3);
             }
         };
-        StateMachineManager waitForUserToGrabStone = new StateMachineManager(statemachine) {
+        StateMachineManager outtakeSkystone = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
                 driveState.put("stop", new DriveState(stateMachine) {
@@ -469,17 +488,25 @@ public class BlueAutonomous extends BasicOpmode {
 
                     }
                 });
-                logicStates.put("wait", new LogicState(stateMachine) {
+                logicStates.put("sequence", new LogicState(statemachine) {
                     long timer = 0;
-                    @Override
-                    public void init(SensorData sensors, HardwareData hardware){
-                        timer = System.currentTimeMillis() + 2000;
-                    }
+                    int state = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(System.currentTimeMillis() > timer){
+                        if(state == 0){
+                            hardware.setLiftServo(1);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 1;
+                        }
+                        if(state == 1 && System.currentTimeMillis() > timer){
+                            hardware.setIntakeLatch(0.35);
+                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 2;
+                        }
+                        if(state == 2 && System.currentTimeMillis() > timer){
+                            hardware.setLiftServo(0.02);
                             terminate = true;
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                         }
                     }
                 });
@@ -682,11 +709,30 @@ public class BlueAutonomous extends BasicOpmode {
 
                     }
                 });
-                logicStates.put("lock", new LogicState(statemachine) {
+                logicStates.put("sequence", new LogicState(statemachine) {
+                    long timer = 0;
+                    int state = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setIntakeServos(HardwareConstants.LOCKED_INTAKE);
-                        terminate = true;
+                        if(state == 0){
+                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 1;
+                        }
+                        if(state == 1 && System.currentTimeMillis() > timer){
+                            hardware.setLiftServo(0);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 2;
+                        }
+                        if(state == 2 && System.currentTimeMillis() > timer){
+                            hardware.setIntakeLatch(0.85);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 3;
+                        }
+                        if(state == 3 && System.currentTimeMillis() > timer){
+                            hardware.setLiftServo(0.02);
+                            terminate = true;
+                        }
                     }
                 });
             }
@@ -730,7 +776,7 @@ public class BlueAutonomous extends BasicOpmode {
                 terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttakeV2"), 3);
             }
         };
-        StateMachineManager waitForUserToGrabStoneV2 = new StateMachineManager(statemachine) {
+        StateMachineManager outtakeSkystoneV2 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
                 driveState.put("stop", new DriveState(stateMachine) {
@@ -744,15 +790,24 @@ public class BlueAutonomous extends BasicOpmode {
 
                     }
                 });
-                logicStates.put("wait", new LogicState(stateMachine) {
+                logicStates.put("sequence", new LogicState(statemachine) {
                     long timer = 0;
-                    @Override
-                    public void init(SensorData sensors, HardwareData hardware){
-                        timer = System.currentTimeMillis() + 2000;
-                    }
+                    int state = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(System.currentTimeMillis() > timer){
+                        if(state == 0){
+                            hardware.setLiftServo(1);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 1;
+                        }
+                        if(state == 1 && System.currentTimeMillis() > timer){
+                            hardware.setIntakeLatch(0.35);
+                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                            timer = System.currentTimeMillis() + 250;
+                            state = 2;
+                        }
+                        if(state == 2 && System.currentTimeMillis() > timer){
+                            hardware.setLiftServo(0.02);
                             terminate = true;
                         }
                     }
@@ -850,6 +905,6 @@ public class BlueAutonomous extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, waitForUserToGrabStone, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, waitForUserToGrabStoneV2, park, end);
+        stateMachineSwitcher.start(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, outtakeSkystone, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, outtakeSkystoneV2, park, end);
     }
 }

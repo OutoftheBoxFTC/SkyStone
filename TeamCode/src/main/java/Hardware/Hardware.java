@@ -95,8 +95,9 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
             liftMotorLeft = new SmartMotor(getOrNull(map, DcMotor.class, "liftMotorL"));
             liftMotorRight = new SmartMotor(getOrNull(map, DcMotor.class, "liftMotorR"));
+            liftMotorLeft.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            liftMotorRight.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             liftMotorLeft.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
-            calibration.setLift(liftMotorLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
             intakeLatch = new SmartServo(getOrNull(map, Servo.class, "intakeLatch"));
@@ -110,6 +111,10 @@ public class Hardware {
         calibration = new CalibrationSystem();
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
             calibration.setOdometryEncoders(-intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
+        }
+        if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
+            calibration.setLift(liftMotorLeft.getMotor().getCurrentPosition()-10);
+            RobotLog.i("We got to this point");
         }
         if(enabledDevices.contains(HardwareDevices.GYRO)) {
             Orientation orientation = imu.getAngularOrientation();
@@ -232,6 +237,10 @@ public class Hardware {
         yaw = orientation.thirdAngle;
         double thirdRot = (((yaw % tau) + tau) % tau);
         return new Vector3(firstRot, secondRot, thirdRot);
+    }
+
+    public SmartMotor getLiftMotorLeft(){
+        return liftMotorLeft;
     }
 
     public CalibrationSystem getCalibration(){

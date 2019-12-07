@@ -41,7 +41,18 @@ public class LiftSystemsTests extends BasicOpmode {
                 logicStates.put("lift", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftMotors(gamepad1.left_stick_y);
+                        if(Math.abs(gamepad1.left_stick_y) < 0.1){
+                            hardware.setLiftMotors(0.2);
+                        }else{
+                            if(sensors.getLift() > 0 && gamepad1.left_stick_y > 0) {
+                                hardware.setLiftMotors(gamepad1.left_stick_y);
+                            }else if(sensors.getLift() < 2150 && gamepad1.left_stick_y < 0){
+                                hardware.setLiftMotors(gamepad1.left_stick_y);
+                            }
+                            else{
+                                hardware.setLiftMotors(0.2);
+                            }
+                        }
                         if(gamepad1.a){
                             statemachine.activateLogic("sequence");
                             statemachine.deactivateLogic("servo");
@@ -52,7 +63,8 @@ public class LiftSystemsTests extends BasicOpmode {
                         if(gamepad1.b){
                             hardware.setIntakeLatch(0.3678);
                         }
-                        telemetry.addData("Position", sensors.getLift());
+                        telemetry.addData("Encoder", sensors.getLift());
+
                     }
                 });
                 logicStates.put("servo", new LogicState(statemachine) {
