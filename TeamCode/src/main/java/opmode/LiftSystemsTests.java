@@ -68,6 +68,7 @@ public class LiftSystemsTests extends BasicOpmode {
                         position = Math.min(position, 1);
                         position = Math.max(position, 0);
                         hardware.setLiftServo(position);
+
                         telemetry.addData("Position", position);
                         timePrev = System.currentTimeMillis();
                     }
