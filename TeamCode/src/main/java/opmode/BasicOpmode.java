@@ -74,6 +74,7 @@ public abstract class BasicOpmode extends LinearOpMode {
                 }
             }
         }
+        robot.stop();
     }
 
     public abstract void setup();

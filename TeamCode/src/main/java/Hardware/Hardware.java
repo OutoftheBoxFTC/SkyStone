@@ -10,7 +10,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
 
@@ -30,6 +35,8 @@ public class Hardware {
     private CalibrationSystem calibration;
     private BNO055IMU imu;
     private Pixycam pixy;
+    private OpenCvCamera liftCam;
+    private OpenCvPipeline pipeline;
 
 
     /**
@@ -89,6 +96,11 @@ public class Hardware {
         }else if(enabledDevices.contains(HardwareDevices.RIGHT_PIXY)){
             pixy = getOrNull(map, Pixycam.class, "pixyRight");
         }
+        if(enabledDevices.contains(HardwareDevices.LIFT_CAM)){
+            int cameraMonitorViewId = map.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", map.appContext.getPackageName());
+            liftCam = OpenCvCameraFactory.getInstance().createWebcam(map.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+            liftCam.openCameraDevice();
+        }
         if(enabledDevices.contains(HardwareDevices.LIFT_SERVOS)){
             liftServoLeft = new SmartServo(getOrNull(map, Servo.class, "liftServoL"));
             liftServoRight = new SmartServo(getOrNull(map, Servo.class, "liftServoR"));
@@ -122,6 +134,12 @@ public class Hardware {
             double yaw = orientation.firstAngle;
             double tau = Math.PI * 2;
             calibration.setGyro(((yaw % tau) + tau) % tau);
+        }
+        if(enabledDevices.contains(HardwareDevices.LIFT_CAM)){
+            if(pipeline != null){
+                liftCam.setPipeline(pipeline);
+            }
+            liftCam.startStreaming(640, 480, OpenCvCameraRotation.SIDEWAYS_LEFT);
         }
     }
 
@@ -248,6 +266,11 @@ public class Hardware {
         return calibration;
     }
 
+    public void stop(){
+        liftCam.stopStreaming();
+        liftCam.closeCameraDevice();
+    }
+
     /**
      * Enumaltion of all HardwareDevices
      */
@@ -261,6 +284,7 @@ public class Hardware {
         RIGHT_PIXY,
         LIFT_SERVOS,
         LIFT_MOTORS,
-        INTAKE_LATCH
+        INTAKE_LATCH,
+        LIFT_CAM;
     }
 }
