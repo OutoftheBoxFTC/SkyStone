@@ -46,7 +46,7 @@ public class BlueAutonomous extends BasicOpmode {
         defaults.put("driveToSkystone", "-45, -9, 90");
         defaults.put("driveToOuttake", "0, -9, 90");
         defaults.put("driveToSkystoneV2", "-55, -12, 90");
-        defaults.put("driveToSeeSkystonesV2", "-30, -12, 90");
+        defaults.put("driveToSeeSkystonesV2", "-30, -10, 90");
         defaults.put("driveToOuttakeV2", "0, -10, 90");
         defaults.put("park", "-15, -12, 90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
@@ -68,7 +68,9 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 odometer.update(sensors);
-                telemetry.addData("Position", position);
+                for(byte b : sensors.getPixy()){
+                    telemetry.addData("Pixy", b);
+                }
             }
         });
         statemachine.appendLogicStates(nonManagedLogicStates);
@@ -81,17 +83,22 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = isStarted();
+            }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware){
                 stateMachine.activateLogic("Odometry");
             }
         };
         StateMachineManager driveToFoundation = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToFoundation"), 0.35));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToFoundation"), 0.5));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
+                hardware.setIntakePowers(-1);
                 terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToFoundation"), 2);
             }
         };
@@ -132,13 +139,13 @@ public class BlueAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-
+                hardware.setIntakePowers(0);
             }
         };
         StateMachineManager driveFoundationBack = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveBack"), 0.5));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveBack"), 0.65));
             }
 
             @Override
@@ -202,7 +209,7 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void setup() {
                 terminator = new RelativeOrientationTerminator(position, new Vector3(0, -4, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -4, 90), 0.35));
+                driveState.put("drive", system.driveForward(new Vector3(0, -4, 90), 0.7));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -223,12 +230,12 @@ public class BlueAutonomous extends BasicOpmode {
         StateMachineManager driveToSeeSkystones = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToSeeSkystones"), 0.75));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToSeeSkystones"), 0.8));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToSeeSkystones"), 4);
+                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToSeeSkystones"), 3);
             }
         };
         StateMachineManager waitAfterSkystoneMovement = new StateMachineManager(statemachine) {
@@ -299,7 +306,9 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
-                        hardware.setIntakePowers(-1, 1);
+                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                        hardware.setIntakePowers(1);
+                        hardware.setLiftServo(0.12);
                         terminate = true;
                     }
                 });
@@ -324,8 +333,8 @@ public class BlueAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -10, 180), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -10, 180), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -8, 180), 2);
+                driveState.put("drive", system.driveForward(new Vector3(0, -8, 180), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -350,7 +359,7 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                        hardware.setIntakePowers(-1, 1);
+                        hardware.setIntakePowers(1);
                         terminate = true;
                     }
                 });
@@ -372,15 +381,13 @@ public class BlueAutonomous extends BasicOpmode {
             }
         };
         StateMachineManager secondIntakeMovement = new StateMachineManager(statemachine) {
-            RelativeOrientationTerminator terminator;
+            long timer = 0;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -3, 180), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -3, 180), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
-                        terminator.start();
+                        timer = System.currentTimeMillis() + 500;
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -391,7 +398,7 @@ public class BlueAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = terminator.shouldTerminate(sensors);
+                terminate = (System.currentTimeMillis() > timer);
             }
         };
         StateMachineManager lockIntake = new StateMachineManager(statemachine) {
@@ -409,29 +416,11 @@ public class BlueAutonomous extends BasicOpmode {
                     }
                 });
                 logicStates.put("sequence", new LogicState(statemachine) {
-                    long timer = 0;
-                    int state = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(state == 0){
-                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
-                            timer = System.currentTimeMillis() + 250;
-                            state = 1;
-                        }
-                        if(state == 1 && System.currentTimeMillis() > timer){
-                            hardware.setLiftServo(0);
-                            timer = System.currentTimeMillis() + 250;
-                            state = 2;
-                        }
-                        if(state == 2 && System.currentTimeMillis() > timer){
-                            hardware.setIntakeLatch(0.85);
-                            timer = System.currentTimeMillis() + 250;
-                            state = 3;
-                        }
-                        if(state == 3 && System.currentTimeMillis() > timer){
-                            hardware.setLiftServo(0.02);
-                            terminate = true;
-                        }
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
+                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                        terminate = true;
                     }
                 });
             }
@@ -445,12 +434,13 @@ public class BlueAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, 5, 180), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, 5, 180), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, 7, 180), 2);
+                driveState.put("drive", system.driveForward(new Vector3(0, 7, 180), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
                         terminator.start();
+                        hardware.setIntakePowers(0);
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -495,18 +485,22 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
-                            hardware.setLiftServo(1);
-                            timer = System.currentTimeMillis() + 250;
+                            hardware.setLiftServo(HardwareConstants.LIFT_OUT);
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
-                            hardware.setIntakeLatch(0.35);
+                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                             hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                             timer = System.currentTimeMillis() + 250;
                             state = 2;
                         }
                         if(state == 2 && System.currentTimeMillis() > timer){
-                            hardware.setLiftServo(0.02);
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                            state = 3;
+                            timer = System.currentTimeMillis() + 750;
+                        }
+                        if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;
                         }
                     }
@@ -521,7 +515,7 @@ public class BlueAutonomous extends BasicOpmode {
         StateMachineManager driveToSeeSkystonesV2 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToSeeSkystonesV2"), 0.5, 1, 4));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToSeeSkystonesV2"), 1, 1, 4));
             }
 
             @Override
@@ -576,8 +570,8 @@ public class BlueAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -7, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -7, 90), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -5, 120), 2);
+                driveState.put("drive", system.driveForward(new Vector3(0, -5, 120), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -601,7 +595,9 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                        hardware.setIntakePowers(-1, 1);
+                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                        hardware.setLiftServo(0.12);
+                        hardware.setIntakePowers(1);
                         terminate = true;
                     }
                 });
@@ -626,8 +622,8 @@ public class BlueAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(-3, 0, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(-3, 0, 90), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(-4.5, 0, 120), 2);
+                driveState.put("drive", system.driveForward(new Vector3(-4.5, 0, 120), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -652,7 +648,7 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                        hardware.setIntakePowers(-1, 1);
+                        hardware.setIntakePowers(1);
                         terminate = true;
                     }
                 });
@@ -674,15 +670,13 @@ public class BlueAutonomous extends BasicOpmode {
             }
         };
         StateMachineManager secondIntakeMovementV2 = new StateMachineManager(statemachine) {
-            RelativeOrientationTerminator terminator;
+            long timer = 0;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -1, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -1, 90), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
-                        terminator.start();
+                        timer = System.currentTimeMillis() + 500;
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -693,7 +687,7 @@ public class BlueAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = terminator.shouldTerminate(sensors);
+                terminate =  System.currentTimeMillis() > timer;
             }
         };
         StateMachineManager lockIntakeV2 = new StateMachineManager(statemachine) {
@@ -711,29 +705,9 @@ public class BlueAutonomous extends BasicOpmode {
                     }
                 });
                 logicStates.put("sequence", new LogicState(statemachine) {
-                    long timer = 0;
-                    int state = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(state == 0){
-                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
-                            timer = System.currentTimeMillis() + 250;
-                            state = 1;
-                        }
-                        if(state == 1 && System.currentTimeMillis() > timer){
-                            hardware.setLiftServo(0);
-                            timer = System.currentTimeMillis() + 250;
-                            state = 2;
-                        }
-                        if(state == 2 && System.currentTimeMillis() > timer){
-                            hardware.setIntakeLatch(0.85);
-                            timer = System.currentTimeMillis() + 250;
-                            state = 3;
-                        }
-                        if(state == 3 && System.currentTimeMillis() > timer){
-                            hardware.setLiftServo(0.02);
-                            terminate = true;
-                        }
+                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                     }
                 });
             }
@@ -809,6 +783,10 @@ public class BlueAutonomous extends BasicOpmode {
                         }
                         if(state == 2 && System.currentTimeMillis() > timer){
                             hardware.setLiftServo(0.02);
+                            state = 3;
+                            timer = System.currentTimeMillis() + 750;
+                        }
+                        if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;
                         }
                     }

@@ -18,18 +18,20 @@ public class CalibrationSystem {
      * @param rightEncoder the right encoder value
      * @param auxEncoder the aux encoder value
      */
-    public void setOdometryEncoders(double leftEncoder, double rightEncoder, double auxEncoder){
+    public CalibrationSystem setOdometryEncoders(double leftEncoder, double rightEncoder, double auxEncoder){
         this.leftEncoder = leftEncoder;
         this.rightEncoder = rightEncoder;
         this.auxEncoder = auxEncoder;
+        return this;
     }
 
     /**
      * Sets the calibration for the gyro
      * @param gyro the gyro values
      */
-    public void setGyro(double gyro){
+    public CalibrationSystem setGyro(double gyro){
         this.gyro = gyro;
+        return this;
     }
 
     /**
@@ -64,8 +66,9 @@ public class CalibrationSystem {
         return gyro;
     }
 
-    public void setLift(double position){
+    public CalibrationSystem setLift(double position){
         this.lift = position;
+        return this;
     }
 
     public double getLift(){

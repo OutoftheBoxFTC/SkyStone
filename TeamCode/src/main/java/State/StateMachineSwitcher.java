@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import Hardware.Hardware;
 import Hardware.HardwareData;
 import Hardware.SensorData;
 
@@ -19,7 +20,7 @@ public class StateMachineSwitcher {
     public void update(SensorData sensors, HardwareData hardware){
         managerList.get(index).update(sensors, hardware);
         if(managerList.get(index).shouldTerminate()){
-            managerList.get(index).stop();
+            managerList.get(index).stop(sensors, hardware);
             index ++;
             if(index < managerList.size()) {
                 managerList.get(index).setup();
@@ -32,8 +33,8 @@ public class StateMachineSwitcher {
         }
     }
 
-    public void setActive(StateMachineManager manager){
-        managerList.get(index).stop();
+    public void setActive(StateMachineManager manager, SensorData sensorData, HardwareData hardware){
+        managerList.get(index).stop(sensorData, hardware);
         index = managerList.indexOf(manager);
         managerList.get(index).start();
     }

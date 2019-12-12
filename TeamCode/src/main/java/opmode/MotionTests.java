@@ -57,6 +57,7 @@ public class MotionTests extends BasicOpmode {
                         odometer.update(sensors);
                         telemetry.addData("Position", position.toString());
                         telemetry.addData("Offset", (sensors.getAux()/sensors.getGyro()));
+                        telemetry.addData("Encoders", new Vector3(sensors.getLeft(), sensors.getRight(), sensors.getAux()));
                     }
                 });
                 driveState.put("drive", new DriveState(statemachine) {

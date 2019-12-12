@@ -69,6 +69,7 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             intakeLeft = new SmartMotor(getOrNull(map, DcMotor.class, "leftIntake"));
             intakeRight = new SmartMotor(getOrNull(map, DcMotor.class, "rightIntake"));
+            intakeLeft.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
             intakeServoLeft = new SmartServo(getOrNull(map, Servo.class, "leftIntakeServo"));
             intakeServoRight = new SmartServo(getOrNull(map, Servo.class, "rightIntakeServo"));
         }
@@ -114,7 +115,7 @@ public class Hardware {
             calibration.setOdometryEncoders(-intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
-            calibration.setLift(liftMotorLeft.getMotor().getCurrentPosition()-10);
+            calibration.setLift(liftMotorLeft.getMotor().getCurrentPosition());
             RobotLog.i("We got to this point");
         }
         if(enabledDevices.contains(HardwareDevices.GYRO)) {
@@ -149,7 +150,7 @@ public class Hardware {
             rightLatch.setPosition(servoPositions.getB());
         }
         if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
-            sensors.setOdometryEncoders(-intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
+            sensors.setOdometryEncoders(intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             intakeLeft.setPower(data.getIntakePowers().getA());
@@ -206,6 +207,7 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.ODOMETRY);
         enabledDevices.add(HardwareDevices.LIFT_SERVOS);
         enabledDevices.add(HardwareDevices.LIFT_MOTORS);
+        enabledDevices.add(HardwareDevices.INTAKE_LATCH);
     }
 
     /**

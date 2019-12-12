@@ -34,11 +34,16 @@ public abstract class StateMachineManager {
 
     public abstract void update(SensorData sensors, HardwareData hardware);
 
+    public void onStop(SensorData sensors, HardwareData hardware){
+
+    }
+
     public boolean shouldTerminate(){
         return terminate;
     }
 
-    public void stop(){
+    public void stop(SensorData sensors, HardwareData hardware){
+        onStop(sensors, hardware);
         for(LogicState state : logicStates.values()){
             state.deactivateThis();
         }
