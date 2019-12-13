@@ -42,13 +42,13 @@ public class BlueAutonomous extends BasicOpmode {
         HashMap<String, String> defaults = new HashMap<>();
         defaults.put("driveToFoundation", "4, -14, 0");
         defaults.put("driveBack", "4, -6, 0");
-        defaults.put("driveToSeeSkystones", "-25, -10, 90");
+        defaults.put("driveToSeeSkystones", "-27, -10, 90");
         defaults.put("driveToSkystone", "-45, -9, 90");
         defaults.put("driveToOuttake", "0, -9, 90");
         defaults.put("driveToSkystoneV2", "-55, -12, 90");
         defaults.put("driveToSeeSkystonesV2", "-30, -10, 90");
         defaults.put("driveToOuttakeV2", "0, -10, 90");
-        defaults.put("park", "-15, -12, 90");
+        defaults.put("park", "-20, -12, 90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
         defaultTurns.put("turnToSkystones", "9, -1, 90");
         defaultTurns.put("turnToIntakeSkystone", "0, 0, 180");
@@ -464,6 +464,11 @@ public class BlueAutonomous extends BasicOpmode {
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttake"), 3);
             }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware){
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+            }
         };
         StateMachineManager outtakeSkystone = new StateMachineManager(statemachine) {
             @Override
@@ -687,7 +692,7 @@ public class BlueAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate =  System.currentTimeMillis() > timer;
+                terminate = System.currentTimeMillis() > timer;
             }
         };
         StateMachineManager lockIntakeV2 = new StateMachineManager(statemachine) {
@@ -707,7 +712,9 @@ public class BlueAutonomous extends BasicOpmode {
                 logicStates.put("sequence", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
                         hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                        terminate = true;
                     }
                 });
             }
@@ -727,6 +734,7 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
                         terminator.start();
+                        hardware.setIntakePowers(0);
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -771,18 +779,18 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
-                            hardware.setLiftServo(1);
-                            timer = System.currentTimeMillis() + 250;
+                            hardware.setLiftServo(HardwareConstants.LIFT_OUT);
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
-                            hardware.setIntakeLatch(0.35);
+                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                             hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                             timer = System.currentTimeMillis() + 250;
                             state = 2;
                         }
                         if(state == 2 && System.currentTimeMillis() > timer){
-                            hardware.setLiftServo(0.02);
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             state = 3;
                             timer = System.currentTimeMillis() + 750;
                         }
