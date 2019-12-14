@@ -9,9 +9,9 @@ import State.LogicState;
 import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp
-public class TeleOp extends BasicOpmode {
-    public TeleOp() {
+
+public class TeleopKavish extends BasicOpmode {
+    public TeleopKavish() {
         super(1);
     }
 
@@ -79,10 +79,7 @@ public class TeleOp extends BasicOpmode {
                         if(gamepad2.left_bumper){
                             robot.calibrate(robot.getCalibration().setLift(sensors.getLift()));
                         }
-                        if(gamepad2.right_trigger > 0.5){
-                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                        }
-                        if(((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0)) && hardware.getLiftServo().getA() < 0.1){
+                        if(gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0 || gamepad2.right_trigger > 0.5){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                             hardware.setLiftServo(0.08);
                         }else if(hardware.getLiftServoDouble() != HardwareConstants.LIFT_OUT && hardware.getLiftServoDouble() != 0.5){

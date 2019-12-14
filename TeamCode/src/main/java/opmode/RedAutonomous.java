@@ -43,10 +43,10 @@ public class RedAutonomous extends BasicOpmode {
         defaults.put("driveBack", "-4, -6, 0");
         defaults.put("driveToSeeSkystones", "25, -10, -90");
         defaults.put("driveToSkystone", "45, -9, -90");
-        defaults.put("driveToOuttake", "0, -9, -90");
+        defaults.put("driveToOuttake", "2, -9, -90");
         defaults.put("driveToSkystoneV2", "55, -12, -90");
         defaults.put("driveToSeeSkystonesV2", "30, -10, -90");
-        defaults.put("driveToOuttakeV2", "0, -10, -90");
+        defaults.put("driveToOuttakeV2", "3, -10, -90");
         defaults.put("park", "20, -12, -90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
         defaultTurns.put("turnToSkystones", "9, -1, -90");
@@ -92,7 +92,7 @@ public class RedAutonomous extends BasicOpmode {
         StateMachineManager driveToFoundation = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToFoundation"), 0.5));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToFoundation"), 0.4));
             }
 
             @Override
@@ -750,7 +750,7 @@ public class RedAutonomous extends BasicOpmode {
         StateMachineManager driveToOuttakeV2 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToOuttakeV2"), 0.6));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToOuttakeV2"), 1));
             }
 
             @Override

@@ -2,45 +2,24 @@ package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import java.util.HashMap;
-
-import Debug.Connector;
-import Debug.Registers;
+import Hardware.HardwareConstants;
 import Hardware.HardwareData;
 import Hardware.SensorData;
-import Motion.MecanumSystem;
-import Motion.MotionSystem;
-import Odometer.SimpleOdometer;
-import State.DriveState;
 import State.LogicState;
 import State.StateMachineManager;
 import math.Vector3;
-import math.Vector4;
-@TeleOp
+@TeleOp(name="TrimTram")
 public class MotionTests extends BasicOpmode {
-    Vector3 position = Vector3.ZERO();
-    Vector3 velocity = Vector3.ZERO();
     public MotionTests() {
-        super(1);
+        super(0);
     }
 
     @Override
     public void setup() {
         robot.enableAll();
-        HashMap<String, String> test = new HashMap<>();
-        test.put("Main", "0, -1, 0");
-        final Registers registers = new Registers(test, new HashMap<String, String>());
-        final SimpleOdometer odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        final MotionSystem motion = new MotionSystem(statemachine, odometer, position);
         StateMachineManager init = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                logicStates.put("start", new LogicState(stateMachine) {
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        odometer.start(sensors);
-                    }
-                });
             }
 
             @Override
@@ -49,26 +28,34 @@ public class MotionTests extends BasicOpmode {
             }
         };
         StateMachineManager move = new StateMachineManager(statemachine) {
+            boolean test;
+            double tram = 0;
             @Override
             public void setup() {
                 logicStates.put("update", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        odometer.update(sensors);
-                        telemetry.addData("Position", position.toString());
-                        telemetry.addData("Offset", (sensors.getAux()/sensors.getGyro()));
-                        telemetry.addData("Encoders", new Vector3(sensors.getLeft(), sensors.getRight(), sensors.getAux()));
-                    }
-                });
-                driveState.put("drive", new DriveState(statemachine) {
-                    @Override
-                    public Vector4 getWheelVelocities(SensorData sensors) {
-                        return MecanumSystem.translate(new Vector3(0, 0, gamepad1.left_stick_x));
-                    }
-
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-
+                        if(gamepad2.dpad_up && !test){
+                            test = true;
+                            tram += 0.01;
+                        }
+                        if(!(gamepad2.dpad_up || gamepad2.dpad_down)){
+                            test = false;
+                        }
+                        if(gamepad2.dpad_down && !test){
+                            test = true;
+                            tram -= 0.01;
+                        }
+                        telemetry.addData("TRIMTRAM", tram);
+                        if(gamepad2.right_stick_x > 0.4){
+                            hardware.setLiftServo(HardwareConstants.LIFT_OUT, tram);
+                        }
+                        if(gamepad2.right_stick_x < -0.4){
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST, tram);
+                        }
+                        if(gamepad2.right_stick_y < -0.4){
+                            hardware.setLiftServo(0.5, tram);
+                        }
                     }
                 });
             }
