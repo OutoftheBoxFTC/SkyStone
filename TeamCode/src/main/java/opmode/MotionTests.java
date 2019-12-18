@@ -7,6 +7,7 @@ import Hardware.HardwareData;
 import Hardware.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
+import math.Vector2;
 import math.Vector3;
 @TeleOp(name="TrimTram")
 public class MotionTests extends BasicOpmode {
@@ -28,8 +29,8 @@ public class MotionTests extends BasicOpmode {
             }
         };
         StateMachineManager move = new StateMachineManager(statemachine) {
-            boolean test;
-            double tram = 0;
+            boolean test, test2;
+            double tram = 0, trim = 0;
             @Override
             public void setup() {
                 logicStates.put("update", new LogicState(stateMachine) {
@@ -46,15 +47,26 @@ public class MotionTests extends BasicOpmode {
                             test = true;
                             tram -= 0.01;
                         }
-                        telemetry.addData("TRIMTRAM", tram);
+                        if(gamepad2.dpad_right && !test2){
+                            test2 = true;
+                            trim += 0.01;
+                        }
+                        if(!(gamepad2.dpad_right || gamepad2.dpad_left)){
+                            test2 = false;
+                        }
+                        if(gamepad2.dpad_left && !test2){
+                            test2 = true;
+                            trim -= 0.01;
+                        }
+                        telemetry.addData("TRIMTRAM", (trim + " " + tram));
                         if(gamepad2.right_stick_x > 0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_OUT, tram);
+                            hardware.setLiftServo(new Vector2(trim, tram));
                         }
                         if(gamepad2.right_stick_x < -0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST, tram);
+                            hardware.setLiftServo(new Vector2(trim, tram));
                         }
                         if(gamepad2.right_stick_y < -0.4){
-                            hardware.setLiftServo(0.5, tram);
+                            hardware.setLiftServo(new Vector2(trim, tram));
                         }
                     }
                 });

@@ -21,6 +21,7 @@ import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
 import State.StateMachineManager;
+import math.Vector2;
 import math.Vector3;
 import math.Vector4;
 @Autonomous
@@ -46,7 +47,7 @@ public class RedAutonomous extends BasicOpmode {
         defaults.put("driveToOuttake", "2, -9, -90");
         defaults.put("driveToSkystoneV2", "55, -12, -90");
         defaults.put("driveToSeeSkystonesV2", "30, -10, -90");
-        defaults.put("driveToOuttakeV2", "3, -10, -90");
+        defaults.put("driveToOuttakeV2", "3, -12, -90");
         defaults.put("park", "20, -12, -90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
         defaultTurns.put("turnToSkystones", "9, -1, -90");
@@ -307,7 +308,7 @@ public class RedAutonomous extends BasicOpmode {
                         hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                         hardware.setIntakePowers(1);
-                        hardware.setLiftServo(0.12);
+                        hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
                         terminate = true;
                     }
                 });
@@ -516,6 +517,19 @@ public class RedAutonomous extends BasicOpmode {
 
             }
         };
+        StateMachineManager moveAfterOuttake = new StateMachineManager(statemachine) {
+            long timer = 0;
+            @Override
+            public void setup() {
+                driveState.put("move", system.driveForward(new Vector3(-4, 0, -90), 1));
+                timer = System.currentTimeMillis() + 500;
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                terminate = System.currentTimeMillis() > timer;
+            }
+        };
         StateMachineManager driveToSeeSkystonesV2 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -574,8 +588,8 @@ public class RedAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -5, -120), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -5, -120), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -6, -110), 2);
+                driveState.put("drive", system.driveForward(new Vector3(0, -6, -110), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -600,7 +614,7 @@ public class RedAutonomous extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                        hardware.setLiftServo(0.12);
+                        hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
                         hardware.setIntakePowers(1);
                         terminate = true;
                     }
@@ -626,8 +640,8 @@ public class RedAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(4.5, 0, -120), 2);
-                driveState.put("drive", system.driveForward(new Vector3(4.5, 0, -120), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(4.5, 0, -110), 2);
+                driveState.put("drive", system.driveForward(new Vector3(4.5, 0, -110), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -725,6 +739,7 @@ public class RedAutonomous extends BasicOpmode {
         };
         StateMachineManager driveBackV2 = new StateMachineManager(statemachine) {
             RelativeOrientationTerminator terminator;
+            long timer;
             @Override
             public void setup() {
                 terminator = new RelativeOrientationTerminator(position, new Vector3(0, 6, -90), 2);
@@ -733,11 +748,13 @@ public class RedAutonomous extends BasicOpmode {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
                         terminator.start();
-                        hardware.setIntakePowers(0);
+                        timer = System.currentTimeMillis() + 500;
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-
+                        if(System.currentTimeMillis() > timer){
+                            hardware.setIntakePowers(-1);
+                        }
                     }
                 });
             }
@@ -761,6 +778,7 @@ public class RedAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware){
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setIntakePowers(0);
             }
 
         };
@@ -897,6 +915,6 @@ public class RedAutonomous extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, outtakeSkystone, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, outtakeSkystoneV2, park, end);
+        stateMachineSwitcher.start(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, outtakeSkystone, moveAfterOuttake, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, outtakeSkystoneV2, park, end);
     }
 }

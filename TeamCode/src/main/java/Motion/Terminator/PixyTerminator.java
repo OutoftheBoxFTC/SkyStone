@@ -11,6 +11,6 @@ public class PixyTerminator extends Terminator {
     @Override
     public boolean shouldTerminate(SensorData data) {
         int colour = data.getPixy()[data.getPixy().length-2] & 0xFF;
-        return Math.abs(colour) < 160;
+        return Math.abs(colour) < 50;
     }
 }

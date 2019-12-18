@@ -2,41 +2,37 @@ package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import Debug.Connector;
-import Hardware.Hardware;
+import Hardware.HardwareConstants;
 import Hardware.HardwareData;
 import Hardware.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
+import math.Vector2;
 
 @TeleOp
-public class PixyTest extends BasicOpmode{
-    public PixyTest() {
-        super(0, true);
+public class Sizing extends BasicOpmode {
+    public Sizing() {
+        super(0);
     }
 
     @Override
     public void setup() {
         robot.enableAll();
-        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
         StateMachineManager main = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                logicStates.put("main", new LogicState(stateMachine) {
+                logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        int test = ((sensors.getPixy()[sensors.getPixy().length-2] & 0xFF));
-                        telemetry.addData("SkyStone?", Math.abs(test) < 140);
-                        for(int i = 0; i < sensors.getPixy().length; i ++){
-                            telemetry.addData("Data " + i, sensors.getPixy()[i] & 0xFF);
-                        }
+                        hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                        hardware.setLatchServos(new Vector2(0.95, 0.1));
                     }
                 });
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = false;
+
             }
         };
         stateMachineSwitcher.start(main);

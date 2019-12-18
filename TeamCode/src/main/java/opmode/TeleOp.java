@@ -7,6 +7,7 @@ import Motion.MecanumSystem;
 import State.DriveState;
 import State.LogicState;
 import State.StateMachineManager;
+import math.Vector2;
 import math.Vector3;
 import math.Vector4;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -82,10 +83,10 @@ public class TeleOp extends BasicOpmode {
                         if(gamepad2.right_trigger > 0.5){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                         }
-                        if(((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0)) && hardware.getLiftServo().getA() < 0.1){
+                        if(((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0)) && hardware.getLiftServo().getA() > 0.55){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                            hardware.setLiftServo(0.08);
-                        }else if(hardware.getLiftServoDouble() != HardwareConstants.LIFT_OUT && hardware.getLiftServoDouble() != 0.5){
+                            hardware.setLiftServo(new Vector2(0.675, 0.675));
+                        }else if(hardware.getLiftServoDouble() != HardwareConstants.LIFT_OUT.getA() && hardware.getLiftServoDouble() != 0.5){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                         }
@@ -102,7 +103,7 @@ public class TeleOp extends BasicOpmode {
                             hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
                         }
                         if(gamepad2.right_stick_y < -0.4){
-                            hardware.setLiftServo(0.5, (HardwareConstants.LIFT_REST_OFFSET + HardwareConstants.LIFT_OUT_OFFSET) / 2);
+                            hardware.setLiftServo(HardwareConstants.LIFT_MID);
                         }
                         telemetry.addData("Encoder", sensors.getLift());
 

@@ -5,6 +5,7 @@ import math.Vector4;
 
 public class HardwareData {
     private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight, liftMotor, liftServo, intakeLatch, liftServoOffset;
+    Vector2 intakeServos;
     private long timestamp;
 
     /**
@@ -170,6 +171,14 @@ public class HardwareData {
         return liftMotor;
     }
 
+    public void setLiftServo(Vector2 position){
+        liftServo = position.getA();
+        liftServoOffset = position.getB() - position.getA();
+    }
+    public void setLiftServo(Vector2 position, double trash){
+        liftServo = position.getA();
+        liftServoOffset = position.getB() - position.getA();
+    }
     public void setLiftServo(double position){
         liftServo = position;
     }
