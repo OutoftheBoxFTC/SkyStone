@@ -11,6 +11,10 @@ public class CombinedTerminator extends Terminator {
         this.t2 = t2;
     }
 
+    public void start(){
+
+    }
+
     @Override
     public boolean shouldTerminate(SensorData data) {
         return t1.shouldTerminate(data) || t2.shouldTerminate(data);

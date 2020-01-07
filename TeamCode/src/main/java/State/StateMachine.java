@@ -105,6 +105,14 @@ public class StateMachine {
         }
     }
 
+    public boolean contains(LogicState state){
+        return logicStates.containsValue(state);
+    }
+
+    public boolean contains(String state){
+        return logicStates.containsKey(state);
+    }
+
     public LogicState getLogicState(String logicState){
         return logicStates.get(logicState);
     }

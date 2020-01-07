@@ -15,10 +15,14 @@ public class HardwareConstants {
     public static final Vector2 LOCKED_INTAKE = new Vector2(0.45, 1-0.45);
     public static final double INTAKE_LATCH_ON = 0.85;
     public static final double INTAKE_LATCH_OFF = 0.3678;
-    public static final Vector2 LIFT_REST = new Vector2(0.7, 0.71);
-    public static final Vector2 LIFT_OUT = new Vector2(0.179, 0.179);
-    public static final Vector2 LIFT_MID = new Vector2(0.43, 0.44);
-    public static final Vector2 LIFT_INTAKE = new Vector2(0.69, 0.69);
+    public static final Vector2 LIFT_REST = new Vector2(SQUARE_WAVE_TO_POSITION(910), SQUARE_WAVE_TO_POSITION(860));
+    public static final Vector2 LIFT_OUT = new Vector2(SQUARE_WAVE_TO_POSITION(2015), SQUARE_WAVE_TO_POSITION(1915));
+    public static final Vector2 LIFT_MID = new Vector2(SQUARE_WAVE_TO_POSITION(1165), SQUARE_WAVE_TO_POSITION(1095));
+    public static final Vector2 LIFT_OUT_READY = new Vector2(SQUARE_WAVE_TO_POSITION(1740), SQUARE_WAVE_TO_POSITION(1650));
+    public static final Vector2 LIFT_INTAKE = new Vector2(SQUARE_WAVE_TO_POSITION(1000), SQUARE_WAVE_TO_POSITION(935));
     public static final double LIFT_REST_OFFSET = -0.12;
     public static final double LIFT_OUT_OFFSET = -0.21;
+    public static double SQUARE_WAVE_TO_POSITION(double wave){
+        return (wave-500)/2000;
+    }
 }

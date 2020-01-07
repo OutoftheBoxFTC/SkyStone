@@ -2,6 +2,8 @@ package Hardware;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -10,6 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.ArrayList;
@@ -24,6 +27,8 @@ import math.Vector4;
 public class Hardware {
     private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight, liftMotorLeft, liftMotorRight;
     private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight, liftServoLeft, liftServoRight, intakeLatch;
+    private Rev2mDistanceSensor intakeTripwire;
+    private RevBlinkinLedDriver blinkinIndicator;
     private OpMode opmode;
     private Telemetry telemetry;
     private ArrayList<HardwareDevices> enabledDevices;
@@ -104,6 +109,12 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
             intakeLatch = new SmartServo(getOrNull(map, Servo.class, "intakeLatch"));
         }
+        if (enabledDevices.contains(HardwareDevices.INTAKE_TRIPWIRE)) {
+            intakeTripwire = getOrNull(map, Rev2mDistanceSensor.class, "IntakeTripwire");
+        }
+        if(enabledDevices.contains(HardwareDevices.BLINKIN)){
+            blinkinIndicator = getOrNull(map, RevBlinkinLedDriver.class, "blinkin");
+        }
     }
 
     /**
@@ -175,10 +186,15 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.LIFT_SERVOS)){
             liftServoLeft.setPosition(data.getLiftServo().getA());
             liftServoRight.setPosition(data.getLiftServo().getB());
-
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
             intakeLatch.setPosition(data.getIntakeLatch());
+        }
+        if(enabledDevices.contains(HardwareDevices.INTAKE_TRIPWIRE)){
+            sensors.setIntakeTripwire(intakeTripwire.getDistance(DistanceUnit.INCH));
+        }
+        if(enabledDevices.contains(HardwareDevices.BLINKIN)){
+            blinkinIndicator.setPattern(data.getPattern());
         }
         return sensors;
     }
@@ -208,6 +224,8 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.LIFT_SERVOS);
         enabledDevices.add(HardwareDevices.LIFT_MOTORS);
         enabledDevices.add(HardwareDevices.INTAKE_LATCH);
+        enabledDevices.add(HardwareDevices.INTAKE_TRIPWIRE);
+        enabledDevices.add(HardwareDevices.BLINKIN);
     }
 
     /**
@@ -263,6 +281,8 @@ public class Hardware {
         RIGHT_PIXY,
         LIFT_SERVOS,
         LIFT_MOTORS,
-        INTAKE_LATCH
+        INTAKE_LATCH,
+        INTAKE_TRIPWIRE,
+        BLINKIN
     }
 }

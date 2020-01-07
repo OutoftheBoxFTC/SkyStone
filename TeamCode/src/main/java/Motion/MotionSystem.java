@@ -19,6 +19,10 @@ public class MotionSystem {
         return new CorrectionVector(stateMachine, position, target, power, odometer);
     }
 
+    public CorrectionVector driveToPointSlowdown(Vector3 target, double power){
+        return new CorrectionVector(stateMachine, position, target, power, true, odometer);
+    }
+
     public CorrectionVector driveToPoint(Vector3 target, double power, double forw, double str){
         return new CorrectionVector(stateMachine, position, target, power, odometer, forw, str);
     }

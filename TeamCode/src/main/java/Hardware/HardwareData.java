@@ -1,10 +1,13 @@
 package Hardware;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+
 import math.Vector2;
 import math.Vector4;
 
 public class HardwareData {
     private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight, liftMotor, liftServo, intakeLatch, liftServoOffset;
+    private RevBlinkinLedDriver.BlinkinPattern pattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
     Vector2 intakeServos;
     private long timestamp;
 
@@ -188,7 +191,7 @@ public class HardwareData {
     }
 
     public Vector2 getLiftServo(){
-        return new Vector2(liftServo, 1-(liftServo+liftServoOffset));
+        return new Vector2(liftServo, liftServo + liftServoOffset);
     }
 
     public double getLiftServoDouble(){
@@ -201,6 +204,14 @@ public class HardwareData {
 
     public double getIntakeLatch(){
         return intakeLatch;
+    }
+
+    public void setPattern(RevBlinkinLedDriver.BlinkinPattern pattern){
+        this.pattern = pattern;
+    }
+
+    public RevBlinkinLedDriver.BlinkinPattern getPattern(){
+        return pattern;
     }
 
     /**

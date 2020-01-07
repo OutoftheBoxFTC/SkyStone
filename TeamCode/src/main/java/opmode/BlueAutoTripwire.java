@@ -29,12 +29,12 @@ import math.Vector3;
 import math.Vector4;
 //-14
 @Autonomous
-public class RedAutonomous extends BasicOpmode {
+public class BlueAutoTripwire extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
     long fps;
-    public RedAutonomous() {
+    public BlueAutoTripwire() {
         super(1);
     }
 
@@ -42,22 +42,22 @@ public class RedAutonomous extends BasicOpmode {
     public void setup() {
         robot.enableAll();
 
-        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
         firstSkystone = Vector3.ZERO();
         HashMap<String, String> defaults = new HashMap<>();
-        defaults.put("driveToFoundation", "-4, -14, 0");
-        defaults.put("driveBack", "-4, -6, 0");
-        defaults.put("driveToSeeSkystones", "20, -13, -90");
-        defaults.put("driveToSkystone", "45, -9, -90");
-        defaults.put("driveToOuttake", "4, -14, -90");
-        defaults.put("driveToSkystoneV2", "55, -14, -90");
-        defaults.put("driveToSeeSkystonesV2", "30, -13, -90");
-        defaults.put("driveToOuttakeV2", "5, -9, -90");
-        defaults.put("park", "17, -12, -90");
+        defaults.put("driveToFoundation", "4, -14, 0");
+        defaults.put("driveBack", "4, -8, 0");
+        defaults.put("driveToSeeSkystones", "-23, -10, 90");
+        defaults.put("driveToSkystone", "-45, -9, 90");
+        defaults.put("driveToOuttake", "-4, -14, 90");
+        defaults.put("driveToSkystoneV2", "-55, -14, 90");
+        defaults.put("driveToSeeSkystonesV2", "-30, -13, 90");
+        defaults.put("driveToOuttakeV2", "-5, -9, 90");
+        defaults.put("park", "-20, -12, 90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
-        defaultTurns.put("turnToSkystones", "-9, -1, -90");
-        defaultTurns.put("turnToIntakeSkystone", "0, 0, -180");
-        defaultTurns.put("turnToIntakeSkystoneV2", "0, 0, -145");
+        defaultTurns.put("turnToSkystones", "9, -1, 90");
+        defaultTurns.put("turnToIntakeSkystone", "0, 0, 180");
+        defaultTurns.put("turnToIntakeSkystoneV2", "0, 0, 145");
         registers = new Registers(defaults, defaultTurns);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
@@ -179,8 +179,8 @@ public class RedAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -3, -90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -3, -90), 0.7));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -3, 90), 2);
+                driveState.put("drive", system.driveForward(new Vector3(0, -3, 90), 0.7));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -268,7 +268,7 @@ public class RedAutonomous extends BasicOpmode {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
                         timer = System.currentTimeMillis() + 100;
-                        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
+                        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -287,7 +287,7 @@ public class RedAutonomous extends BasicOpmode {
             @Override
             public void setup() {
                 driveState.put("drive", system.driveToPoint(registers.getPoint("driveToSkystone"), 0.3));
-                        terminator = new CombinedTerminator(position, registers.getPoint("driveToSkystone"), new OrientationTerminator(position, registers.getPoint("driveToSkystone"), 4, 4), new PixyTerminator(position, registers.getPoint("driveToSkystone")));
+                terminator = new CombinedTerminator(position, registers.getPoint("driveToSkystone"), new OrientationTerminator(position, registers.getPoint("driveToSkystone"), 4, 4), new PixyTerminator(position, registers.getPoint("driveToSkystone")));
             }
 
             @Override
@@ -305,7 +305,7 @@ public class RedAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 if(bleh){
-                    firstSkystone.set(position.getA() + 7.5, -12, position.getC());
+                    firstSkystone.set(position.getA() - 8.5, -12, position.getC());
                     bleh = false;
                 }
                 terminate = OrientationTerminator.shouldTerminateRotation(position.getC(), 180, 5);
@@ -348,9 +348,9 @@ public class RedAutonomous extends BasicOpmode {
             TripwireTerminator tripwire;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -12, -180), 2);
-                tripwire = new TripwireTerminator(position, new Vector3(0, -12, -180));
-                driveState.put("drive", system.driveForward(new Vector3(0, -12, -180), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -12, 180), 2);
+                tripwire = new TripwireTerminator(position, new Vector3(0, -12, 180));
+                driveState.put("drive", system.driveForward(new Vector3(0, -12, 180), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -437,7 +437,8 @@ public class RedAutonomous extends BasicOpmode {
                 logicStates.put("sequence", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
+                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                         terminate = true;
                     }
                 });
@@ -470,15 +471,11 @@ public class RedAutonomous extends BasicOpmode {
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = OrientationTerminator.shouldTerminatePosition(position, target, 3);
             }
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware){
-                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
-            }
         };
         StateMachineManager driveToOuttake = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPointSlowdown(registers.getPoint("driveToOuttake"), 1));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToOuttake"), 1));
             }
 
             @Override
@@ -495,7 +492,7 @@ public class RedAutonomous extends BasicOpmode {
             long timer = 0;
             @Override
             public void setup() {
-                driveState.put("main", system.driveForward(new Vector3(-12, 0, -90), 0.5));
+                driveState.put("main", system.driveForward(new Vector3(12, 0, 90), 0.5));
                 logicStates.put("timer", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -618,8 +615,8 @@ public class RedAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -4.5, -110), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -4.5, -110), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -4.5, 110), 2);
+                driveState.put("drive", system.driveForward(new Vector3(0, -4.5, 110), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -670,8 +667,8 @@ public class RedAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(3.5, 0, -110), 2);
-                driveState.put("drive", system.driveForward(new Vector3(3.5, 0, -110), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(-3.5, 0, 110), 2);
+                driveState.put("drive", system.driveForward(new Vector3(-3.5, 0, 110), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -771,8 +768,8 @@ public class RedAutonomous extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, 6, -90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, 6, -90), 0.35));
+                terminator = new RelativeOrientationTerminator(position, new Vector3(0, 6, 90), 2);
+                driveState.put("drive", system.driveForward(new Vector3(0, 6, 90), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -795,19 +792,19 @@ public class RedAutonomous extends BasicOpmode {
         StateMachineManager driveToOuttakeV2 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPointSlowdown(registers.getPoint("driveToOuttakeV2"), 1));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToOuttakeV2"), 1));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttakeV2"), 12);
+                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttakeV2"), 6);
             }
         };
         StateMachineManager driveABitMoreBackV2 = new StateMachineManager(statemachine) {
             long timer = 0;
             @Override
             public void setup() {
-                driveState.put("main", system.driveForward(new Vector3(-12, 0, -90), 0.25));
+                driveState.put("main", system.driveForward(new Vector3(12, 0, 90), 0.5));
                 timer = System.currentTimeMillis() + 750;
             }
 

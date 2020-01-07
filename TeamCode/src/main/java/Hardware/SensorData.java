@@ -3,7 +3,7 @@ package Hardware;
 import math.Vector3;
 
 public class SensorData {
-    private double leftEncoder, rightEncoder, auxEncoder, gyro, lift;
+    private double leftEncoder, rightEncoder, auxEncoder, gyro, lift, intakeTripwire;
     private byte[] pixy;
     private long timestamp;
     CalibrationSystem calibration;
@@ -42,6 +42,14 @@ public class SensorData {
     }
     public double getLift(){
         return lift;
+    }
+
+    public void setIntakeTripwire(double value){
+        intakeTripwire = value;
+    }
+
+    public double getIntakeTripwire(){
+        return intakeTripwire;
     }
     public long getTimestamp(){
         return timestamp;
