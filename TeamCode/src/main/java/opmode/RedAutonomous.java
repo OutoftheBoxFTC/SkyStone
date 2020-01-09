@@ -27,7 +27,6 @@ import State.StateMachineManager;
 import math.Vector2;
 import math.Vector3;
 import math.Vector4;
-//-14
 @Autonomous
 public class RedAutonomous extends BasicOpmode {
     SimpleOdometer odometer;

@@ -16,7 +16,6 @@ import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
 
-@Autonomous
 public class MovementTest extends BasicOpmode {
     Vector3 position, velocity;
     SimpleOdometer odometer;

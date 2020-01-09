@@ -13,7 +13,6 @@ import Hardware.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
 
-@TeleOp
 public class ConnectorTests extends BasicOpmode {
     Registers registers;
     public ConnectorTests(){

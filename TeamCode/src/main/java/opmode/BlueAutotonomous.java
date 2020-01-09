@@ -27,14 +27,13 @@ import State.StateMachineManager;
 import math.Vector2;
 import math.Vector3;
 import math.Vector4;
-//-14
 @Autonomous
-public class BlueAutoTripwire extends BasicOpmode {
+public class BlueAutotonomous extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
     long fps;
-    public BlueAutoTripwire() {
+    public BlueAutotonomous() {
         super(1);
     }
 

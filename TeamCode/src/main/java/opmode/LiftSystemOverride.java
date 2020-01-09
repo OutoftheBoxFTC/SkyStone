@@ -7,7 +7,6 @@ import Hardware.HardwareData;
 import Hardware.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
-@TeleOp
 public class LiftSystemOverride extends BasicOpmode {
     public LiftSystemOverride() {
         super(0);

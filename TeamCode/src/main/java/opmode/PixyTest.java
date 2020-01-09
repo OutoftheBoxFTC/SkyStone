@@ -9,7 +9,6 @@ import Hardware.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
 
-@TeleOp
 public class PixyTest extends BasicOpmode{
     public PixyTest() {
         super(0, true);
