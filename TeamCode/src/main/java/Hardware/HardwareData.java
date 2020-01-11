@@ -6,7 +6,7 @@ import math.Vector2;
 import math.Vector4;
 
 public class HardwareData {
-    private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight, liftMotor, liftServo, intakeLatch, liftServoOffset;
+    private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight, liftMotor, liftServo, intakeLatch, liftServoOffset, capstoneLatch;
     private RevBlinkinLedDriver.BlinkinPattern pattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
     Vector2 intakeServos;
     private long timestamp;
@@ -27,6 +27,7 @@ public class HardwareData {
         intakeLeft = 0;
         intakeServoLeft = 0;
         intakeServoRight = 0;
+        capstoneLatch = 0;
     }
 
     /**
@@ -212,6 +213,14 @@ public class HardwareData {
 
     public RevBlinkinLedDriver.BlinkinPattern getPattern(){
         return pattern;
+    }
+
+    public void setCapstoneLatch(double position){
+        this.capstoneLatch = position;
+    }
+
+    public double getCapstoneLatch(){
+        return capstoneLatch;
     }
 
     /**

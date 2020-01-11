@@ -23,7 +23,7 @@ public class LiftSystemOverride extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         telemetry.addLine("WARNING! This program has NO encoder stops. BE VERY CAREFUL RUNNING. Press START to continue");
                         hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         hardware.setIntakeLatch(0);
                     }
                 });

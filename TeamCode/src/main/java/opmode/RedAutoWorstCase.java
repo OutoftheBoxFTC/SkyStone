@@ -1,39 +1,28 @@
 package opmode;
 
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 
-import Debug.Connector;
-import Debug.RecievePacket;
 import Debug.Registers;
 import Hardware.Hardware;
 import Hardware.HardwareConstants;
 import Hardware.HardwareData;
 import Hardware.SensorData;
 import Motion.MotionSystem;
-import Motion.Terminator.CombinedTerminator;
 import Motion.Terminator.OrientationTerminator;
-import Motion.Terminator.PixyTerminator;
 import Motion.Terminator.RelativeOrientationTerminator;
-import Motion.Terminator.TripwireTerminator;
 import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
-import State.StateMachine;
 import State.StateMachineManager;
-import math.Vector2;
 import math.Vector3;
 import math.Vector4;
-@Autonomous
-public class BlueAutoWorstCase extends BasicOpmode {
+
+public class RedAutoWorstCase extends BasicOpmode{
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
     long fps;
-    public BlueAutoWorstCase() {
+    public RedAutoWorstCase() {
         super(1);
     }
 
@@ -41,7 +30,7 @@ public class BlueAutoWorstCase extends BasicOpmode {
     public void setup() {
         robot.enableAll();
 
-        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
         firstSkystone = Vector3.ZERO();
         HashMap<String, String> defaults = new HashMap<>();
         defaults.put("driveToFoundation", "4, -14, 0");

@@ -9,7 +9,6 @@ import Motion.MecanumSystem;
 import State.DriveState;
 import State.LogicState;
 import State.StateMachineManager;
-import math.Vector2;
 import math.Vector3;
 import math.Vector4;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -28,7 +27,7 @@ public class TeleOp extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         telemetry.addData("In Init", true);
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
                     }
                 });
             }
@@ -91,16 +90,16 @@ public class TeleOp extends BasicOpmode {
                             hardware.setLatchServos(HardwareConstants.LATCH_OFF);
                         }
                         if(gamepad2.right_stick_x > 0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_OUT_READY);
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         }
                         if(gamepad2.right_stick_x < -0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
+                            hardware.setLiftServo(HardwareConstants.LIFT_OUT);
                         }
                         if(gamepad2.right_stick_y < -0.4){
                             //hardware.setLiftServo(HardwareConstants.LIFT_MID);
                         }
                         if(gamepad2.right_stick_y > 0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_OUT);
+                            //hardware.setLiftServo(HardwareConstants.LIFT_OUT);
                         }
                         telemetry.addData("Encoder", sensors.getLift());
 
@@ -111,12 +110,12 @@ public class TeleOp extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad1.right_trigger > 0){
                             hardware.setIntakePowers(gamepad1.right_trigger);
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
                         }else if(gamepad1.right_bumper){
                             hardware.setIntakePowers(1);
                             hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         }else if(gamepad1.left_trigger > 0){
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
                             hardware.setIntakePowers(-gamepad1.left_trigger);
                         }else{
                             hardware.setIntakePowers(0);
@@ -138,12 +137,26 @@ public class TeleOp extends BasicOpmode {
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0 || gamepad2.right_trigger > 0)){
+                        if((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0)){
                             timer = System.currentTimeMillis() + 150;
+                        }
+                        if(gamepad2.right_trigger > 0){
+                            timer = System.currentTimeMillis() + 20000;
                         }
                         if(System.currentTimeMillis() > timer){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                         }
+                    }
+                });
+                logicStates.put("capstone", new LogicState(statemachine) {
+                    public boolean prevState = false, servoState = false;
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(gamepad2.y != prevState && gamepad2.y){
+                            servoState = !servoState;
+                        }
+                        prevState = gamepad2.y;
+                        hardware.setCapstoneLatch(servoState ? HardwareConstants.CAPSTONE_LATCH_ON : HardwareConstants.CAPSTONE_LATCH_OFF);
                     }
                 });
             }
