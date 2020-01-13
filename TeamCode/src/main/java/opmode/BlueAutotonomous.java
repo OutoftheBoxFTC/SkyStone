@@ -79,6 +79,7 @@ public class BlueAutotonomous extends BasicOpmode {
                 odometer.update(sensors);
                 telemetry.addData("FPS", 1000/(System.currentTimeMillis() - fps));
                 fps = System.currentTimeMillis();
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_ON);
             }
         });
         statemachine.appendLogicStates(nonManagedLogicStates);
@@ -92,6 +93,7 @@ public class BlueAutotonomous extends BasicOpmode {
             public void update(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_ON);
                 terminate = isStarted();
             }
 
@@ -818,7 +820,7 @@ public class BlueAutotonomous extends BasicOpmode {
             long timer = 0;
             @Override
             public void setup() {
-                driveState.put("main", system.driveForward(new Vector3(12, 0, 90), 0.2));
+                driveState.put("main", system.driveForward(new Vector3(12, 12, 90), 0.2));
                 logicStates.put("timer", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){

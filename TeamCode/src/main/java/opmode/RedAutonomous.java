@@ -90,6 +90,8 @@ public class RedAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_ON);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                 terminate = isStarted();
             }
 
