@@ -1,6 +1,7 @@
 package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import java.util.HashMap;
 
@@ -19,8 +20,6 @@ import State.StateMachineManager;
 import State.StateMachineSwitcher;
 import math.Vector3;
 import math.Vector4;
-
-@Autonomous
 public class NewRedAutonomous extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;

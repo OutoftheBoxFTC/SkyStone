@@ -9,7 +9,6 @@ import State.LogicState;
 import State.StateMachineManager;
 import math.Vector2;
 import math.Vector3;
-@TeleOp(name="TrimTram")
 public class MotionTests extends BasicOpmode {
     public MotionTests() {
         super(0);

@@ -26,7 +26,7 @@ import math.Vector4;
 
 public class Hardware {
     private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight, liftMotorLeft, liftMotorRight;
-    private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight, liftServoLeft, liftServoRight, intakeLatch;
+    private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight, liftServoLeft, liftServoRight, intakeLatch, capstoneLatch;
     private Rev2mDistanceSensor intakeTripwire;
     private RevBlinkinLedDriver blinkinIndicator;
     private OpMode opmode;
@@ -115,6 +115,9 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.BLINKIN)){
             blinkinIndicator = getOrNull(map, RevBlinkinLedDriver.class, "blinkin");
         }
+        if(enabledDevices.contains(HardwareDevices.CAPSTONE_LATCH)){
+            capstoneLatch = new SmartServo(getOrNull(map, Servo.class, "capstoneLatch"));
+        }
     }
 
     /**
@@ -196,6 +199,9 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.BLINKIN)){
             blinkinIndicator.setPattern(data.getPattern());
         }
+        if(enabledDevices.contains(HardwareDevices.CAPSTONE_LATCH)){
+            capstoneLatch.setPosition(data.getCapstoneLatch());
+        }
         return sensors;
     }
 
@@ -226,6 +232,7 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.INTAKE_LATCH);
         enabledDevices.add(HardwareDevices.INTAKE_TRIPWIRE);
         enabledDevices.add(HardwareDevices.BLINKIN);
+        enabledDevices.add(HardwareDevices.CAPSTONE_LATCH);
     }
 
     /**
@@ -283,6 +290,7 @@ public class Hardware {
         LIFT_MOTORS,
         INTAKE_LATCH,
         INTAKE_TRIPWIRE,
-        BLINKIN
+        BLINKIN,
+        CAPSTONE_LATCH
     }
 }

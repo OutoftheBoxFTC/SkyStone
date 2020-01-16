@@ -22,19 +22,17 @@ import Motion.Terminator.TripwireTerminator;
 import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
-import State.StateMachine;
 import State.StateMachineManager;
 import math.Vector2;
 import math.Vector3;
 import math.Vector4;
-//-14
 @Autonomous
-public class BlueAutoTripwire extends BasicOpmode {
+public class BlueAutotonomous extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
     long fps;
-    public BlueAutoTripwire() {
+    public BlueAutotonomous() {
         super(1);
     }
 
@@ -47,16 +45,22 @@ public class BlueAutoTripwire extends BasicOpmode {
         HashMap<String, String> defaults = new HashMap<>();
         defaults.put("driveToFoundation", "4, -14, 0");
         defaults.put("driveBack", "4, -8, 0");
-        defaults.put("driveToSeeSkystones", "-23, -10, 90");
+        defaults.put("strafeBeforeMovingToSkystones", "0, -3, 90"); //Relative
+        defaults.put("driveToSeeSkystones", "-20, -10, 90");
         defaults.put("driveToSkystone", "-45, -9, 90");
-        defaults.put("driveToOuttake", "-4, -14, 90");
+        defaults.put("intakeSkystones", "0, -12, 185"); //Relative
+        defaults.put("driveBackAfterIntake", "0, -14, 180"); //Relative
+        defaults.put("driveToOuttake", "0, -11, 90");
         defaults.put("driveToSkystoneV2", "-55, -14, 90");
         defaults.put("driveToSeeSkystonesV2", "-30, -13, 90");
-        defaults.put("driveToOuttakeV2", "-5, -9, 90");
+        defaults.put("strafeToLineUpToSkystone", "0, -3, 110"); //Relative
+        defaults.put("intakeSkystonesV2", "-3, 0, 110"); //Relative
+        defaults.put("driveBackAfterIntakingV2", "0, 6, 90"); //Relative
+        defaults.put("driveToOuttakeV2", "-8, -9, 90");
         defaults.put("park", "-20, -12, 90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
         defaultTurns.put("turnToSkystones", "9, -1, 90");
-        defaultTurns.put("turnToIntakeSkystone", "0, 0, 180");
+        defaultTurns.put("turnToIntakeSkystone", "0, 0, 185");
         defaultTurns.put("turnToIntakeSkystoneV2", "0, 0, 145");
         registers = new Registers(defaults, defaultTurns);
         position = Vector3.ZERO();
@@ -75,6 +79,7 @@ public class BlueAutoTripwire extends BasicOpmode {
                 odometer.update(sensors);
                 telemetry.addData("FPS", 1000/(System.currentTimeMillis() - fps));
                 fps = System.currentTimeMillis();
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
             }
         });
         statemachine.appendLogicStates(nonManagedLogicStates);
@@ -86,6 +91,9 @@ public class BlueAutoTripwire extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
+                hardware.setLatchServos(HardwareConstants.LATCH_OFF);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
                 terminate = isStarted();
             }
 
@@ -93,6 +101,7 @@ public class BlueAutoTripwire extends BasicOpmode {
             public void onStop(SensorData sensors, HardwareData hardware){
                 stateMachine.activateLogic("Odometry");
                 robot.disableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
             }
         };
         StateMachineManager driveToFoundation = new StateMachineManager(statemachine) {
@@ -110,6 +119,7 @@ public class BlueAutoTripwire extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware){
                 hardware.setLatchServos(HardwareConstants.LATCH_ON);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
             }
         };
         StateMachineManager latchOnToFoundation = new StateMachineManager(statemachine) {
@@ -136,7 +146,7 @@ public class BlueAutoTripwire extends BasicOpmode {
                     long timer = 0;
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
-                        timer = System.currentTimeMillis() + 1500;
+                        timer = System.currentTimeMillis() + 500;
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -179,8 +189,8 @@ public class BlueAutoTripwire extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -3, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -3, 90), 0.7));
+                terminator = new RelativeOrientationTerminator(position, registers.getPoint("strafeBeforeMovingToSkystones"), 2);
+                driveState.put("drive", system.driveForward(registers.getPoint("strafeBeforeMovingToSkystones"), 0.7));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -305,7 +315,7 @@ public class BlueAutoTripwire extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 if(bleh){
-                    firstSkystone.set(position.getA() - 8.5, -12, position.getC());
+                    firstSkystone.set(position.getA() - 9.5, -12, position.getC());
                     bleh = false;
                 }
                 terminate = OrientationTerminator.shouldTerminateRotation(position.getC(), 180, 5);
@@ -348,14 +358,14 @@ public class BlueAutoTripwire extends BasicOpmode {
             TripwireTerminator tripwire;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -12, 180), 2);
-                tripwire = new TripwireTerminator(position, new Vector3(0, -12, 180));
-                driveState.put("drive", system.driveForward(new Vector3(0, -12, 180), 0.35));
+                terminator = new RelativeOrientationTerminator(position, registers.getPoint("intakeSkystones"), 2);
+                tripwire = new TripwireTerminator(position, registers.getPoint("intakeSkystones"));
+                driveState.put("drive", system.driveForward(registers.getPoint("intakeSkystones"), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
                         terminator.start();
-                        combinedTerminator = new CombinedTerminator(position, new Vector3(0, -12, 180), terminator, tripwire);
+                        combinedTerminator = new CombinedTerminator(position, registers.getPoint("intakeSkystones"), terminator, tripwire);
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -377,7 +387,7 @@ public class BlueAutoTripwire extends BasicOpmode {
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
                         hardware.setIntakePowers(1);
                         terminate = true;
                     }
@@ -421,6 +431,7 @@ public class BlueAutoTripwire extends BasicOpmode {
             }
         };
         StateMachineManager lockIntake = new StateMachineManager(statemachine) {
+            long timer = 0;
             @Override
             public void setup() {
                 driveState.put("stop", new DriveState(statemachine) {
@@ -437,23 +448,25 @@ public class BlueAutoTripwire extends BasicOpmode {
                 logicStates.put("sequence", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
-                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         terminate = true;
+                        if(timer < 100) {
+                            timer = System.currentTimeMillis() + 500;
+                        }
                     }
                 });
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-
             }
         };
         final StateMachineManager driveBack = new StateMachineManager(statemachine) {
             Vector3 target;
             @Override
             public void setup() {
-                target = new Vector3(position.getA(), -14, 180);
+                target = registers.getPoint("driveBackAfterIntake");
+                target.setA(position.getA());
                 driveState.put("drive", system.driveToPoint(target, 0.45));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
@@ -475,12 +488,13 @@ public class BlueAutoTripwire extends BasicOpmode {
         StateMachineManager driveToOuttake = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToOuttake"), 1));
+                driveState.put("drive", system.driveToPointSlowdown(registers.getPoint("driveToOuttake"), 1));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttake"), 6);
+                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttake"), 3);
             }
 
             @Override
@@ -492,7 +506,7 @@ public class BlueAutoTripwire extends BasicOpmode {
             long timer = 0;
             @Override
             public void setup() {
-                driveState.put("main", system.driveForward(new Vector3(12, 0, 90), 0.5));
+                driveState.put("main", system.driveForward(new Vector3(12, 0, 90), 0.2));
                 logicStates.put("timer", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -530,8 +544,8 @@ public class BlueAutoTripwire extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
-                            hardware.setLiftServo(HardwareConstants.LIFT_OUT_READY);
-                            timer = System.currentTimeMillis() + 750;
+                            hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
@@ -543,7 +557,7 @@ public class BlueAutoTripwire extends BasicOpmode {
                         if(state == 2 && System.currentTimeMillis() > timer){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             state = 3;
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                         }
                         if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;
@@ -615,8 +629,8 @@ public class BlueAutoTripwire extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -4.5, 110), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -4.5, 110), 0.35));
+                terminator = new RelativeOrientationTerminator(position, registers.getPoint("strafeToLineUpToSkystone"), 2);
+                driveState.put("drive", system.driveForward(registers.getPoint("strafeToLineUpToSkystone"), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -665,14 +679,16 @@ public class BlueAutoTripwire extends BasicOpmode {
         };
         StateMachineManager intakeSkystoneV2 = new StateMachineManager(statemachine) {
             RelativeOrientationTerminator terminator;
+            CombinedTerminator combined;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(-3.5, 0, 110), 2);
-                driveState.put("drive", system.driveForward(new Vector3(-3.5, 0, 110), 0.35));
+                terminator = new RelativeOrientationTerminator(position, registers.getPoint("intakeSkystonesV2"), 2);
+                terminator.start();
+                combined = new CombinedTerminator(Vector3.ZERO(), Vector3.ZERO(), terminator, new TripwireTerminator(Vector3.ZERO(), Vector3.ZERO()));
+                driveState.put("drive", system.driveForward(registers.getPoint("intakeSkystonesV2"), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
-                        terminator.start();
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -683,7 +699,7 @@ public class BlueAutoTripwire extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = terminator.shouldTerminate(sensors);
+                terminate = combined.shouldTerminate(sensors);
             }
         };
         StateMachineManager closeIntakeV2 = new StateMachineManager(statemachine) {
@@ -692,7 +708,7 @@ public class BlueAutoTripwire extends BasicOpmode {
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
                         hardware.setIntakePowers(1);
                         terminate = true;
                     }
@@ -752,8 +768,7 @@ public class BlueAutoTripwire extends BasicOpmode {
                 logicStates.put("sequence", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
-                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         terminate = true;
                     }
                 });
@@ -768,8 +783,8 @@ public class BlueAutoTripwire extends BasicOpmode {
             RelativeOrientationTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, 6, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, 6, 90), 0.35));
+                terminator = new RelativeOrientationTerminator(position, registers.getPoint("driveBackAfterIntakingV2"), 2);
+                driveState.put("drive", system.driveForward(registers.getPoint("driveBackAfterIntakingV2"), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
@@ -792,25 +807,35 @@ public class BlueAutoTripwire extends BasicOpmode {
         StateMachineManager driveToOuttakeV2 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToOuttakeV2"), 1));
+                driveState.put("drive", system.driveToPointSlowdown(registers.getPoint("driveToOuttakeV2"), 1));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttakeV2"), 6);
+                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToOuttakeV2"), 3);
             }
         };
-        StateMachineManager driveABitMoreBackV2 = new StateMachineManager(statemachine) {
+        StateMachineManager moveBackALittleMoreBeforeOuttakeV2 = new StateMachineManager(statemachine) {
             long timer = 0;
             @Override
             public void setup() {
-                driveState.put("main", system.driveForward(new Vector3(12, 0, 90), 0.5));
-                timer = System.currentTimeMillis() + 750;
+                driveState.put("main", system.driveForward(new Vector3(12, 12, 90), 0.2));
+                logicStates.put("timer", new LogicState(statemachine) {
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware){
+                        timer = System.currentTimeMillis() + 750;
+                    }
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        terminate = System.currentTimeMillis() > timer;
+                    }
+                });
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = System.currentTimeMillis() > timer;
+
             }
         };
         StateMachineManager outtakeSkystoneV2 = new StateMachineManager(statemachine) {
@@ -833,8 +858,8 @@ public class BlueAutoTripwire extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
-                            hardware.setLiftServo(HardwareConstants.LIFT_OUT_READY);
-                            timer = System.currentTimeMillis() + 800;
+                            hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
@@ -846,7 +871,7 @@ public class BlueAutoTripwire extends BasicOpmode {
                         if(state == 2 && System.currentTimeMillis() > timer){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             state = 3;
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                         }
                         if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;
@@ -946,6 +971,6 @@ public class BlueAutoTripwire extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, moveBackALittleMoreBeforeOuttake, outtakeSkystone, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, driveABitMoreBackV2, outtakeSkystoneV2, park, end);
+        stateMachineSwitcher.start(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, moveBackALittleMoreBeforeOuttake, outtakeSkystone, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, moveBackALittleMoreBeforeOuttakeV2, outtakeSkystoneV2, park, end);
     }
 }
