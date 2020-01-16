@@ -46,7 +46,7 @@ public class BlueAutotonomous extends BasicOpmode {
         defaults.put("driveToFoundation", "4, -14, 0");
         defaults.put("driveBack", "4, -8, 0");
         defaults.put("strafeBeforeMovingToSkystones", "0, -3, 90"); //Relative
-        defaults.put("driveToSeeSkystones", "-20, -11, 90");
+        defaults.put("driveToSeeSkystones", "-20, -10, 90");
         defaults.put("driveToSkystone", "-45, -9, 90");
         defaults.put("intakeSkystones", "0, -12, 185"); //Relative
         defaults.put("driveBackAfterIntake", "0, -14, 180"); //Relative
@@ -79,7 +79,7 @@ public class BlueAutotonomous extends BasicOpmode {
                 odometer.update(sensors);
                 telemetry.addData("FPS", 1000/(System.currentTimeMillis() - fps));
                 fps = System.currentTimeMillis();
-                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_ON);
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
             }
         });
         statemachine.appendLogicStates(nonManagedLogicStates);
@@ -93,7 +93,7 @@ public class BlueAutotonomous extends BasicOpmode {
             public void update(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
-                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_ON);
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
                 terminate = isStarted();
             }
 
@@ -545,7 +545,7 @@ public class BlueAutotonomous extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
                             hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
@@ -557,7 +557,7 @@ public class BlueAutotonomous extends BasicOpmode {
                         if(state == 2 && System.currentTimeMillis() > timer){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             state = 3;
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                         }
                         if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;
@@ -859,7 +859,7 @@ public class BlueAutotonomous extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
                             hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
-                            timer = System.currentTimeMillis() + 800;
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
@@ -871,7 +871,7 @@ public class BlueAutotonomous extends BasicOpmode {
                         if(state == 2 && System.currentTimeMillis() > timer){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             state = 3;
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                         }
                         if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;

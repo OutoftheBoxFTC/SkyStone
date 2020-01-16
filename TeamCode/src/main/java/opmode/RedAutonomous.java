@@ -78,6 +78,7 @@ public class RedAutonomous extends BasicOpmode {
                 odometer.update(sensors);
                 telemetry.addData("FPS", 1000/(System.currentTimeMillis() - fps));
                 fps = System.currentTimeMillis();
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
             }
         });
         statemachine.appendLogicStates(nonManagedLogicStates);
@@ -90,8 +91,7 @@ public class RedAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
-                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_ON);
-                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
                 terminate = isStarted();
             }
 
@@ -531,7 +531,7 @@ public class RedAutonomous extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
                             hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
@@ -543,7 +543,7 @@ public class RedAutonomous extends BasicOpmode {
                         if(state == 2 && System.currentTimeMillis() > timer){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             state = 3;
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                         }
                         if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;
@@ -804,7 +804,7 @@ public class RedAutonomous extends BasicOpmode {
             long timer = 0;
             @Override
             public void setup() {
-                driveState.put("main", system.driveForward(new Vector3(-12, 0, -90), 0.25));
+                driveState.put("main", system.driveForward(new Vector3(-12, 12, -90), 0.25));
                 timer = System.currentTimeMillis() + 750;
             }
 
@@ -824,7 +824,7 @@ public class RedAutonomous extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0){
                             hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
-                            timer = System.currentTimeMillis() + 800;
+                            timer = System.currentTimeMillis() + 1500;
                             state = 1;
                         }
                         if(state == 1 && System.currentTimeMillis() > timer){
@@ -836,7 +836,7 @@ public class RedAutonomous extends BasicOpmode {
                         if(state == 2 && System.currentTimeMillis() > timer){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             state = 3;
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 1500;
                         }
                         if(state == 3 && System.currentTimeMillis() > timer){
                             terminate = true;
