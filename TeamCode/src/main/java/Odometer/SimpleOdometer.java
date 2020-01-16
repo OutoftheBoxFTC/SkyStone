@@ -27,6 +27,7 @@ public class SimpleOdometer {
         lastCoords = new Vector3(forward, data.getAux(), data.getGyro());
         lastTime = System.currentTimeMillis();
         position.set(new Vector3(0, 0, Math.toDegrees(data.getGyro())));
+        velocity.set(0, 0, 0);
     }
 
     public void update(SensorData data){
@@ -36,6 +37,7 @@ public class SimpleOdometer {
         double aux = ((data.getAux()) - (rotInc * 2600));
         double forwardInc = forward - lastCoords.getA();
         double auxInc = aux - lastCoords.getB();
+        long timeDiff = System.currentTimeMillis() - lastTime;
         double r = (Math.sqrt((forwardInc * forwardInc) + (auxInc * auxInc)));
         if(r < 0.05){
             r = 0;
@@ -43,6 +45,8 @@ public class SimpleOdometer {
         x += r * Math.cos(data.getGyro() + Math.atan2(forwardInc,auxInc));
         y += r * Math.sin(data.getGyro() + Math.atan2(forwardInc,auxInc));
         position.set(new Vector3(x * translationFactor, y * translationFactor, Math.toDegrees(data.getGyro())));
+        velocity.set((position.getA() - lastCoords.getA()) / (timeDiff / 1000.0), (position.getB() - lastCoords.getB()) / (timeDiff / 1000.0), (position.getC() - lastCoords.getC()) / (timeDiff / 1000.0));
+        lastTime = System.currentTimeMillis();
         lastCoords.set(new Vector3(forward, aux, data.getGyro()));
     }
 }

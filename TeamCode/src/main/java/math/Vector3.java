@@ -58,6 +58,10 @@ public class Vector3 {
         return new Vector3(v.a+a, v.b+b, v.c+c);
     }
 
+    public Vector3 add(double a, double b, double c){
+        return new Vector3(a+a, b+b, c+c);
+    }
+
     public Vector3 scale(double scalar){
         return new Vector3(a*scalar, b*scalar, c*scalar);
     }

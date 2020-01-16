@@ -22,7 +22,6 @@ import Motion.Terminator.TripwireTerminator;
 import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
-import State.StateMachine;
 import State.StateMachineManager;
 import math.Vector2;
 import math.Vector3;
@@ -30,9 +29,9 @@ import math.Vector4;
 //-14
 @Autonomous
 public class RedAutonomous extends BasicOpmode {
-    SimpleOdometer odometer;
-    Vector3 position, velocity, firstSkystone;
-    Registers registers;
+    private SimpleOdometer odometer;
+    private Vector3 position, velocity, firstSkystone;
+    private Registers registers;
     long fps;
     public RedAutonomous() {
         super(1);
@@ -62,7 +61,7 @@ public class RedAutonomous extends BasicOpmode {
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        final MotionSystem system = new MotionSystem(statemachine, odometer, position);
+        final MotionSystem system = new MotionSystem(statemachine, position, velocitySystem);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override

@@ -44,7 +44,7 @@ public class NewRedAutonomous extends BasicOpmode {
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        final MotionSystem system = new MotionSystem(statemachine, odometer, position);
+        final MotionSystem system = new MotionSystem(statemachine, position, velocitySystem);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import java.io.IOException;
 
 import Debug.Connector;
+import Motion.VelocitySystem;
 import State.*;
 import Hardware.*;
 
@@ -12,10 +13,11 @@ public abstract class BasicOpmode extends LinearOpMode {
     protected Hardware robot;
     StateMachine statemachine;
     StateMachineSwitcher stateMachineSwitcher;
-    double driveLoopIterations, currentLoops;
-    boolean debug;
-    protected static final double TRANSLATION_FACTOR = (0.0010329132/2);
-    long timer = 0;
+    VelocitySystem velocitySystem;
+    private double driveLoopIterations;
+    private boolean debug;
+    static final double TRANSLATION_FACTOR = (0.0010329132/2);
+    private long timer = 0;
     public BasicOpmode(double driveLoopIterations){
         this.driveLoopIterations = driveLoopIterations;
         debug = false;
@@ -31,6 +33,7 @@ public abstract class BasicOpmode extends LinearOpMode {
         statemachine = new StateMachine();
         robot = new Hardware(this, telemetry);
         stateMachineSwitcher = new StateMachineSwitcher();
+        velocitySystem = new VelocitySystem();
         if(debug) {
             try {
                 Connector.getInstance().start();
@@ -42,7 +45,7 @@ public abstract class BasicOpmode extends LinearOpMode {
         robot.init();
         robot.calibrate();
         HardwareData hardware = new HardwareData(System.currentTimeMillis());
-        currentLoops = 1;
+        double currentLoops = 1;
         while(!isStopRequested()){
             hardware.setTimestamp(System.currentTimeMillis());
             SensorData sensors = robot.update(hardware);

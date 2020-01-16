@@ -1,34 +1,32 @@
 package Motion;
 
-import Odometer.SimpleOdometer;
 import State.StateMachine;
-import math.Vector2;
 import math.Vector3;
 
 public class MotionSystem {
-    Vector3 position;
-    StateMachine stateMachine;
-    SimpleOdometer odometer;
-    public MotionSystem(StateMachine stateMachine, SimpleOdometer odometer, Vector3 position){
+    private Vector3 position;
+    private StateMachine stateMachine;
+    private VelocitySystem system;
+    public MotionSystem(StateMachine stateMachine, Vector3 position, VelocitySystem system){
         this.position = position;
         this.stateMachine = stateMachine;
-        this.odometer = odometer;
+        this.system = system;
     }
 
     public CorrectionVector driveToPoint(Vector3 target, double power){
-        return new CorrectionVector(stateMachine, position, target, power, odometer);
+        return new CorrectionVector(stateMachine, position, target, power, system);
     }
 
     public CorrectionVector driveToPointSlowdown(Vector3 target, double power){
-        return new CorrectionVector(stateMachine, position, target, power, true, odometer);
+        return new CorrectionVector(stateMachine, position, target, power, system);
     }
 
     public CorrectionVector driveToPoint(Vector3 target, double power, double forw, double str){
-        return new CorrectionVector(stateMachine, position, target, power, odometer, forw, str);
+        return new CorrectionVector(stateMachine, position, target, power, forw, str, system);
     }
 
     public CorrectionVector driveForward(Vector3 target, double power){
-        return new CorrectionVector(stateMachine, position, target, power, odometer, true);
+        return new CorrectionVector(stateMachine, position, target, power, true, system);
     }
 
     public TurnCorrectionVector turn(Vector3 target, double power) {
