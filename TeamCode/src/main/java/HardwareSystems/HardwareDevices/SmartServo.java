@@ -1,4 +1,4 @@
-package Hardware.HardwareDevices;
+package HardwareSystems.HardwareDevices;
 
 import com.qualcomm.robotcore.hardware.Servo;
 

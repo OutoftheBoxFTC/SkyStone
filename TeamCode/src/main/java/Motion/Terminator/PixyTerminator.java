@@ -1,6 +1,6 @@
 package Motion.Terminator;
 
-import Hardware.SensorData;
+import HardwareSystems.SensorData;
 import math.Vector3;
 
 public class PixyTerminator extends Terminator {

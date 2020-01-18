@@ -1,7 +1,7 @@
 package Motion;
 
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.DriveState;
 import State.StateMachine;
 import math.Vector3;

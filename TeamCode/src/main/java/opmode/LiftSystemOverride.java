@@ -1,10 +1,8 @@
 package opmode;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import Hardware.HardwareConstants;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareConstants;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
 public class LiftSystemOverride extends BasicOpmode {

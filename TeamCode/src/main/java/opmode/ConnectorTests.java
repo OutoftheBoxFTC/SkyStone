@@ -1,15 +1,13 @@
 package opmode;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import Debug.Connector;
 import Debug.RecievePacket;
 import Debug.Registers;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
 

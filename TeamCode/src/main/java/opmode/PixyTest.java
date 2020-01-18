@@ -1,11 +1,8 @@
 package opmode;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import Debug.Connector;
-import Hardware.Hardware;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.Hardware;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
 

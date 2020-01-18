@@ -1,6 +1,4 @@
-package Hardware;
-
-import State.StateMachine;
+package HardwareSystems;
 
 public class StaticVariables {
     private static StaticVariables instance = new StaticVariables();

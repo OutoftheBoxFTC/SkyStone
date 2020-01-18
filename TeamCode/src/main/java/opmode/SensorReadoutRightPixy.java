@@ -2,9 +2,9 @@ package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import Hardware.Hardware;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.Hardware;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.StateMachineManager;
 @TeleOp
 public class SensorReadoutRightPixy extends BasicOpmode {
@@ -45,7 +45,7 @@ public class SensorReadoutRightPixy extends BasicOpmode {
                 telemetry.addData("Skystone?", (sensors.getPixy()[sensors.getPixy().length-2] & 0xFF) < 50);
                 telemetry.addData("Intake Tripwire", sensors.getIntakeTripwire());
                 telemetry.addData("Timestamp", sensors.getTimestamp());
-                telemetry.addData("Time between frames", System.currentTimeMillis() + sensors.getTimestamp());
+                telemetry.addData("Time between frames", System.currentTimeMillis() - sensors.getTimestamp());
             }
         };
         stateMachineSwitcher.start(init, main);

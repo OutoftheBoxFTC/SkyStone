@@ -1,30 +1,22 @@
 package opmode;
 
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
-import Debug.Connector;
-import Debug.RecievePacket;
 import Debug.Registers;
-import Hardware.Hardware;
-import Hardware.HardwareConstants;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.Hardware;
+import HardwareSystems.HardwareConstants;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import Motion.MotionSystem;
-import Motion.Terminator.CombinedTerminator;
 import Motion.Terminator.OrientationTerminator;
-import Motion.Terminator.PixyTerminator;
 import Motion.Terminator.RelativeOrientationTerminator;
-import Motion.Terminator.TripwireTerminator;
+import Motion.VelocitySystem;
 import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
-import State.StateMachine;
 import State.StateMachineManager;
-import math.Vector2;
 import math.Vector3;
 import math.Vector4;
 @Autonomous
@@ -32,6 +24,7 @@ public class BlueAutoWorstCase extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
+    VelocitySystem vSystem;
     long fps;
     public BlueAutoWorstCase() {
         super(1);
@@ -53,7 +46,8 @@ public class BlueAutoWorstCase extends BasicOpmode {
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        final MotionSystem system = new MotionSystem(statemachine, odometer, position);
+        vSystem = new VelocitySystem();
+        final MotionSystem system = new MotionSystem(statemachine, position, vSystem);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override

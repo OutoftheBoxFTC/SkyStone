@@ -1,14 +1,11 @@
 package opmode;
 
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import Hardware.HardwareConstants;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
 import math.Vector2;
-import math.Vector3;
+
 public class MotionTests extends BasicOpmode {
     public MotionTests() {
         super(0);

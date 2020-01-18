@@ -3,13 +3,14 @@ package opmode;
 import java.util.HashMap;
 
 import Debug.Registers;
-import Hardware.Hardware;
-import Hardware.HardwareConstants;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.Hardware;
+import HardwareSystems.HardwareConstants;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import Motion.MotionSystem;
 import Motion.Terminator.OrientationTerminator;
 import Motion.Terminator.RelativeOrientationTerminator;
+import Motion.VelocitySystem;
 import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
@@ -21,6 +22,7 @@ public class RedAutoWorstCase extends BasicOpmode{
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
+    VelocitySystem vSystem;
     long fps;
     public RedAutoWorstCase() {
         super(1);
@@ -42,7 +44,8 @@ public class RedAutoWorstCase extends BasicOpmode{
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        final MotionSystem system = new MotionSystem(statemachine, odometer, position);
+        vSystem = new VelocitySystem();
+        final MotionSystem system = new MotionSystem(statemachine, position, vSystem);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override

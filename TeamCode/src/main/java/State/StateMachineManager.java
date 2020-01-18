@@ -2,8 +2,8 @@ package State;
 
 import java.util.HashMap;
 
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 
 public abstract class StateMachineManager {
     public HashMap<String, LogicState> logicStates;

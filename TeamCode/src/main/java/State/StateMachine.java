@@ -3,8 +3,8 @@ package State;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import math.Vector4;
 
 public class StateMachine {

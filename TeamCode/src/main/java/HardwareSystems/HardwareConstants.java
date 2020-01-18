@@ -1,7 +1,6 @@
-package Hardware;
+package HardwareSystems;
 
 import math.Vector2;
-import math.Vector3;
 
 /**
  * Constants for hardware devices
@@ -12,8 +11,8 @@ public class HardwareConstants {
     public static final Vector2 LATCH_ON = new Vector2(0.1, 0.95); //The servo positions for latching ON the foundation. It is in the order {left, right}
     public static final Vector2 LATCH_OFF = new Vector2(0.75, 0.24); //The servo positions for latching OFF the foundation. It is in the order {left, right}
     public static final Vector2 OPEN_INTAKE = new Vector2(0.95, 1-0.95); //The servo positions for OPENING the intake. It is in the order {left, right}
-    public static final Vector2 CLOSE_INTAKE = new Vector2(0.4, 1-0.4); //The servo positions for CLOSING the intake. It is in the order {left, right}
-    public static final Vector2 CLOSE_INTAKE_TELEOP = new Vector2(0.658, 1-0.608); //The servo positions for CLOSING the intake IN TELEOP. It is in the order {left, right}
+    public static final Vector2 CLOSE_INTAKE = new Vector2(0.75, 1-0.75); //The servo positions for CLOSING the intake. It is in the order {left, right}
+    public static final Vector2 CLOSE_INTAKE_TELEOP = new Vector2(0.75, 1-0.75); //The servo positions for CLOSING the intake IN TELEOP. It is in the order {left, right}
     public static final double INTAKE_LATCH_ON = 0.65; //The servo position for the latch on the four bar lift to latch ON to the block
     public static final double INTAKE_LATCH_OFF = 0.3678; //The servo position for the latch on the four bar lift to latch OFF of the block
     public static final Vector2 LIFT_REST = new Vector2(SQUARE_WAVE_TO_POSITION(910), SQUARE_WAVE_TO_POSITION(830)); //The servo position for the four bar servos when in the REST position, or all the way forward. It is in the order {left, right}

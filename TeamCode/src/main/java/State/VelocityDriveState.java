@@ -1,6 +1,6 @@
 package State;
 
-import Hardware.SensorData;
+import HardwareSystems.SensorData;
 import Motion.MecanumSystem;
 import Motion.VelocitySystem;
 import math.Vector3;
@@ -16,7 +16,7 @@ public abstract class VelocityDriveState extends DriveState {
     @Override
     public Vector4 getWheelVelocities(SensorData sensors) {
         system.setTargetVelocity(getVelocities());
-        return MecanumSystem.translate(system.update());
+        return MecanumSystem.translate(system.update(sensors));
     }
 
     public abstract Vector3 getVelocities();

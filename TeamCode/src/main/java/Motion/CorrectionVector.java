@@ -2,8 +2,8 @@ package Motion;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.StateMachine;
 import State.VelocityDriveState;
 import math.Vector2;

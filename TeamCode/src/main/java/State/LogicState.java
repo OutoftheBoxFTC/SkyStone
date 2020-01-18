@@ -1,7 +1,7 @@
 package State;
 
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 
 public abstract class LogicState {
     protected StateMachine stateMachine;

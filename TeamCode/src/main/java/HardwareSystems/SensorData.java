@@ -1,6 +1,4 @@
-package Hardware;
-
-import math.Vector3;
+package HardwareSystems;
 
 public class SensorData {
     private double leftEncoder, rightEncoder, auxEncoder, gyro, lift, intakeTripwire;

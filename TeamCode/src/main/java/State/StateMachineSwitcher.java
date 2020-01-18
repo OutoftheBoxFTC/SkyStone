@@ -2,11 +2,9 @@ package State;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
-import Hardware.Hardware;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 
 public class StateMachineSwitcher {
     ArrayList<StateMachineManager> managerList;

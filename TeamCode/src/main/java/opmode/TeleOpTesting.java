@@ -1,6 +1,10 @@
 package opmode;
 
+import android.media.MediaPlayer;
+
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+
+import org.firstinspires.ftc.teamcode.R;
 
 import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
@@ -11,9 +15,11 @@ import State.LogicState;
 import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
+
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
-public class TeleOp extends BasicOpmode {
-    public TeleOp() {
+public class TeleOpTesting extends BasicOpmode {
+    MediaPlayer player;
+    public TeleOpTesting() {
         super(1);
     }
 
@@ -36,6 +42,12 @@ public class TeleOp extends BasicOpmode {
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = isStarted();
             }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware) {
+                player = MediaPlayer.create(hardwareMap.appContext, R.raw.boathorn);
+                player.setLooping(true);
+            }
         };
         final StateMachineManager teleOpMode1 = new StateMachineManager(statemachine) {
             @Override
@@ -52,6 +64,17 @@ public class TeleOp extends BasicOpmode {
 
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
+                        telemetry.addData("Playing", player.isPlaying());
+                        if(gamepad1.dpad_up){
+                            if(!player.isPlaying()) {
+                                player.start();
+                            }
+                        }else{
+                            if(player.isPlaying()){
+                                player.pause();
+                                player.seekTo(0);
+                            }
+                        }
                     }
                 });
                 logicStates.put("lift", new LogicState(statemachine) {

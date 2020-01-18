@@ -8,10 +8,10 @@ import java.util.HashMap;
 import Debug.Connector;
 import Debug.RecievePacket;
 import Debug.Registers;
-import Hardware.Hardware;
-import Hardware.HardwareConstants;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.Hardware;
+import HardwareSystems.HardwareConstants;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import Motion.MotionSystem;
 import Motion.Terminator.CombinedTerminator;
 import Motion.Terminator.OrientationTerminator;
@@ -419,7 +419,7 @@ public class BlueAutonomous extends BasicOpmode {
                 logicStates.put("sequence", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                         terminate = true;
                     }
@@ -734,7 +734,7 @@ public class BlueAutonomous extends BasicOpmode {
                 logicStates.put("sequence", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST, HardwareConstants.LIFT_REST_OFFSET);
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                         terminate = true;
                     }

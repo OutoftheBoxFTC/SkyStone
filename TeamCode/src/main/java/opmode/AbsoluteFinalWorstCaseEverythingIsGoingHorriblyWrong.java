@@ -2,9 +2,9 @@ package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import Hardware.HardwareConstants;
-import Hardware.HardwareData;
-import Hardware.SensorData;
+import HardwareSystems.HardwareConstants;
+import HardwareSystems.HardwareData;
+import HardwareSystems.SensorData;
 import State.StateMachineManager;
 @Autonomous
 public class AbsoluteFinalWorstCaseEverythingIsGoingHorriblyWrong extends BasicOpmode {

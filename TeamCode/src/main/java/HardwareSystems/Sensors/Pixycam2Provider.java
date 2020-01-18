@@ -1,4 +1,4 @@
-package Hardware.Sensors;
+package HardwareSystems.Sensors;
 
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 

@@ -1,4 +1,4 @@
-package Hardware.Sensors;
+package HardwareSystems.Sensors;
 
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynchDevice;
@@ -11,8 +11,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-
-import math.Vector3;
 
 /***
  * Bytes    16-bit word    Description
@@ -31,6 +29,7 @@ import math.Vector3;
 public class Pixycam extends I2cDeviceSynchDevice<I2cDeviceSynch> {
     byte[] request = {(byte)0xae, (byte)0xc1, (byte)32, (byte)2, (byte)1, (byte)0xFF};
     byte[] pointRequest = {(byte)0xae, (byte)0xc1, (byte)112, (byte)5, (byte)0x9D, (byte)0x00, (byte)0x67, (byte)0x00, (byte)0};
+    byte[] pointRequestModifiable = {(byte)0xae, (byte)0xc1, (byte)112, (byte)5, (byte)0x9D, (byte)0x00, (byte)0x67, (byte)0x00, (byte)0};
     List<Short> shorts, prevShorts;
     public Pixycam(I2cDeviceSynch i2cDeviceSynch) {
         super(i2cDeviceSynch, true);
@@ -45,8 +44,6 @@ public class Pixycam extends I2cDeviceSynchDevice<I2cDeviceSynch> {
         for(int i = 0; i < 8; i ++){
             prevShorts.add((short)-1);
         }
-        shortToEndian((short)135);
-        shortToEndian((short)139);
     }
 
     @Override
@@ -104,6 +101,15 @@ public class Pixycam extends I2cDeviceSynchDevice<I2cDeviceSynch> {
 
     public byte[] getCoordinateColor(){
         this.deviceClient.write(0, pointRequest);
+        byte[] data = this.deviceClient.read(0, 9);
+        //RobotLog.ii("data", getString(data));
+        return data;
+    }
+
+    public byte[] getCoordinateColor(int x, int y){
+        pointRequestModifiable[4] = (byte)x;
+        pointRequestModifiable[6] = (byte)y;
+        this.deviceClient.write(0, pointRequestModifiable);
         byte[] data = this.deviceClient.read(0, 9);
         //RobotLog.ii("data", getString(data));
         return data;

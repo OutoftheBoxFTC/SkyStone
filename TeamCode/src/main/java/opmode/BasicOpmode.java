@@ -7,7 +7,7 @@ import java.io.IOException;
 import Debug.Connector;
 import Motion.VelocitySystem;
 import State.*;
-import Hardware.*;
+import HardwareSystems.*;
 
 public abstract class BasicOpmode extends LinearOpMode {
     protected Hardware robot;
@@ -18,6 +18,7 @@ public abstract class BasicOpmode extends LinearOpMode {
     private boolean debug;
     static final double TRANSLATION_FACTOR = (0.0010329132/2);
     private long timer = 0;
+    SoundMixer mixer;
     public BasicOpmode(double driveLoopIterations){
         this.driveLoopIterations = driveLoopIterations;
         debug = false;
@@ -34,6 +35,7 @@ public abstract class BasicOpmode extends LinearOpMode {
         robot = new Hardware(this, telemetry);
         stateMachineSwitcher = new StateMachineSwitcher();
         velocitySystem = new VelocitySystem();
+        mixer = new SoundMixer(hardwareMap.appContext);
         if(debug) {
             try {
                 Connector.getInstance().start();
@@ -77,6 +79,7 @@ public abstract class BasicOpmode extends LinearOpMode {
                 }
             }
         }
+        mixer.stopAll();
     }
 
     public abstract void setup();

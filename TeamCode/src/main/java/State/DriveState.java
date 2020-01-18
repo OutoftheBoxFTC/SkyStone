@@ -1,6 +1,6 @@
 package State;
 
-import Hardware.SensorData;
+import HardwareSystems.SensorData;
 import math.Vector4;
 
 public abstract class DriveState extends LogicState {

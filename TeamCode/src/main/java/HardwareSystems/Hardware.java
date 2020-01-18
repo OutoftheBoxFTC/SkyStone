@@ -1,4 +1,4 @@
-package Hardware;
+package HardwareSystems;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
@@ -17,9 +17,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.ArrayList;
 
-import Hardware.HardwareDevices.SmartMotor;
-import Hardware.HardwareDevices.SmartServo;
-import Hardware.Sensors.Pixycam;
+import HardwareSystems.HardwareDevices.SmartMotor;
+import HardwareSystems.HardwareDevices.SmartServo;
+import HardwareSystems.Sensors.Pixycam;
 import math.Vector2;
 import math.Vector3;
 import math.Vector4;
@@ -265,6 +265,10 @@ public class Hardware {
         yaw = orientation.thirdAngle;
         double thirdRot = (((yaw % tau) + tau) % tau);
         return new Vector3(firstRot, secondRot, thirdRot);
+    }
+
+    public Pixycam getPixy(){
+        return pixy;
     }
 
     public SmartMotor getLiftMotorLeft(){
