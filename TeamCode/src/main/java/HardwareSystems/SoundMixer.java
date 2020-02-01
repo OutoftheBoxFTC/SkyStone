@@ -7,9 +7,9 @@ import org.firstinspires.ftc.teamcode.R;
 public class SoundMixer {
     MediaPlayer horn, reverse, shiftgears;
     public SoundMixer(Context context){
-        horn = MediaPlayer.create(context, R.raw.boathorn);
-        reverse = MediaPlayer.create(context, R.raw.reverse);
-        shiftgears = MediaPlayer.create(context, R.raw.shiftgears);
+        horn = MediaPlayer.create(context, R.raw.chimeconnect);
+        reverse = MediaPlayer.create(context, R.raw.chimeconnect);
+        shiftgears = MediaPlayer.create(context, R.raw.chimeconnect);
     }
 
     public void playHorn(){

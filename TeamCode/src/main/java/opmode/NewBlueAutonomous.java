@@ -44,7 +44,7 @@ public class NewBlueAutonomous extends BasicOpmode {
         movements.put("moveToSkystone2", new Vector3(-14, 2, 40));
         movements.put("moveToSkystone3", new Vector3(-14, 5, 40));
         movements.put("moveToIntakeBlock", new Vector3(-3, 5, 40));
-        movements.put("driveToClearSkystones", new Vector3(-11, 0, 0));
+        movements.put("driveToClearSkystones", new Vector3(-10, 0, 0));
         movements.put("driveToFoundation", new Vector3(-14, -30, 0));
         movements.put("turnAndDriveToFoundation", new Vector3(-18, -40, -90));
         movements.put("moveFoundationToScoringZone", new Vector3(5, 0, 0));
@@ -285,7 +285,7 @@ public class NewBlueAutonomous extends BasicOpmode {
             OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPoint(movements.get("turnAndDriveToFoundation"), 1));
+                driveState.put("main", system.driveToPointSlowdown(movements.get("turnAndDriveToFoundation"), 0.4));
                 orientationTerminator = new OrientationTerminator(position, movements.get("turnAndDriveToFoundation"), 4, 1);
             }
 

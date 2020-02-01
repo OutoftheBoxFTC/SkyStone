@@ -49,7 +49,7 @@ public class TeleOpTesting extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                player = MediaPlayer.create(hardwareMap.appContext, R.raw.boathorn);
+                player = MediaPlayer.create(hardwareMap.appContext, R.raw.chimeconnect);
                 player.setLooping(true);
             }
         };
