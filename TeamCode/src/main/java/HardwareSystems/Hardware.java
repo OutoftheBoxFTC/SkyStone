@@ -7,8 +7,11 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.BatteryChecker;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -27,7 +30,7 @@ import math.Vector4;
 public class Hardware {
     private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight, liftMotorLeft, liftMotorRight;
     private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight, liftServoLeft, liftServoRight, intakeLatch, capstoneLatch;
-    private Rev2mDistanceSensor intakeTripwire;
+    private Rev2mDistanceSensor intakeTripwire, leftSensor, rightSensor;
     private RevBlinkinLedDriver blinkinIndicator;
     private OpMode opmode;
     private Telemetry telemetry;
@@ -35,6 +38,8 @@ public class Hardware {
     private CalibrationSystem calibration;
     private BNO055IMU imu;
     private Pixycam pixy;
+    private TouchSensor liftLimit;
+
 
 
     /**
@@ -66,6 +71,10 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.ODOMETRY)){
             //odometryRightMotor = getOrNull(map, DcMotor.class, "odometryR");
             //odometryLeftMotor = getOrNull(map, DcMotor.class, "odometryL");
+        }
+        if(enabledDevices.contains(HardwareDevices.SIDE_LASERS)){
+            leftSensor = getOrNull(map, Rev2mDistanceSensor.class, "leftLaser");
+            rightSensor = getOrNull(map, Rev2mDistanceSensor.class, "rightLaser");
         }
         if(enabledDevices.contains(HardwareDevices.LATCH_SERVOS)){
             leftLatch = new SmartServo(getOrNull(map, Servo.class, "leftLatch"));
@@ -104,7 +113,8 @@ public class Hardware {
             liftMotorRight = new SmartMotor(getOrNull(map, DcMotor.class, "liftMotorR"));
             liftMotorLeft.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             liftMotorRight.getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            liftMotorLeft.getMotor().setDirection(DcMotorSimple.Direction.REVERSE);
+            liftLimit = getOrNull(map, TouchSensor.class, "liftLimit");
+
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
             intakeLatch = new SmartServo(getOrNull(map, Servo.class, "intakeLatch"));
@@ -163,8 +173,12 @@ public class Hardware {
             leftLatch.setPosition(servoPositions.getA());
             rightLatch.setPosition(servoPositions.getB());
         }
-        if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
+        if(enabledDevices.contains(HardwareDevices.ODOMETRY)) {
             sensors.setOdometryEncoders(intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
+        }
+        if(enabledDevices.contains(HardwareDevices.SIDE_LASERS)){
+            sensors.setLeftLaser(leftSensor.getDistance(DistanceUnit.INCH));
+            sensors.setRightLaser(rightSensor.getDistance(DistanceUnit.INCH));
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             intakeLeft.setPower(data.getIntakePowers().getA());
@@ -184,7 +198,8 @@ public class Hardware {
         if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
             liftMotorLeft.setPower(data.getLiftMotors());
             liftMotorRight.setPower(data.getLiftMotors());
-            sensors.setLift(liftMotorLeft.getMotor().getCurrentPosition());
+            sensors.setLift(-liftMotorLeft.getMotor().getCurrentPosition());
+            sensors.setLiftLimit(liftLimit.isPressed());
         }
         if(enabledDevices.contains(HardwareDevices.LIFT_SERVOS)){
             liftServoLeft.setPosition(data.getLiftServo().getA());
@@ -233,6 +248,7 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.INTAKE_TRIPWIRE);
         enabledDevices.add(HardwareDevices.BLINKIN);
         enabledDevices.add(HardwareDevices.CAPSTONE_LATCH);
+        enabledDevices.add(HardwareDevices.SIDE_LASERS);
     }
 
     /**
@@ -295,6 +311,7 @@ public class Hardware {
         INTAKE_LATCH,
         INTAKE_TRIPWIRE,
         BLINKIN,
-        CAPSTONE_LATCH
+        CAPSTONE_LATCH,
+        SIDE_LASERS
     }
 }

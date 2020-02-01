@@ -7,7 +7,6 @@ import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import Motion.MotionSystem;
 import Motion.Terminator.OrientationTerminator;
-import Motion.VelocitySystem;
 import Odometer.SimpleOdometer;
 import State.LogicState;
 import State.StateMachineManager;
@@ -17,7 +16,6 @@ public class MovementTest extends BasicOpmode {
     Vector3 position, velocity;
     SimpleOdometer odometer;
     Registers registers;
-    VelocitySystem vSystem;
     public MovementTest(){
         super(1);
     }
@@ -31,8 +29,7 @@ public class MovementTest extends BasicOpmode {
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        vSystem = new VelocitySystem();
-        final MotionSystem system = new MotionSystem(statemachine, position, vSystem);
+        final MotionSystem system = new MotionSystem(statemachine, position, velocity);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override
@@ -80,6 +77,6 @@ public class MovementTest extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(init, forward, end);
+        stateMachineSwitcher.init(init, forward, end);
     }
 }

@@ -3,9 +3,9 @@ package Motion.Terminator;
 import HardwareSystems.SensorData;
 import math.Vector3;
 
-public class CombinedTerminator extends Terminator {
+public class CombinedORTerminator extends Terminator {
     Terminator t1, t2;
-    public CombinedTerminator(Vector3 position, Vector3 target, Terminator t1, Terminator t2) {
+    public CombinedORTerminator(Vector3 position, Vector3 target, Terminator t1, Terminator t2) {
         super(position, target);
         this.t1 = t1;
         this.t2 = t2;

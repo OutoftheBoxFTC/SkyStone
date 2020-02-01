@@ -73,6 +73,6 @@ public class MotionTests extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(init, move);
+        stateMachineSwitcher.init(init, move);
     }
 }

@@ -48,6 +48,6 @@ public class SensorReadoutRightPixy extends BasicOpmode {
                 telemetry.addData("Time between frames", System.currentTimeMillis() - sensors.getTimestamp());
             }
         };
-        stateMachineSwitcher.start(init, main);
+        stateMachineSwitcher.init(init, main);
     }
 }

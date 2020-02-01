@@ -13,14 +13,16 @@ public class CorrectionVector extends VelocityDriveState {
     private Vector2 target, start;
     private Vector3 position;
     private Vector3 velocities;
+    private Vector3 velocity;
     private double targetRot;
     private double power;
     private boolean relative = false;
     private double specialFor;
     private double specialStr;
     private boolean reimannSlowdown = false;
-    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, VelocitySystem system){
-        super(stateMachine, system);
+    VelocitySystem system;
+    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity){
+        super(stateMachine);
         this.position = position;
         this.target = new Vector2(target.getA(), target.getB());
         targetRot = target.getC();
@@ -29,9 +31,10 @@ public class CorrectionVector extends VelocityDriveState {
         this.velocities = Vector3.ZERO();
         specialFor = 1;
         specialStr = 1;
+        this.velocity = velocity;
     }
-    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, boolean slowdown, VelocitySystem system){
-        super(stateMachine, system);
+    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, boolean slowdown, Vector3 velocity, boolean relative){
+        super(stateMachine);
         this.position = position;
         this.target = new Vector2(target.getA(), target.getB());
         targetRot = target.getC();
@@ -41,9 +44,11 @@ public class CorrectionVector extends VelocityDriveState {
         specialFor = 1;
         specialStr = 1;
         this.reimannSlowdown = slowdown;
+        this.velocity = velocity;
+        this.relative = relative;
     }
-    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double kpStrafe, double kpForward, VelocitySystem system){
-        super(stateMachine, system);
+    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double kpStrafe, double kpForward, Vector3 velocity){
+        super(stateMachine);
         this.position = position;
         this.target = new Vector2(target.getA(), target.getB());
         targetRot = target.getC();
@@ -52,9 +57,11 @@ public class CorrectionVector extends VelocityDriveState {
         this.velocities = Vector3.ZERO();
         this.specialStr = kpStrafe;
         this.specialFor = kpForward;
+        this.velocity = velocity;
     }
     @Override
     public void init(SensorData sensors, HardwareData hardware){
+        system = new VelocitySystem();
     }
 
     @Override
@@ -70,6 +77,9 @@ public class CorrectionVector extends VelocityDriveState {
         }
         double totalDistance = new Vector2(start.getA(), start.getB()).distanceTo(target);
         double mainr = new Vector2(position.getA(), position.getB()).distanceTo(target);
+        if((mainr/totalDistance) < 0.25){
+            //system.init(velocity);
+        }
         double maintheta = (Math.PI/2) - Math.atan2(target.getB() - position.getB(), target.getA() - position.getA());
         double x = mainr * Math.cos(maintheta);
         double y = mainr * Math.sin(maintheta);
@@ -94,7 +104,7 @@ public class CorrectionVector extends VelocityDriveState {
         x = x/comb;
         y = y/comb;
         if(reimannSlowdown) {
-            power = (-Math.pow(1.075, (((totalDistance-mainr) / totalDistance) * 100) - 100)) + 1;
+            power = Math.abs(Math.max((totalDistance-mainr)/mainr, 0.1));
         }
         x *= power;
         y *= power;
@@ -107,7 +117,7 @@ public class CorrectionVector extends VelocityDriveState {
             rotation = ((360 + targetRot) - Math.toDegrees(sensors.getGyro()));
         }
         rotation *= 0.01;
-        velocities.set((new Vector3(y, -x, rotation)));
+        velocities.set(system.update(new Vector3(y, -x, rotation), (mainr/totalDistance)));
     }
 
 }

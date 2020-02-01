@@ -35,6 +35,6 @@ public class PixyTest extends BasicOpmode{
                 terminate = false;
             }
         };
-        stateMachineSwitcher.start(main);
+        stateMachineSwitcher.init(main);
     }
 }

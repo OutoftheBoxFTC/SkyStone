@@ -2,12 +2,20 @@ package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import java.util.HashMap;
+
 import HardwareSystems.Hardware;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
+import Odometer.SimpleOdometer;
+import State.LogicState;
 import State.StateMachineManager;
+import math.Vector3;
+
 @TeleOp
 public class SensorReadoutLeftPixy extends BasicOpmode {
+    SimpleOdometer odometer;
+    Vector3 position, velocity;
     public SensorReadoutLeftPixy() {
         super(0);
     }
@@ -16,6 +24,23 @@ public class SensorReadoutLeftPixy extends BasicOpmode {
     public void setup() {
         robot.enableAll();
         robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+        position = Vector3.ZERO();
+        velocity = Vector3.ZERO();
+        odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
+        HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
+        nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
+            @Override
+            public void init(SensorData sensors, HardwareData hardware){
+                odometer.start(sensors);
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                odometer.update(sensors);
+                telemetry.addData("Position", position);
+            }
+        });
+        statemachine.appendLogicStates(nonManagedLogicStates);
         StateMachineManager init = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -27,6 +52,12 @@ public class SensorReadoutLeftPixy extends BasicOpmode {
                 telemetry.addLine("Press Start to Start. I hope that should have been obvious");
                 terminate = isStarted();
             }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware) {
+                odometer.start(sensors);
+                statemachine.activateLogic("Odometry");
+            }
         };
         StateMachineManager main = new StateMachineManager(statemachine) {
             @Override
@@ -36,6 +67,7 @@ public class SensorReadoutLeftPixy extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
+                telemetry.addData("Position", position);
                 telemetry.addData("Left Encoder", sensors.getLeft());
                 telemetry.addData("Right Encoder", sensors.getRight());
                 telemetry.addData("Aux Encoder", sensors.getAux());
@@ -48,6 +80,6 @@ public class SensorReadoutLeftPixy extends BasicOpmode {
                 telemetry.addData("Time between frames", System.currentTimeMillis() - sensors.getTimestamp());
             }
         };
-        stateMachineSwitcher.start(init, main);
+        stateMachineSwitcher.init(init, main);
     }
 }

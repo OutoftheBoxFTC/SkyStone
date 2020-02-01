@@ -6,6 +6,7 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
 import org.firstinspires.ftc.teamcode.R;
 
+import HardwareSystems.Hardware;
 import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
@@ -19,6 +20,8 @@ import math.Vector4;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOpTesting extends BasicOpmode {
     MediaPlayer player;
+    int currPosition = 0;
+    double[] positions = {1, 80, 180, 280, 380, 480, 580, 680, 780, 880, 980, 1080, 1180};
     public TeleOpTesting() {
         super(1);
     }
@@ -26,6 +29,7 @@ public class TeleOpTesting extends BasicOpmode {
     @Override
     public void setup() {
         robot.enableAll();
+        robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
         StateMachineManager initManager = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -75,9 +79,15 @@ public class TeleOpTesting extends BasicOpmode {
                                 player.seekTo(0);
                             }
                         }
+                        telemetry.addData("Current Position", currPosition);
+                        telemetry.addData("Lift", sensors.getLift());
+                        telemetry.addData("Limit", sensors.getLiftLimit());
+                        if(sensors.getLiftLimit()){
+                            sensors.getCalibration().setLift(sensors.getRawLift());
+                        }
                     }
                 });
-                logicStates.put("lift", new LogicState(statemachine) {
+                exemptedLogicstates.put("liftOld", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(Math.abs(gamepad2.left_stick_y) < 0.1){
@@ -128,28 +138,155 @@ public class TeleOpTesting extends BasicOpmode {
 
                     }
                 });
+                logicStates.put("firstReset", HardwareConstants.resetLift(statemachine, "lift"));
+                exemptedLogicstates.put("reset", HardwareConstants.resetLift(statemachine, "lift"));
+                exemptedLogicstates.put("lift", new LogicState(statemachine) {
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(currPosition >= positions.length){
+                            currPosition = positions.length-1;
+                        }
+                        if(gamepad2.dpad_up){
+                            statemachine.activateLogic("raiseLift");
+                            deactivateThis();
+                        }
+                        if(gamepad2.y){
+                            stateMachine.activateLogic("reset");
+                            deactivateThis();
+                        }
+                        if(Math.abs(gamepad2.left_stick_y) > 0.1) {
+                            if((-gamepad2.left_stick_y) < 0){
+                                if(!sensors.getLiftLimit()) {
+                                    hardware.setLiftMotors(-gamepad2.left_stick_y * 0.4);
+                                }
+                            }else{
+                                hardware.setLiftMotors(-gamepad2.left_stick_y);
+                            }
+                        }else{
+                            hardware.setLiftMotors(0.25);
+                        }
+                    }
+                });
+                exemptedLogicstates.put("adjustLift", new LogicState(statemachine) {
+                    int numFrames = 0;
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        hardware.setLiftMotors(sensors.getLift() < positions[currPosition] ? 1 : -0.4);
+                        if(Math.abs(sensors.getLift() - positions[currPosition]) < 50){
+                            numFrames ++;
+                            if(numFrames >= 15) {
+                                numFrames = 0;
+                                statemachine.activateLogic("lift");
+                                deactivateThis();
+                            }
+                        }
+                    }
+                });
+                exemptedLogicstates.put("raiseLift", new LogicState(statemachine) {
+                    int state;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        state = 0;
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(state == 0) {
+                            hardware.setLiftMotors(Math.max(0.4, ((sensors.getLift()-50) / positions[currPosition])/10));
+                            if ((sensors.getLift()-50) >= positions[currPosition]) {
+                                state = 1;
+                            }
+                        }else if(state == 1){
+                            hardware.setLiftMotors(0.4);
+                            hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
+                            if((sensors.getLift()) >= positions[currPosition]){
+                                state = 2;
+                                hardware.setLiftMotors(0.25);
+                            }
+                        }else if(state == 2){
+                            hardware.setLiftMotors(0.25);
+                            statemachine.activateLogic("lift");
+                            currPosition ++;
+                            deactivateThis();
+                        }
+                    }
+                });
+                exemptedLogicstates.put("lowerLift", new LogicState(statemachine) {
+                    int state;
+                    long timer = 0;
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        state = 0;
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(state == 0) {
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                            timer = (System.currentTimeMillis() + 251);
+                            if(System.currentTimeMillis() >= timer){
+                                state = 1;
+                            }
+                        }else if(state == 1){
+                            hardware.setLiftMotors(-1);
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                            if((sensors.getLift()) >= positions[currPosition]){
+                                state = 2;
+                                hardware.setLiftMotors(0);
+                            }
+                        }else if(state == 2){
+                            hardware.setLiftMotors(0);
+                            statemachine.activateLogic("lift");
+                            deactivateThis();
+                        }
+                    }
+                });
                 logicStates.put("intake", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad1.right_trigger > 0){
                             hardware.setIntakePowers(gamepad1.right_trigger);
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
-                        }else if(gamepad1.right_bumper){
-                            hardware.setIntakePowers(1);
-                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         }else if(gamepad1.left_trigger > 0){
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
                             hardware.setIntakePowers(-gamepad1.left_trigger);
                         }else{
                             hardware.setIntakePowers(0);
-                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         }
-                        if(sensors.getIntakeTripwire() < 6){
-                            hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.AQUA);
-                        }else{
+                        if(sensors.getIntakeTripwire() <= 12){
+                            hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
+                        }
+                        if(sensors.getIntakeTripwire() <= 6){
+                            hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.YELLOW);
+                        }
+                        if(sensors.getIntakeTripwire() <= 0.75){
+                            hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                        }
+                        if(sensors.getIntakeTripwire() > 12){
                             hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLACK);
                         }
+                        if(gamepad2.dpad_left){
+                            hardware.setLatchServos(HardwareConstants.LATCH_ON);
+                        }
+                        if(gamepad2.dpad_right){
+                            hardware.setLatchServos(HardwareConstants.LATCH_OFF);
+                        }
+                        if(gamepad2.right_stick_x < -0.4){
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                        }
+                        if(gamepad2.right_stick_x > 0.4){
+                            hardware.setLiftServo(HardwareConstants.LIFT_OUT);
+                        }
                         telemetry.addData("Tripwire", sensors.getIntakeTripwire());
+                    }
+                });
+                logicStates.put("intakeServo", new LogicState(statemachine) {
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(sensors.getIntakeTripwire() <= 12){
+                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                        }else{
+                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                        }
                     }
                 });
                 logicStates.put("closeLatch", new LogicState(statemachine) {
@@ -189,6 +326,6 @@ public class TeleOpTesting extends BasicOpmode {
                 terminate = false;
             }
         };
-        stateMachineSwitcher.start(initManager, teleOpMode1);
+        stateMachineSwitcher.init(initManager, teleOpMode1);
     }
 }

@@ -1,8 +1,9 @@
 package HardwareSystems;
 
 public class SensorData {
-    private double leftEncoder, rightEncoder, auxEncoder, gyro, lift, intakeTripwire;
+    private double leftEncoder, rightEncoder, auxEncoder, gyro, lift, intakeTripwire, leftLaser, rightLaser, rawLift;
     private byte[] pixy;
+    private boolean liftLimit;
     private long timestamp;
     CalibrationSystem calibration;
     public SensorData(CalibrationSystem calibration, long timestamp){
@@ -37,7 +38,13 @@ public class SensorData {
     }
     public void setLift(double position){
         this.lift = position - calibration.getLift();
+        this.rawLift = position;
     }
+
+    public double getRawLift() {
+        return rawLift;
+    }
+
     public double getLift(){
         return lift;
     }
@@ -49,6 +56,34 @@ public class SensorData {
     public double getIntakeTripwire(){
         return intakeTripwire;
     }
+
+    public void setLiftLimit(boolean liftLimit){
+        this.liftLimit = liftLimit;
+    }
+    public boolean getLiftLimit(){
+        return liftLimit;
+    }
+
+    public void setRightLaser(double rightLaser) {
+        this.rightLaser = rightLaser;
+    }
+
+    public void setLeftLaser(double leftLaser) {
+        this.leftLaser = leftLaser;
+    }
+
+    public double getLeftLaser() {
+        return leftLaser;
+    }
+
+    public double getRightLaser() {
+        return rightLaser;
+    }
+
+    public CalibrationSystem getCalibration(){
+        return calibration;
+    }
+
     public long getTimestamp(){
         return timestamp;
     }

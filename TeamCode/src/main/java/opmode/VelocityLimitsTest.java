@@ -1,12 +1,7 @@
 package opmode;
 
-import android.media.MediaPlayer;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.RobotLog;
-
-import org.firstinspires.ftc.teamcode.R;
 
 import java.util.HashMap;
 
@@ -91,6 +86,6 @@ public class VelocityLimitsTest extends BasicOpmode {
                 telemetry.addData("Max Velocity", maxVel);
             }
         };
-        stateMachineSwitcher.start(init, main);
+        stateMachineSwitcher.init(init, main);
     }
 }

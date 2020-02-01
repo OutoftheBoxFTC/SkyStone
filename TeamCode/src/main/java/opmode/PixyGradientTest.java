@@ -20,7 +20,8 @@ public class PixyGradientTest extends BasicOpmode{
     @Override
     public void setup() {
         robot.enableAll();
-        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+        robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
         StateMachineManager init = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -66,18 +67,18 @@ public class PixyGradientTest extends BasicOpmode{
                     int pos1 = 0, pos2 = 0, pos3 = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        for(int i = 0; i < 16; i ++){
+                        for(int i = 0; i < 10; i ++){
                             pos3 += byteMap[i];
                         }
-                        pos3 = pos3 / 16;
-                        for(int i = 16; i < 30; i ++){
+                        pos3 = pos3 / 10;
+                        for(int i = 10; i < 20; i ++){
                             pos2 += byteMap[i];
                         }
-                        pos2 = pos2 / 14;
-                        for(int i = 30; i < 42; i ++){
+                        pos2 = pos2 / 10;
+                        for(int i = 32; i < 42; i ++){
                             pos1 += byteMap[i];
                         }
-                        pos1 = pos1 / 12;
+                        pos1 = pos1 / 10;
                         int max = Math.min(Math.min(pos1, pos2), pos3);
                         telemetry.addData("Max1", pos3);
                         telemetry.addData("Max2", pos2);
@@ -95,6 +96,6 @@ public class PixyGradientTest extends BasicOpmode{
 
             }
         };
-        stateMachineSwitcher.start(init, main);
+        stateMachineSwitcher.init(init, main);
     }
 }

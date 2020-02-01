@@ -36,6 +36,6 @@ public class Sizing extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(main);
+        stateMachineSwitcher.init(main);
     }
 }

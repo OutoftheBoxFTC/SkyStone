@@ -37,6 +37,6 @@ public class AbsoluteFinalWorstCaseEverythingIsGoingHorriblyWrong extends BasicO
                 hardware.setLatchServos(HardwareConstants.LATCH_ON);
             }
         };
-        stateMachineSwitcher.start(init, run);
+        stateMachineSwitcher.init(init, run);
     }
 }

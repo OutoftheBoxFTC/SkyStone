@@ -11,6 +11,6 @@ public class TripwireTerminator extends Terminator {
 
     @Override
     public boolean shouldTerminate(SensorData data) {
-        return data.getIntakeTripwire() < 6;
+        return data.getIntakeTripwire() < 1;
     }
 }

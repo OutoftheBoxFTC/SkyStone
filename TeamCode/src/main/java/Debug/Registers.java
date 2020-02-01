@@ -44,11 +44,11 @@ public class Registers {
 
     public Vector3 getPoint(String key){
         String[] s = registers.get(key).replaceAll("\\s","").split(",");
-        return new Vector3(Integer.valueOf(s[0]), Integer.valueOf(s[1]), Integer.valueOf(s[2]));
+        return new Vector3(Double.valueOf(s[0]), Double.valueOf(s[1]), Double.valueOf(s[2]));
     }
 
     public Vector3 getTurn(String key){
         String[] s = turns.get(key).replaceAll("\\s","").split(",");
-        return new Vector3(Integer.valueOf(s[0]), Integer.valueOf(s[1]), Integer.valueOf(s[2]));
+        return new Vector3(Double.valueOf(s[0]), Double.valueOf(s[1]), Double.valueOf(s[2]));
     }
 }

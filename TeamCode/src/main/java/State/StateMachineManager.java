@@ -20,7 +20,7 @@ public abstract class StateMachineManager {
 
     public abstract void setup();
 
-    public void start(){
+    public void start(SensorData sensors, HardwareData hardware){
         stateMachine.appendDriveStates(driveState);
         stateMachine.appendLogicStates(logicStates);
         stateMachine.appendLogicStates(exemptedLogicstates);
@@ -30,6 +30,11 @@ public abstract class StateMachineManager {
         for(String state : driveState.keySet()){
             stateMachine.setActiveDriveState(state);
         }
+        onStart(sensors, hardware);
+    }
+
+    public void onStart(SensorData sensors, HardwareData hardware){
+
     }
 
     public abstract void update(SensorData sensors, HardwareData hardware);
@@ -50,5 +55,20 @@ public abstract class StateMachineManager {
         for(DriveState state : driveState.values()){
             state.deactivateThis();
         }
+    }
+
+    public static StateMachineManager timer(final long time, StateMachine stateMachine){
+        return new StateMachineManager(stateMachine) {
+            long locTimer = 0;
+            @Override
+            public void setup() {
+                locTimer = System.currentTimeMillis() + time;
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                terminate = System.currentTimeMillis() >= locTimer;
+            }
+        };
     }
 }

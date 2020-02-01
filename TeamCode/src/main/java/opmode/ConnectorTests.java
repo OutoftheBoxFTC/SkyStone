@@ -79,7 +79,7 @@ public class ConnectorTests extends BasicOpmode {
                 exemptedLogicstates.put("WaitToStart", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        telemetry.addLine("Press X to start Autonomous");
+                        telemetry.addLine("Press X to init Autonomous");
                         terminate = gamepad1.x;
                     }
                 });
@@ -90,6 +90,6 @@ public class ConnectorTests extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(main);
+        stateMachineSwitcher.init(main);
     }
 }

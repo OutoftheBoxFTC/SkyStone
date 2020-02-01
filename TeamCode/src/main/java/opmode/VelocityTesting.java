@@ -36,7 +36,7 @@ public class VelocityTesting extends BasicOpmode{
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        final MotionSystem system = new MotionSystem(statemachine, position, velocitySystem);
+        final MotionSystem system = new MotionSystem(statemachine, position, velocity);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override
@@ -88,6 +88,6 @@ public class VelocityTesting extends BasicOpmode{
                 terminate = OrientationTerminator.shouldTerminatePosition(position, new Vector3(0, 0, 0), 3);
             }
         };
-        stateMachineSwitcher.start(init, firstMovement, secondMovement);
+        stateMachineSwitcher.init(init, firstMovement, secondMovement);
     }
 }

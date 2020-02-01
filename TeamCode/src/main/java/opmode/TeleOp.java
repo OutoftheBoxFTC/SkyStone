@@ -2,6 +2,7 @@ package opmode;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 
+import HardwareSystems.Hardware;
 import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
@@ -20,6 +21,7 @@ public class TeleOp extends BasicOpmode {
     @Override
     public void setup() {
         robot.enableAll();
+        robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
         StateMachineManager initManager = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -166,6 +168,6 @@ public class TeleOp extends BasicOpmode {
                 terminate = false;
             }
         };
-        stateMachineSwitcher.start(initManager, teleOpMode1);
+        stateMachineSwitcher.init(initManager, teleOpMode1);
     }
 }

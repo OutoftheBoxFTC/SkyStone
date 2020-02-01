@@ -14,12 +14,11 @@ import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import Motion.MotionSystem;
-import Motion.Terminator.CombinedTerminator;
+import Motion.Terminator.CombinedORTerminator;
 import Motion.Terminator.OrientationTerminator;
 import Motion.Terminator.PixyTerminator;
 import Motion.Terminator.RelativeOrientationTerminator;
 import Motion.Terminator.TripwireTerminator;
-import Motion.VelocitySystem;
 import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
@@ -32,7 +31,6 @@ public class BlueAutotonomous extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;
-    VelocitySystem vSystem;
     long fps;
     public BlueAutotonomous() {
         super(1);
@@ -68,8 +66,7 @@ public class BlueAutotonomous extends BasicOpmode {
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
-        vSystem = new VelocitySystem();
-        final MotionSystem system = new MotionSystem(statemachine, position, vSystem);
+        final MotionSystem system = new MotionSystem(statemachine, position, velocity);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override
@@ -296,11 +293,11 @@ public class BlueAutotonomous extends BasicOpmode {
             }
         };
         StateMachineManager driveToSkystone = new StateMachineManager(statemachine) {
-            CombinedTerminator terminator;
+            CombinedORTerminator terminator;
             @Override
             public void setup() {
                 driveState.put("drive", system.driveToPoint(registers.getPoint("driveToSkystone"), 0.3));
-                terminator = new CombinedTerminator(position, registers.getPoint("driveToSkystone"), new OrientationTerminator(position, registers.getPoint("driveToSkystone"), 4, 4), new PixyTerminator(position, registers.getPoint("driveToSkystone")));
+                terminator = new CombinedORTerminator(position, registers.getPoint("driveToSkystone"), new OrientationTerminator(position, registers.getPoint("driveToSkystone"), 4, 4), new PixyTerminator(position, registers.getPoint("driveToSkystone")));
             }
 
             @Override
@@ -357,7 +354,7 @@ public class BlueAutotonomous extends BasicOpmode {
         };
         StateMachineManager intakeSkystone = new StateMachineManager(statemachine) {
             RelativeOrientationTerminator terminator;
-            CombinedTerminator combinedTerminator;
+            CombinedORTerminator combinedTerminator;
             TripwireTerminator tripwire;
             @Override
             public void setup() {
@@ -368,7 +365,7 @@ public class BlueAutotonomous extends BasicOpmode {
                     @Override
                     public void init(SensorData sensors, HardwareData hardware){
                         terminator.start();
-                        combinedTerminator = new CombinedTerminator(position, registers.getPoint("intakeSkystones"), terminator, tripwire);
+                        combinedTerminator = new CombinedORTerminator(position, registers.getPoint("intakeSkystones"), terminator, tripwire);
                     }
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -682,12 +679,12 @@ public class BlueAutotonomous extends BasicOpmode {
         };
         StateMachineManager intakeSkystoneV2 = new StateMachineManager(statemachine) {
             RelativeOrientationTerminator terminator;
-            CombinedTerminator combined;
+            CombinedORTerminator combined;
             @Override
             public void setup() {
                 terminator = new RelativeOrientationTerminator(position, registers.getPoint("intakeSkystonesV2"), 2);
                 terminator.start();
-                combined = new CombinedTerminator(Vector3.ZERO(), Vector3.ZERO(), terminator, new TripwireTerminator(Vector3.ZERO(), Vector3.ZERO()));
+                combined = new CombinedORTerminator(Vector3.ZERO(), Vector3.ZERO(), terminator, new TripwireTerminator(Vector3.ZERO(), Vector3.ZERO()));
                 driveState.put("drive", system.driveForward(registers.getPoint("intakeSkystonesV2"), 0.35));
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
@@ -963,7 +960,7 @@ public class BlueAutotonomous extends BasicOpmode {
                 exemptedLogicstates.put("WaitToStart", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        telemetry.addLine("Press X to start Autonomous");
+                        telemetry.addLine("Press X to init Autonomous");
                         terminate = gamepad1.x;
                     }
                 });
@@ -974,6 +971,6 @@ public class BlueAutotonomous extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, moveBackALittleMoreBeforeOuttake, outtakeSkystone, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, moveBackALittleMoreBeforeOuttakeV2, outtakeSkystoneV2, park, end);
+        stateMachineSwitcher.init(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, waitAfterSkystoneMovement, driveToSkystone, turnToIntakeSkystone, openIntake, intakeSkystone, closeIntake, secondIntakeMovement, lockIntake, driveBack, driveToOuttake, moveBackALittleMoreBeforeOuttake, outtakeSkystone, driveToSeeSkystonesV2, waitAfterSkystoneMovementV2, driveToSkystoneV2, strafeToLineUp, openIntakeV2, intakeSkystoneV2, closeIntakeV2, secondIntakeMovementV2, lockIntakeV2, driveBackV2, driveToOuttakeV2, moveBackALittleMoreBeforeOuttakeV2, outtakeSkystoneV2, park, end);
     }
 }

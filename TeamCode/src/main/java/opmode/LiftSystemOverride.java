@@ -49,6 +49,6 @@ public class LiftSystemOverride extends BasicOpmode {
 
             }
         };
-        stateMachineSwitcher.start(init, main);
+        stateMachineSwitcher.init(init, main);
     }
 }
