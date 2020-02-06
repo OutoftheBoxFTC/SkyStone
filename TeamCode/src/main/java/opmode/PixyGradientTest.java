@@ -1,7 +1,9 @@
 package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.RobotLog;
 
+import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import HardwareSystems.Hardware;
@@ -10,9 +12,7 @@ import State.StateMachineManager;
 
 @TeleOp
 public class PixyGradientTest extends BasicOpmode{
-    int y = 0;
-    boolean[] map = new boolean[42];
-    int[] byteMap = new int[42];
+    int skystonePos;
     public PixyGradientTest() {
         super(0);
     }
@@ -20,8 +20,8 @@ public class PixyGradientTest extends BasicOpmode{
     @Override
     public void setup() {
         robot.enableAll();
-        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
         robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
+        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
         StateMachineManager init = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -35,6 +35,9 @@ public class PixyGradientTest extends BasicOpmode{
             }
         };
         StateMachineManager main = new StateMachineManager(statemachine) {
+            int y = 0;
+            boolean[] map = new boolean[42];
+            int[] byteMap = new int[42];
             @Override
             public void setup() {
                 logicStates.put("main", new LogicState(statemachine) {
@@ -68,22 +71,34 @@ public class PixyGradientTest extends BasicOpmode{
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         for(int i = 0; i < 10; i ++){
-                            pos3 += byteMap[i];
+                            if(byteMap[i] < 255){
+                                pos3 ++;
+                            }
                         }
-                        pos3 = pos3 / 10;
                         for(int i = 10; i < 20; i ++){
-                            pos2 += byteMap[i];
+                            if(byteMap[i] < 255){
+                                pos2 ++;
+                            }
                         }
-                        pos2 = pos2 / 10;
-                        for(int i = 32; i < 42; i ++){
-                            pos1 += byteMap[i];
+                        for(int i = 26; i < 32; i ++){
+                            if(byteMap[i] < 255){
+                                pos1 ++;
+                            }
                         }
-                        pos1 = pos1 / 10;
-                        int max = Math.min(Math.min(pos1, pos2), pos3);
+                        int max = Math.max(Math.max(pos1, pos2), pos3);
                         telemetry.addData("Max1", pos3);
                         telemetry.addData("Max2", pos2);
                         telemetry.addData("Max3", pos1);
-                        telemetry.addData("Position", max == pos1 ? "1" : (max == pos2 ? "2" : "3"));
+                        telemetry.addData("Position", max == pos1 ? "3" : (max == pos2 ? "2" : "1"));
+                        skystonePos = (max == pos1 ? 3 : (max == pos2 ? 2 : 1));
+                        telemetry.addData("SkystonePos", skystonePos);
+                        double conf1 = pos3;
+                        double conf2 = pos2;
+                        double conf3 = pos1;
+                        double totConf = conf1 + conf2 + conf3;
+                        telemetry.addData("Confidence 1", (conf1/totConf)*100);
+                        telemetry.addData("Confidence 2", (conf2/totConf)*100);
+                        telemetry.addData("Confidence 3", (conf3/totConf)*100);
                         pos1 = 0;
                         pos2 = 0;
                         pos3 = 0;
@@ -93,7 +108,8 @@ public class PixyGradientTest extends BasicOpmode{
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-
+                telemetry.addData("Debug", "Got to this point");
+                RobotLog.i("We are in the update loop");
             }
         };
         stateMachineSwitcher.init(init, main);

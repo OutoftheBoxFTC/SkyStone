@@ -32,21 +32,20 @@ import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
 @Autonomous
-public class NewRedAutonomous extends BasicOpmode {
+public class NewNEWBlueAutonomous extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     HashMap<String, Vector3> movements;
-    HashMap<String, Vector3> defaultTurns;
     long globTimer = 0;
     int skystonePos;
-    public NewRedAutonomous() {
+    public NewNEWBlueAutonomous() {
         super(1);
     }
 
     @Override
     public void setup() {
         robot.enableAll();
-        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
         robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
         firstSkystone = Vector3.ZERO();
         movements = new HashMap<>();
@@ -65,7 +64,8 @@ public class NewRedAutonomous extends BasicOpmode {
         movements.put("driveToSecondSkystone3", new Vector3(-14, -5, 50));
         movements.put("driveToFoundationV2", new Vector3(-13, -5, 0));
         movements.put("alignWithFoundationV2", new Vector3(-13, -27.5, 0));
-        movements.put("driveToThirdStone", new Vector3(-12.5, -10, 0));
+        movements.put("driveToThirdStone", new Vector3(-12.5, -20, 0));
+        movements.put("strafeToThirdStone", new Vector3(-19, -20, 0));
         movements.put("moveToAlignToFoundation", new Vector3(-16, 0, 0));
         movements.put("moveToFoundationV3", new Vector3(-14, -37.5, 0)); //change y to -40 for 3 stone, change to -30 for 4 stone
         movements.put("moveToFourthSkystone", new Vector3(-12.5, -10, 0));
@@ -73,10 +73,9 @@ public class NewRedAutonomous extends BasicOpmode {
         movements.put("grabFourthSkystone", new Vector3(-15, 30, 0));
         movements.put("alignWithFoundationV4", new Vector3(7.5, 0, 0));
         movements.put("park", new Vector3(0, 20, 0));
-        defaultTurns = new HashMap<>();
+        final HashMap<String, Vector3> defaultTurns = new HashMap<>();
         defaultTurns.put("turnFoundation", new Vector3(0, 0, 0));
-        defaultTurns.put("turnToIntake", new Vector3(0, 0, 50));
-        setRedMovements(movements, defaultTurns);
+        defaultTurns.put("turnToIntake", new Vector3(0, 0, 0));
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
@@ -150,7 +149,7 @@ public class NewRedAutonomous extends BasicOpmode {
                         telemetry.addData("Max1", pos3);
                         telemetry.addData("Max2", pos2);
                         telemetry.addData("Max3", pos1);
-                        telemetry.addData("Position", max == pos1 ? "2" : (max == pos2 ? "2" : "1"));
+                        telemetry.addData("Position", max == pos1 ? "3" : (max == pos2 ? "2" : "1"));
                         skystonePos = (max == pos1 ? 3 : (max == pos2 ? 2 : 1));
                         telemetry.addData("SkystonePos", skystonePos);
                         double conf1 = pos3;
@@ -172,7 +171,6 @@ public class NewRedAutonomous extends BasicOpmode {
                 hardware.setLiftServo(HardwareConstants.LIFT_REST);
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
-                sensors.getCalibration().setLift(sensors.getRawLift());
                 telemetry.addData("Debug", "Got to this point");
                 RobotLog.i("We are in the update loop");
                 terminate = isStarted();
@@ -239,7 +237,7 @@ public class NewRedAutonomous extends BasicOpmode {
                 logicStates.put("intake", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(sensors.getIntakeTripwire() < 9){
+                        if(sensors.getIntakeTripwire() < 11){
                             hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                         }
                     }
@@ -248,6 +246,7 @@ public class NewRedAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         hardware.setIntakePowers(1);
+                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                         hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
                         hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                         deactivateThis();
@@ -312,7 +311,7 @@ public class NewRedAutonomous extends BasicOpmode {
             @Override
             public void setup() {
                 driveState.put("main", system.driveToPointLinSlowdown(movements.get("driveToClearSkystones"), 0.5));
-                terminator = new OrientationTerminator(position, movements.get("driveToClearSkystones"), 2.5, 1);
+                terminator = new OrientationTerminator(position, movements.get("driveToClearSkystones"), 1, 1);
             }
 
             @Override
@@ -355,6 +354,7 @@ public class NewRedAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_ON);
+                hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
             }
         };
         StateMachineManager waitForLatchOn = new StateMachineManager(statemachine) {
@@ -392,7 +392,6 @@ public class NewRedAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLiftMotors(0);
-                hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
             }
         };
         StateMachineManager driveFoundationToScoreZone = new StateMachineManager(statemachine) {
@@ -411,14 +410,13 @@ public class NewRedAutonomous extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-
             }
         };
         StateMachineManager turnFoundation = new StateMachineManager(statemachine) {
             OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.turn(defaultTurns.get("turnFoundation"), 0.35));
+                driveState.put("main", system.turn(defaultTurns.get("turnFoundation"), 0.5));
                 orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnFoundation"), 1, 4);
                 logicStates.put("fourBarBack", new LogicState(statemachine) {
                     @Override
@@ -493,7 +491,7 @@ public class NewRedAutonomous extends BasicOpmode {
             OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.turn(defaultTurns.get("turnToIntake"), 0.2));
+                driveState.put("main", system.turn(defaultTurns.get("turnToIntake"), 0.35));
                 orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToIntake"), 4, 4);
             }
 
@@ -579,7 +577,7 @@ public class NewRedAutonomous extends BasicOpmode {
                         }
                     }
                 });
-                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5), new TimerTerminator(position, Vector3.ZERO(), 850));
+                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5), new TimerTerminator(position, Vector3.ZERO(), 750));
             }
 
             @Override
@@ -619,7 +617,7 @@ public class NewRedAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(variedTripwireTerminator.shouldTerminate(sensors) && !started){
-                            timer = System.currentTimeMillis() + 750;
+                            timer = System.currentTimeMillis() + 500;
                             started = true;
                         }
                         if(System.currentTimeMillis() > timer) {
@@ -644,7 +642,7 @@ public class NewRedAutonomous extends BasicOpmode {
             OrientationTerminator terminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPointLinSlowdown(movements.get("driveToFoundationV2"), 1));
+                driveState.put("main", system.driveToPointSlowdown(movements.get("driveToFoundationV2"), 1));
                 terminator = new OrientationTerminator(position, movements.get("driveToFoundationV2"), 3, 1);
             }
 
@@ -823,6 +821,19 @@ public class NewRedAutonomous extends BasicOpmode {
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                 hardware.setIntakePowers(1);
+            }
+        };
+        StateMachineManager strafeForThirdStone = new StateMachineManager(statemachine) {
+            CombinedORTerminator combinedORTerminator;
+            @Override
+            public void setup() {
+                driveState.put("main", system.driveToPoint(movements.get("strafeToThirdStone"), 0.5));
+                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new OrientationTerminator(position, movements.get("strafeToThirdStone"), 4, 4), new VariedTripwireTerminator(position, Vector3.ZERO(), 300, 3));
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                terminate = combinedORTerminator.shouldTerminate(sensors);
             }
         };
         StateMachineManager grabThirdStone = new StateMachineManager(statemachine) {

@@ -3,11 +3,13 @@ package opmode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import Debug.Connector;
 import Motion.VelocitySystem;
 import State.*;
 import HardwareSystems.*;
+import math.Vector3;
 
 public abstract class BasicOpmode extends LinearOpMode {
     protected Hardware robot;
@@ -81,6 +83,16 @@ public abstract class BasicOpmode extends LinearOpMode {
             }
         }
         mixer.stopAll();
+    }
+
+    public static void setRedMovements(HashMap<String, Vector3> movements, HashMap<String, Vector3> turns){
+        for(String s : movements.keySet()){
+            movements.get(s).setA(movements.get(s).getA() * -1);
+            movements.get(s).setC(360 - movements.get(s).getC());
+        }
+        for(String s : turns.keySet()){
+            turns.get(s).setC(360 - turns.get(s).getC());
+        }
     }
 
     public abstract void setup();

@@ -42,6 +42,7 @@ public class TeleOp extends BasicOpmode {
         final StateMachineManager teleOpMode1 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
+                exemptedLogicstates.put("reset", HardwareConstants.resetLift(statemachine, "lift"));
                 driveState.put("drive", new DriveState(stateMachine) {
                     @Override
                     public Vector4 getWheelVelocities(SensorData sensors) {
@@ -102,6 +103,13 @@ public class TeleOp extends BasicOpmode {
                         }
                         if(gamepad2.right_stick_y > 0.4){
                             //hardware.setLiftServo(HardwareConstants.LIFT_OUT);
+                        }
+                        if(gamepad2.y){
+                            stateMachine.activateLogic("reset");
+                            deactivateThis();
+                        }
+                        if(sensors.getLiftLimit()){
+                            sensors.getCalibration().setLift(sensors.getRawLift());
                         }
                         telemetry.addData("Encoder", sensors.getLift());
 

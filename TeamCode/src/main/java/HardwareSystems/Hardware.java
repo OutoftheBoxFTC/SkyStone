@@ -139,7 +139,7 @@ public class Hardware {
             calibration.setOdometryEncoders(-intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
-            calibration.setLift(liftMotorLeft.getMotor().getCurrentPosition());
+            calibration.setLift(-liftMotorLeft.getMotor().getCurrentPosition());
             RobotLog.i("We got to this point");
         }
         if(enabledDevices.contains(HardwareDevices.GYRO)) {
@@ -216,6 +216,9 @@ public class Hardware {
         }
         if(enabledDevices.contains(HardwareDevices.CAPSTONE_LATCH)){
             capstoneLatch.setPosition(data.getCapstoneLatch());
+            if(data.getCaptstoneLatchStatus()){
+                capstoneLatch.disableServo();
+            }
         }
         return sensors;
     }
@@ -248,7 +251,6 @@ public class Hardware {
         enabledDevices.add(HardwareDevices.INTAKE_TRIPWIRE);
         enabledDevices.add(HardwareDevices.BLINKIN);
         enabledDevices.add(HardwareDevices.CAPSTONE_LATCH);
-        enabledDevices.add(HardwareDevices.SIDE_LASERS);
     }
 
     /**

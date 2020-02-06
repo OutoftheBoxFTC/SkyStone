@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
+import math.Vector4;
 
 public abstract class StateMachineManager {
     public HashMap<String, LogicState> logicStates;
@@ -62,6 +63,17 @@ public abstract class StateMachineManager {
             long locTimer = 0;
             @Override
             public void setup() {
+                driveState.put("main", new DriveState(stateMachine) {
+                    @Override
+                    public Vector4 getWheelVelocities(SensorData sensors) {
+                        return Vector4.ZERO();
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+
+                    }
+                });
                 locTimer = System.currentTimeMillis() + time;
             }
 

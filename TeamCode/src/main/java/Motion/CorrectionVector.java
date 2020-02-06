@@ -19,7 +19,7 @@ public class CorrectionVector extends VelocityDriveState {
     private boolean relative = false;
     private double specialFor;
     private double specialStr;
-    private boolean reimannSlowdown = false;
+    private boolean reimannSlowdown = false, linSlowdown = false;
     VelocitySystem system;
     CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity){
         super(stateMachine);
@@ -32,6 +32,19 @@ public class CorrectionVector extends VelocityDriveState {
         specialFor = 1;
         specialStr = 1;
         this.velocity = velocity;
+    }
+    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity, boolean linSlowdown){
+        super(stateMachine);
+        this.position = position;
+        this.target = new Vector2(target.getA(), target.getB());
+        targetRot = target.getC();
+        this.power = power;
+        this.start = new Vector2(position.getA(), position.getB());
+        this.velocities = Vector3.ZERO();
+        specialFor = 1;
+        specialStr = 1;
+        this.velocity = velocity;
+        this.linSlowdown = linSlowdown;
     }
     CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, boolean slowdown, Vector3 velocity, boolean relative){
         super(stateMachine);
@@ -105,6 +118,9 @@ public class CorrectionVector extends VelocityDriveState {
         y = y/comb;
         if(reimannSlowdown) {
             power = Math.abs(Math.max((totalDistance-mainr)/mainr, 0.1));
+        }
+        if(linSlowdown){
+            power = Math.abs(Math.max((mainr)/totalDistance, 0.1));
         }
         x *= power;
         y *= power;

@@ -17,6 +17,6 @@ public class CombinedANDTerminator extends Terminator {
 
     @Override
     public boolean shouldTerminate(SensorData data) {
-        return t1.shouldTerminate(data) || t2.shouldTerminate(data);
+        return t1.shouldTerminate(data) && t2.shouldTerminate(data);
     }
 }

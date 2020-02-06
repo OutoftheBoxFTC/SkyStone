@@ -24,6 +24,7 @@ public class SensorReadoutLeftPixy extends BasicOpmode {
     public void setup() {
         robot.enableAll();
         robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+        robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
