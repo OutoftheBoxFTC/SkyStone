@@ -36,8 +36,6 @@ public class PayloadServoTests extends BasicOpmode {
             @Override
             public void setup() {
                 logicStates.put("run", new LogicState(stateMachine) {
-                    int timer = 0;
-                    double polarity = 1;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad2.right_trigger > 0){
@@ -52,7 +50,7 @@ public class PayloadServoTests extends BasicOpmode {
                     long timer = 0;
                     @Override
                     public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 500;
+                        timer = System.currentTimeMillis() + 1500;
                         hardware.setCapstoneLatch(0.2);
                     }
 
@@ -62,6 +60,7 @@ public class PayloadServoTests extends BasicOpmode {
                             hardware.setCapstoneLatch(1);
                             deactivateThis();
                         }
+                        telemetry.addData("E", "BEE");
                     }
                 });
                 exemptedLogicstates.put("main", new LogicState(stateMachine) {

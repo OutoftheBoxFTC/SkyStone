@@ -9,7 +9,7 @@ import State.VelocityDriveState;
 import math.Vector2;
 import math.Vector3;
 
-public class CorrectionVector extends VelocityDriveState {
+public class CorrectionVectorStrafeBiased extends VelocityDriveState {
     private Vector2 target, start;
     private Vector3 position;
     private Vector3 velocities;
@@ -21,7 +21,7 @@ public class CorrectionVector extends VelocityDriveState {
     private double specialStr;
     private boolean reimannSlowdown = false, linSlowdown = false;
     VelocitySystem system;
-    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity){
+    public CorrectionVectorStrafeBiased(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity){
         super(stateMachine);
         this.position = position;
         this.target = new Vector2(target.getA(), target.getB());
@@ -31,45 +31,6 @@ public class CorrectionVector extends VelocityDriveState {
         this.velocities = Vector3.ZERO();
         specialFor = 1;
         specialStr = 1;
-        this.velocity = velocity;
-    }
-    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity, boolean linSlowdown){
-        super(stateMachine);
-        this.position = position;
-        this.target = new Vector2(target.getA(), target.getB());
-        targetRot = target.getC();
-        this.power = power;
-        this.start = new Vector2(position.getA(), position.getB());
-        this.velocities = Vector3.ZERO();
-        specialFor = 1;
-        specialStr = 1;
-        this.velocity = velocity;
-        this.linSlowdown = linSlowdown;
-    }
-    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, boolean slowdown, Vector3 velocity, boolean relative){
-        super(stateMachine);
-        this.position = position;
-        this.target = new Vector2(target.getA(), target.getB());
-        targetRot = target.getC();
-        this.power = power;
-        this.start = new Vector2(position.getA(), position.getB());
-        this.velocities = Vector3.ZERO();
-        specialFor = 1;
-        specialStr = 1;
-        this.reimannSlowdown = slowdown;
-        this.velocity = velocity;
-        this.relative = relative;
-    }
-    CorrectionVector(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double kpStrafe, double kpForward, Vector3 velocity){
-        super(stateMachine);
-        this.position = position;
-        this.target = new Vector2(target.getA(), target.getB());
-        targetRot = target.getC();
-        this.power = power;
-        this.start = new Vector2(position.getA(), position.getB());
-        this.velocities = Vector3.ZERO();
-        this.specialStr = kpStrafe;
-        this.specialFor = kpForward;
         this.velocity = velocity;
     }
     @Override
@@ -111,6 +72,7 @@ public class CorrectionVector extends VelocityDriveState {
         if(Math.abs(y) < 5){
             y *= 0.1;
         }
+        specialFor = Math.abs(target.getB() - position.getB());
         y *= specialFor;
         x *= specialStr;
         double comb = Math.abs(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
@@ -120,8 +82,9 @@ public class CorrectionVector extends VelocityDriveState {
             power = Math.abs(Math.max((totalDistance-mainr)/mainr, 0.1));
         }
         if(linSlowdown){
-            power = Math.abs(Math.max((mainr)/totalDistance, 0.5));
+            power = Math.abs(Math.max((mainr)/totalDistance, 0.1));
         }
+
         x *= power;
         y *= power;
         RobotLog.i("Target: " + target.toString() + " Position: " + position.toString() + " Power: " + new Vector2(x, y).toString());

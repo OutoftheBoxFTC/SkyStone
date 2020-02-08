@@ -102,7 +102,7 @@ public class TeleOp extends BasicOpmode {
                             //hardware.setLiftServo(HardwareConstants.LIFT_MID);
                         }
                         if(gamepad2.right_stick_y > 0.4){
-                            //hardware.setLiftServo(HardwareConstants.LIFT_OUT);
+                            hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
                         }
                         if(gamepad2.y){
                             stateMachine.activateLogic("reset");

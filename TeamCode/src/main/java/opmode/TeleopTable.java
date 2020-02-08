@@ -18,10 +18,10 @@ import math.Vector3;
 import math.Vector4;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
-public class TeleOpTesting extends BasicOpmode {
+public class TeleopTable extends BasicOpmode {
     int currPosition = 0;
     double[] positions = {1, 80, 180, 280, 380, 480, 580, 680, 780, 880, 980, 1080, 1180};
-    public TeleOpTesting() {
+    public TeleopTable() {
         super(1);
     }
 
@@ -57,11 +57,7 @@ public class TeleOpTesting extends BasicOpmode {
                 driveState.put("drive", new DriveState(stateMachine) {
                     @Override
                     public Vector4 getWheelVelocities(SensorData sensors) {
-                        if(!gamepad1.left_bumper) {
-                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x));
-                        }else{
-                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x/2, gamepad1.left_stick_y/2, -gamepad1.right_stick_x/2));
-                        }
+                        return Vector4.ZERO();
                     }
 
                     @Override
@@ -92,7 +88,7 @@ public class TeleOpTesting extends BasicOpmode {
                             }
                         }
                         if(gamepad2.left_bumper){
-                            //robot.calibrate(robot.getCalibration().setLift(sensors.getLift()));
+                            robot.calibrate(robot.getCalibration().setLift(sensors.getLift()));
                         }
                         if(gamepad2.right_trigger > 0.5){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
@@ -142,7 +138,7 @@ public class TeleOpTesting extends BasicOpmode {
                             }
                         }
                         if(gamepad2.y){
-                            stateMachine.activateLogic("resetLiftDown");
+                            stateMachine.activateLogic("reset");
                             deactivateThis();
                         }else if(gamepad2.a){
                             stateMachine.activateLogic("lowerLift");
@@ -151,7 +147,7 @@ public class TeleOpTesting extends BasicOpmode {
                         if(Math.abs(gamepad2.left_stick_y) > 0.1) {
                             if((-gamepad2.left_stick_y) < 0){
                                 if(!sensors.getLiftLimit()) {
-                                    hardware.setLiftMotors(Math.max((sensors.getLift()/10)*(-gamepad2.left_stick_y * 0.1), -0.3));
+                                    hardware.setLiftMotors(Math.max((sensors.getLift()/10)*(-gamepad2.left_stick_y * 0.4), -0.3));
                                 }
                             }else{
                                 hardware.setLiftMotors(-gamepad2.left_stick_y);
@@ -159,7 +155,7 @@ public class TeleOpTesting extends BasicOpmode {
                         }else{
                             hardware.setLiftMotors(0.25);
                         }
-                        if(((gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0 || gamepad2.right_trigger > 0))){
+                        if(((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0 || gamepad2.right_trigger > 0))){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                             //hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
                         }else if(hardware.getLiftServo().getA() == HardwareConstants.LIFT_INTAKE.getA()){
@@ -274,15 +270,7 @@ public class TeleOpTesting extends BasicOpmode {
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         }
                         if(gamepad2.right_stick_x > 0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
-                        }
-                        if(gamepad2.right_stick_y > 0.4){
                             hardware.setLiftServo(HardwareConstants.LIFT_OUT);
-                        }
-                        if(gamepad2.left_bumper){
-                            hardware.setCapstoneLatch(0.2);
-                        }else{
-                            hardware.setCapstoneLatch(1);
                         }
                         telemetry.addData("Tripwire", sensors.getIntakeTripwire());
                     }
@@ -313,59 +301,6 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                         if(System.currentTimeMillis() > timer){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
-                        }
-                    }
-                });
-                exemptedLogicstates.put("resetLiftDown", new LogicState(stateMachine) {
-                    long timer = 0;
-                    double state = -1, armCalib = 0;
-                    @Override
-                    public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 10;
-                    }
-
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(state == -1){
-                            if(System.currentTimeMillis() > timer){
-                                state = 0;
-                                armCalib = sensors.getLift();
-                            }
-                        }
-                        if(Math.abs(gamepad2.left_stick_y) > 0.1){
-                            stateMachine.activateLogic("lift");
-                            deactivateThis();
-                        }
-                        if(state == 0) {
-                            if ((sensors.getLift() - armCalib) < 150) {
-                                hardware.setLiftMotors(0.7);
-                            }else{
-                                state = 1;
-                            }
-                        }else if(state == 1){
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                            if (sensors.getLiftLimit()) {
-                                state = 2;
-                            }else{
-                                hardware.setLiftMotors(-0.4);
-                            }
-                        }else if(state == 2){
-                            if (sensors.getLiftLimit()) {
-                                hardware.setLiftMotors(0.5);
-                            }else{
-                                state = 3;
-                            }
-                        }else if(state == 3){
-                            if (sensors.getLiftLimit()) {
-                                state = 4;
-                            }else{
-                                hardware.setLiftMotors(-0.2);
-                            }
-                        }else if(state == 4){
-                            hardware.setLiftMotors(0);
-                            stateMachine.activateLogic("lift");
-                            state = -1;
-                            deactivateThis();
                         }
                     }
                 });

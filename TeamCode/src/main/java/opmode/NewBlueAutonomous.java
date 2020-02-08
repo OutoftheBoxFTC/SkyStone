@@ -14,6 +14,7 @@ import HardwareSystems.Hardware;
 import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
+import Motion.CorrectionVectorStrafeBiased;
 import Motion.MecanumSystem;
 import Motion.MotionSystem;
 import Motion.Terminator.CombinedANDTerminator;
@@ -53,27 +54,29 @@ public class NewBlueAutonomous extends BasicOpmode {
         movements.put("moveToSkystone2", new Vector3(-14, 2, 40));
         movements.put("moveToSkystone3", new Vector3(-14, 5, 40));
         movements.put("moveToIntakeBlock", new Vector3(-3, 5, 40));
-        movements.put("driveToClearSkystones", new Vector3(-13, 2, 0));
+        movements.put("driveToClearSkystones", new Vector3(-12, 2, 0));
         movements.put("driveToFoundation", new Vector3(-12, -40, 0));
         movements.put("turnAndDriveToFoundation", new Vector3(-18, -40, -90));
         movements.put("moveFoundationToScoringZone", new Vector3(-11, -30, 0));
         movements.put("driveBackToSkystones", new Vector3(-9, -20, 40));
         movements.put("driveBackToSkystones3", new Vector3(-9, -10, 40));
         movements.put("driveToSecondSkystone1", new Vector3(-19, -10, 50));
-        movements.put("driveToSecondSkystone2", new Vector3(-14, -5, 50));
-        movements.put("driveToSecondSkystone3", new Vector3(-14, -5, 50));
+        movements.put("driveToSecondSkystone2", new Vector3(-12, -5, 50));
+        movements.put("driveToSecondSkystone3", new Vector3(-14, 0, 50));
         movements.put("driveToFoundationV2", new Vector3(-13, -5, 0));
         movements.put("alignWithFoundationV2", new Vector3(-13, -27.5, 0));
         movements.put("driveToThirdStone", new Vector3(-12.5, -10, 0));
-        movements.put("moveToAlignToFoundation", new Vector3(-16, 0, 0));
-        movements.put("moveToFoundationV3", new Vector3(-14, -37.5, 0)); //change y to -40 for 3 stone, change to -30 for 4 stone
+        movements.put("driveToThirdStone3", new Vector3(-12.5, -20, 0));
+        movements.put("moveToAlignToFoundation", new Vector3(-13, 0, 0));
+        movements.put("moveToFoundationV3", new Vector3(-13, -40, 0)); //change y to -40 for 3 stone, change to -30 for 4 stone
         movements.put("moveToFourthSkystone", new Vector3(-12.5, -10, 0));
         movements.put("strafeToAlignToFourthStone", new Vector3(-15, 0, 0));
         movements.put("grabFourthSkystone", new Vector3(-15, 30, 0));
         movements.put("alignWithFoundationV4", new Vector3(7.5, 0, 0));
-        movements.put("park", new Vector3(0, 20, 0));
+        movements.put("park", new Vector3(0, 15, 0));
         final HashMap<String, Vector3> defaultTurns = new HashMap<>();
         defaultTurns.put("turnFoundation", new Vector3(0, 0, 0));
+        defaultTurns.put("turnToLatchOn", new Vector3(0, 0, 270));
         defaultTurns.put("turnToIntake", new Vector3(0, 0, 50));
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
@@ -170,6 +173,7 @@ public class NewBlueAutonomous extends BasicOpmode {
                 hardware.setLiftServo(HardwareConstants.LIFT_REST);
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
+                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                 telemetry.addData("Debug", "Got to this point");
                 RobotLog.i("We are in the update loop");
                 terminate = isStarted();
@@ -252,7 +256,7 @@ public class NewBlueAutonomous extends BasicOpmode {
                     }
                 });
                 orientationTerminator = new RelativeOrientationTerminator(position, movements.get("moveToIntakeBlock"), 1.5);
-                tripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5);
+                tripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 1.5, 5);
                 terminator = new CombinedORTerminator(position, Vector3.ZERO(), orientationTerminator, tripwireTerminator);
             }
 
@@ -282,18 +286,21 @@ public class NewBlueAutonomous extends BasicOpmode {
                     }
                 });
                 variedTripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 2, 5);
-                exemptedLogicstates.put("latchOn", new LogicState(statemachine) {
+                logicStates.put("latchOn", new LogicState(statemachine) {
                     long timer = 0;
-
+                    long timer2 = 0;
                     @Override
                     public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 500;
+                        timer = System.currentTimeMillis() + 450;
+                        timer2 = System.currentTimeMillis() + 450 + 150;
                     }
 
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(System.currentTimeMillis() > timer){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                        }
+                        if(System.currentTimeMillis() > timer2){
                             terminate = true;
                         }
                     }
@@ -302,14 +309,28 @@ public class NewBlueAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = variedTripwireTerminator.shouldTerminate(sensors);
+
+            }
+        };
+        StateMachineManager strafeToClearSkystones = new StateMachineManager(statemachine) {
+            RelativeOrientationTerminator relativeOrientationTerminator;
+            @Override
+            public void setup() {
+                driveState.put("main", system.driveForward(new Vector3(5, 0, 0), 0.5));
+                relativeOrientationTerminator = new RelativeOrientationTerminator(position, new Vector3(5, 0, 0), 2);
+                relativeOrientationTerminator.start();
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                terminate = relativeOrientationTerminator.shouldTerminate(sensors);
             }
         };
         StateMachineManager driveToClearSkystones = new StateMachineManager(statemachine) {
             OrientationTerminator terminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPointLinSlowdown(movements.get("driveToClearSkystones"), 0.5));
+                driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToClearSkystones"), 0.5, Vector3.ZERO()));
                 terminator = new OrientationTerminator(position, movements.get("driveToClearSkystones"), 1, 1);
             }
 
@@ -328,7 +349,7 @@ public class NewBlueAutonomous extends BasicOpmode {
             OrientationTerminator terminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPoint(movements.get("driveToFoundation"), 1));
+                driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToFoundation"), 1, Vector3.ZERO()));
                 terminator = new OrientationTerminator(position, movements.get("driveToFoundation"), 15, 1);
             }
 
@@ -337,11 +358,24 @@ public class NewBlueAutonomous extends BasicOpmode {
                 terminate = terminator.shouldTerminate(sensors);
             }
         };
+        StateMachineManager turnABitMore = new StateMachineManager(statemachine) {
+            OrientationTerminator orientationTerminator;
+            @Override
+            public void setup() {
+                driveState.put("main", system.turn(defaultTurns.get("turnToLatchOn"), 0.4));
+                orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToLatchOn"), 4, 4);
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                terminate = orientationTerminator.shouldTerminateRotation();
+            }
+        };
         StateMachineManager turnToLatchOn = new StateMachineManager(statemachine) {
             OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPointSlowdown(movements.get("turnAndDriveToFoundation"), 0.3));
+                driveState.put("main", system.driveToPointLinSlowdown(movements.get("turnAndDriveToFoundation"), 0.15));
                 orientationTerminator = new OrientationTerminator(position, movements.get("turnAndDriveToFoundation"), 4, 1);
             }
 
@@ -353,7 +387,7 @@ public class NewBlueAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_ON);
-                hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
+                hardware.setLiftServo(HardwareConstants.LIFT_OUT);
             }
         };
         StateMachineManager waitForLatchOn = new StateMachineManager(statemachine) {
@@ -371,13 +405,22 @@ public class NewBlueAutonomous extends BasicOpmode {
                     }
                 });
                 logicStates.put("main", new LogicState(stateMachine) {
+                    long timer = 0;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        timer = System.currentTimeMillis() + 750;
+                    }
+
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         telemetry.addData("Lift", sensors.getLift());
                         hardware.setLiftMotors(1);
                         if(sensors.getLift() > 150){
                             hardware.setLiftMotors(0.2);
-                            terminate = true;
+                            if(System.currentTimeMillis() >= timer) {
+                                terminate = true;
+                            }
                         }
                     }
                 });
@@ -417,34 +460,51 @@ public class NewBlueAutonomous extends BasicOpmode {
             public void setup() {
                 driveState.put("main", system.turn(defaultTurns.get("turnFoundation"), 0.5));
                 orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnFoundation"), 1, 4);
-                logicStates.put("fourBarBack", new LogicState(statemachine) {
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                        //hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
-                    }
-                });
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
+                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                 terminate = orientationTerminator.shouldTerminateRotation();
             }
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
+                hardware.setLiftServo(HardwareConstants.LIFT_REST);
             }
         };
         StateMachineManager resetLift1 = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
+                driveState.put("stop", new DriveState(stateMachine) {
+                    @Override
+                    public Vector4 getWheelVelocities(SensorData sensors) {
+                        return Vector4.ZERO();
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+
+                    }
+                });
                 logicStates.put("main", new LogicState(stateMachine) {
+                    long timer = 0;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        timer = System.currentTimeMillis() + 150;
+                    }
+
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         hardware.setLiftMotors(-0.3);
+                        if(System.currentTimeMillis() > timer){
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                        }
                         if(sensors.getLiftLimit()){
                             hardware.setLiftMotors(0);
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
                             terminate = true;
                         }
                     }
@@ -517,7 +577,7 @@ public class NewBlueAutonomous extends BasicOpmode {
                 telemetry.addData("Skystone", skystonePos);
                 variedTripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5);
                 if(skystonePos == 2){
-                    driveState.put("main", system.driveToPoint(movements.get("driveToSecondSkystone2"), 0.3));
+                    driveState.put("main", system.driveToPoint(movements.get("driveToSecondSkystone2"), 0.6));
                     terminator = new OrientationTerminator(position, movements.get("driveToSecondSkystone2"), 5, 0);
                 }else if(skystonePos == 3){
                     driveState.put("main", system.driveToPoint(movements.get("driveToSecondSkystone3"), 0.3));
@@ -611,14 +671,11 @@ public class NewBlueAutonomous extends BasicOpmode {
                     boolean started = false;
                     @Override
                     public void init(SensorData sensors, HardwareData hardware) {
+                        timer = System.currentTimeMillis() + 750;
                     }
 
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(variedTripwireTerminator.shouldTerminate(sensors) && !started){
-                            timer = System.currentTimeMillis() + 500;
-                            started = true;
-                        }
                         if(System.currentTimeMillis() > timer) {
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                             terminate = true;
@@ -670,7 +727,7 @@ public class NewBlueAutonomous extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
+                hardware.setLiftServo(HardwareConstants.LIFT_OUT);
             }
         };
         StateMachineManager waitToStopMovingForSecondSkystone = new StateMachineManager(statemachine) {
@@ -729,8 +786,8 @@ public class NewBlueAutonomous extends BasicOpmode {
 
                     @Override
                     public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 50;
-                        timer2 = System.currentTimeMillis() + 100;
+                        timer = System.currentTimeMillis() + 500;
+                        timer2 = System.currentTimeMillis() + 1000;
                     }
 
                     @Override
@@ -748,7 +805,13 @@ public class NewBlueAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
+
+            }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setLiftServo(HardwareConstants.LIFT_REST);
                 hardware.setIntakePowers(-1);
             }
         };
@@ -792,8 +855,13 @@ public class NewBlueAutonomous extends BasicOpmode {
             OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPointSlowdown(movements.get("driveToThirdStone"), 1));
-                orientationTerminator = new OrientationTerminator(position, movements.get("driveToThirdStone"), 4, 1);
+                if(skystonePos == 3) {
+                    driveState.put("main", system.driveToPointSlowdown(movements.get("driveToThirdStone3"), 1));
+                    orientationTerminator = new OrientationTerminator(position, movements.get("driveToThirdStone3"), 4, 1);
+                }else{
+                    driveState.put("main", system.driveToPointSlowdown(movements.get("driveToThirdStone"), 1));
+                    orientationTerminator = new OrientationTerminator(position, movements.get("driveToThirdStone"), 4, 1);
+                }
             }
 
             @Override
@@ -908,6 +976,20 @@ public class NewBlueAutonomous extends BasicOpmode {
 
             }
         };
+        StateMachineManager strafeToClearSkystones3 = new StateMachineManager(statemachine) {
+            RelativeOrientationTerminator relativeOrientationTerminator;
+            @Override
+            public void setup() {
+                driveState.put("main", system.driveToPoint(new Vector3(-14, position.getB(), position.getC()), 0.5));
+                relativeOrientationTerminator = new RelativeOrientationTerminator(position, new Vector3(10, 0, 0), 2);
+                relativeOrientationTerminator.start();
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                terminate = relativeOrientationTerminator.shouldTerminate(sensors);
+            }
+        };
         StateMachineManager moveToAlignWithFoundation = new StateMachineManager(statemachine) {
             OrientationTerminator orientationTerminator;
             @Override
@@ -930,7 +1012,7 @@ public class NewBlueAutonomous extends BasicOpmode {
             OrientationTerminator terminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPointSlowdown(movements.get("moveToFoundationV3"), 1));
+                driveState.put("main", system.driveToPointLinSlowdown(movements.get("moveToFoundationV3"), 1));
                 terminator = new OrientationTerminator(position, movements.get("moveToFoundationV3"), 4, 4);
             }
 
@@ -1130,8 +1212,8 @@ public class NewBlueAutonomous extends BasicOpmode {
                 player = MediaPlayer.create(hardwareMap.appContext, R.raw.foghorn);
                 player.setLooping(false);
                 //player.start();
-                driveState.put("main", (system.driveForward(movements.get("park"), 0.5)));
-                relativeOrientationTerminator = new RelativeOrientationTerminator(position, movements.get("park"), 1);
+                driveState.put("main", (system.driveForward(movements.get("park"), 0.75)));
+                relativeOrientationTerminator = new RelativeOrientationTerminator(position, movements.get("park"), 3);
                 relativeOrientationTerminator.start();
             }
 
@@ -1168,6 +1250,6 @@ public class NewBlueAutonomous extends BasicOpmode {
                 telemetry.addData("Global Timer", (timer-globTimer)/1000.0);
             }
         };
-        stateMachineSwitcher.init(init, moveToSkystones, driveToIntakeBlock, waitToClampOnToFirstBlock, driveToClearSkystones, driveToFoundation, turnToLatchOn, waitForLatchOn, driveFoundationToScoreZone, turnFoundation, resetLift1, driveBackToSkystones, turnToIntake, driveBackForSecondSkystone, moveABitMoreToGetTheSecondSkystone, clampOnToSkystone, clearBlocksV2, driveToFoundationSecondTime, waitToStopMovingForSecondSkystone, unlatchSecondStone, resetLift2, driveToThirdStone, rotateForThirdStone, grabThirdStone, waitToLatchOnToThirdBlock, moveToAlignWithFoundation, moveToFoundationV3, raiseLift3, unlatchThirdBlock, resetLift3, waitForFourBarToGoDownForThirdSkystone, park, end);
+        stateMachineSwitcher.init(init, moveToSkystones, driveToIntakeBlock, waitToClampOnToFirstBlock, strafeToClearSkystones, driveToClearSkystones, driveToFoundation, turnABitMore, turnToLatchOn, waitForLatchOn, driveFoundationToScoreZone, turnFoundation, resetLift1, driveBackToSkystones, turnToIntake, driveBackForSecondSkystone, moveABitMoreToGetTheSecondSkystone, clampOnToSkystone, clearBlocksV2, driveToFoundationSecondTime, waitToStopMovingForSecondSkystone, unlatchSecondStone, resetLift2, driveToThirdStone, rotateForThirdStone, grabThirdStone, waitToLatchOnToThirdBlock, strafeToClearSkystones3, moveToAlignWithFoundation, moveToFoundationV3, raiseLift3, unlatchThirdBlock, resetLift3, waitForFourBarToGoDownForThirdSkystone, park, end);
     }
 }
