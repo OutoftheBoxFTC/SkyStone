@@ -64,7 +64,7 @@ public class NewBlueAutonomous extends BasicOpmode {
         movements.put("driveToSecondSkystone2", new Vector3(-12, -5, 50));
         movements.put("driveToSecondSkystone3", new Vector3(-14, 0, 50));
         movements.put("driveToFoundationV2", new Vector3(-13, -5, 0));
-        movements.put("alignWithFoundationV2", new Vector3(-13, -27.5, 0));
+        movements.put("alignWithFoundationV2", new Vector3(-13, -35, 0));
         movements.put("driveToThirdStone", new Vector3(-12.5, -10, 0));
         movements.put("driveToThirdStone3", new Vector3(-12.5, -20, 0));
         movements.put("moveToAlignToFoundation", new Vector3(-13, 0, 0));
@@ -231,7 +231,7 @@ public class NewBlueAutonomous extends BasicOpmode {
             }
         };
         StateMachineManager driveToIntakeBlock = new StateMachineManager(statemachine) {
-            RelativeOrientationTerminator orientationTerminator;
+            TimerTerminator orientationTerminator;
             VariedTripwireTerminator tripwireTerminator;
             CombinedORTerminator terminator;
             @Override
@@ -255,7 +255,7 @@ public class NewBlueAutonomous extends BasicOpmode {
                         deactivateThis();
                     }
                 });
-                orientationTerminator = new RelativeOrientationTerminator(position, movements.get("moveToIntakeBlock"), 1.5);
+                orientationTerminator = new TimerTerminator(position, Vector3.ZERO(), 1500);
                 tripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 1.5, 5);
                 terminator = new CombinedORTerminator(position, Vector3.ZERO(), orientationTerminator, tripwireTerminator);
             }
@@ -544,6 +544,7 @@ public class NewBlueAutonomous extends BasicOpmode {
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakePowers(-1);
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
             }
         };
         StateMachineManager turnToIntake = new StateMachineManager(statemachine) {
@@ -867,6 +868,7 @@ public class NewBlueAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = orientationTerminator.shouldTerminate(sensors);
+                hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
             }
         };
         StateMachineManager rotateForThirdStone = new StateMachineManager(statemachine) {
@@ -1206,11 +1208,8 @@ public class NewBlueAutonomous extends BasicOpmode {
         };
         StateMachineManager park = new StateMachineManager(statemachine) {
             RelativeOrientationTerminator relativeOrientationTerminator;
-            MediaPlayer player;
             @Override
             public void setup() {
-                player = MediaPlayer.create(hardwareMap.appContext, R.raw.foghorn);
-                player.setLooping(false);
                 //player.start();
                 driveState.put("main", (system.driveForward(movements.get("park"), 0.75)));
                 relativeOrientationTerminator = new RelativeOrientationTerminator(position, movements.get("park"), 3);
@@ -1224,7 +1223,6 @@ public class NewBlueAutonomous extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                player.stop();
             }
         };
         StateMachineManager end = new StateMachineManager(statemachine) {
@@ -1250,6 +1248,6 @@ public class NewBlueAutonomous extends BasicOpmode {
                 telemetry.addData("Global Timer", (timer-globTimer)/1000.0);
             }
         };
-        stateMachineSwitcher.init(init, moveToSkystones, driveToIntakeBlock, waitToClampOnToFirstBlock, strafeToClearSkystones, driveToClearSkystones, driveToFoundation, turnABitMore, turnToLatchOn, waitForLatchOn, driveFoundationToScoreZone, turnFoundation, resetLift1, driveBackToSkystones, turnToIntake, driveBackForSecondSkystone, moveABitMoreToGetTheSecondSkystone, clampOnToSkystone, clearBlocksV2, driveToFoundationSecondTime, waitToStopMovingForSecondSkystone, unlatchSecondStone, resetLift2, driveToThirdStone, rotateForThirdStone, grabThirdStone, waitToLatchOnToThirdBlock, strafeToClearSkystones3, moveToAlignWithFoundation, moveToFoundationV3, raiseLift3, unlatchThirdBlock, resetLift3, waitForFourBarToGoDownForThirdSkystone, park, end);
+        stateMachineSwitcher.init(init, moveToSkystones, driveToIntakeBlock, waitToClampOnToFirstBlock, strafeToClearSkystones, driveToClearSkystones, driveToFoundation, turnABitMore, turnToLatchOn, waitForLatchOn, driveFoundationToScoreZone, turnFoundation, resetLift1, driveBackToSkystones, turnToIntake, driveBackForSecondSkystone, moveABitMoreToGetTheSecondSkystone, clampOnToSkystone, clearBlocksV2, driveToFoundationSecondTime, waitToStopMovingForSecondSkystone, unlatchSecondStone, resetLift2, park, end);
     }
 }

@@ -1138,11 +1138,8 @@ public class NewNEWBlueAutonomous extends BasicOpmode {
         };
         StateMachineManager park = new StateMachineManager(statemachine) {
             RelativeOrientationTerminator relativeOrientationTerminator;
-            MediaPlayer player;
             @Override
             public void setup() {
-                player = MediaPlayer.create(hardwareMap.appContext, R.raw.foghorn);
-                player.setLooping(false);
                 //player.start();
                 driveState.put("main", (system.driveForward(movements.get("park"), 0.5)));
                 relativeOrientationTerminator = new RelativeOrientationTerminator(position, movements.get("park"), 1);
@@ -1156,7 +1153,6 @@ public class NewNEWBlueAutonomous extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                player.stop();
             }
         };
         StateMachineManager end = new StateMachineManager(statemachine) {

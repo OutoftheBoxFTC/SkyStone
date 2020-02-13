@@ -57,7 +57,7 @@ public class NewRedAutonomous extends BasicOpmode {
         movements.put("moveToIntakeBlock", new Vector3(-3, 5, 40));
         movements.put("driveToClearSkystones", new Vector3(-12, 2, 0));
         movements.put("driveToFoundation", new Vector3(-12, -40, 0));
-        movements.put("turnAndDriveToFoundation", new Vector3(-18, -40, -90));
+        movements.put("turnAndDriveToFoundation", new Vector3(-20, -40, -90));
         movements.put("moveFoundationToScoringZone", new Vector3(-11, -30, 0));
         movements.put("driveBackToSkystones", new Vector3(-9, -15, 0));
         movements.put("driveBackToSkystones3", new Vector3(-8, -10, 0));
@@ -65,7 +65,7 @@ public class NewRedAutonomous extends BasicOpmode {
         movements.put("driveToSecondSkystone2", new Vector3(-12, -5, 50));
         movements.put("driveToSecondSkystone3", new Vector3(-14, -5, 50));
         movements.put("driveToFoundationV2", new Vector3(-12, -7.5, 0));
-        movements.put("alignWithFoundationV2", new Vector3(-12, -27.5, 0));
+        movements.put("alignWithFoundationV2", new Vector3(-12, -35, 0));
         movements.put("driveToThirdStone", new Vector3(-12.5, -10, 0));
         movements.put("driveToThirdStone3", new Vector3(-12.5, -20, 0));
         movements.put("moveToAlignToFoundation", new Vector3(-13, 0, 0));
@@ -233,7 +233,7 @@ public class NewRedAutonomous extends BasicOpmode {
             }
         };
         StateMachineManager driveToIntakeBlock = new StateMachineManager(statemachine) {
-            RelativeOrientationTerminator orientationTerminator;
+            TimerTerminator orientationTerminator;
             VariedTripwireTerminator tripwireTerminator;
             CombinedORTerminator terminator;
             @Override
@@ -256,7 +256,7 @@ public class NewRedAutonomous extends BasicOpmode {
                         deactivateThis();
                     }
                 });
-                orientationTerminator = new RelativeOrientationTerminator(position, movements.get("moveToIntakeBlock"), 1.5);
+                orientationTerminator = new TimerTerminator(position, Vector3.ZERO(), 1500);
                 tripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5);
                 terminator = new CombinedORTerminator(position, Vector3.ZERO(), orientationTerminator, tripwireTerminator);
             }
@@ -894,6 +894,7 @@ public class NewRedAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
                 hardware.setIntakePowers(1);
             }
         };
@@ -1213,11 +1214,8 @@ public class NewRedAutonomous extends BasicOpmode {
         };
         StateMachineManager park = new StateMachineManager(statemachine) {
             RelativeOrientationTerminator relativeOrientationTerminator;
-            MediaPlayer player;
             @Override
             public void setup() {
-                player = MediaPlayer.create(hardwareMap.appContext, R.raw.foghorn);
-                player.setLooping(false);
                 //player.start();
                 driveState.put("main", (system.driveForward(movements.get("park"), 1)));
                 relativeOrientationTerminator = new RelativeOrientationTerminator(position, movements.get("park"), 3);
@@ -1231,7 +1229,6 @@ public class NewRedAutonomous extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                player.stop();
             }
         };
         StateMachineManager end = new StateMachineManager(statemachine) {
