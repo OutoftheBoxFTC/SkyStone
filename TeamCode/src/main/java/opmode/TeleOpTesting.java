@@ -20,6 +20,7 @@ import math.Vector4;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOpTesting extends BasicOpmode {
     int currPosition = 0;
+    boolean capInit = false;
     double[] positions = {1, 80, 180, 280, 380, 480, 580, 680, 780, 880, 980, 1080, 1180};
     public TeleOpTesting() {
         super(1);
@@ -151,7 +152,11 @@ public class TeleOpTesting extends BasicOpmode {
                         if(Math.abs(gamepad2.left_stick_y) > 0.1) {
                             if((-gamepad2.left_stick_y) < 0){
                                 if(!sensors.getLiftLimit()) {
-                                    hardware.setLiftMotors(Math.max((sensors.getLift()/10)*(-gamepad2.left_stick_y * 0.1), -0.3));
+                                    if(gamepad2.left_trigger > 0.1) {
+                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.1), -0.3));
+                                    }else{
+                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.4), -0.3));
+                                    }
                                 }
                             }else{
                                 hardware.setLiftMotors(-gamepad2.left_stick_y);
@@ -159,9 +164,12 @@ public class TeleOpTesting extends BasicOpmode {
                         }else{
                             hardware.setLiftMotors(0.25);
                         }
-                        if(((gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0 || gamepad2.right_trigger > 0))){
+                        if(gamepad2.right_trigger > 0.3){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                            //hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
+                        }
+                        if(((gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0))){
+                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                            hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
                         }else if(hardware.getLiftServo().getA() == HardwareConstants.LIFT_INTAKE.getA()){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         }
@@ -281,8 +289,11 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                         if(gamepad2.left_bumper){
                             hardware.setCapstoneLatch(0.2);
+                            capInit = true;
                         }else{
-                            hardware.setCapstoneLatch(1);
+                            if(capInit) {
+                                hardware.setCapstoneLatch(1);
+                            }
                         }
                         telemetry.addData("Tripwire", sensors.getIntakeTripwire());
                     }
@@ -337,7 +348,7 @@ public class TeleOpTesting extends BasicOpmode {
                             deactivateThis();
                         }
                         if(state == 0) {
-                            if ((sensors.getLift() - armCalib) < 150) {
+                            if ((sensors.getLift() - armCalib) < 10) {
                                 hardware.setLiftMotors(0.7);
                             }else{
                                 state = 1;
@@ -369,7 +380,7 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                     }
                 });
-                logicStates.put("capstone", new LogicState(statemachine) {
+                exemptedLogicstates.put("capstone", new LogicState(statemachine) {
                     public boolean prevState = false, servoState = false;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -377,7 +388,7 @@ public class TeleOpTesting extends BasicOpmode {
                             servoState = !servoState;
                         }
                         prevState = gamepad2.y;
-                        hardware.setCapstoneLatch(servoState ? HardwareConstants.CAPSTONE_LATCH_ON : HardwareConstants.CAPSTONE_LATCH_OFF);
+                        //hardware.setCapstoneLatch(servoState ? HardwareConstants.CAPSTONE_LATCH_ON : HardwareConstants.CAPSTONE_LATCH_OFF);
                     }
                 });
             }
