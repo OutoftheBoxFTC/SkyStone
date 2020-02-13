@@ -369,7 +369,7 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                     }
                 });
-                logicStates.put("capstone", new LogicState(statemachine) {
+                exemptedLogicstates.put("capstone", new LogicState(statemachine) {
                     public boolean prevState = false, servoState = false;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
