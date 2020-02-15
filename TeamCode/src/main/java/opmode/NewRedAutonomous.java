@@ -108,7 +108,25 @@ public class NewRedAutonomous extends BasicOpmode {
                 for(int i = 0; i < map.length; i ++){
                     byteMap[i] = 100;
                 }
-                logicStates.put("main", new LogicState(statemachine) {
+                logicStates.put("init", new LogicState(stateMachine) {
+                    int counter;
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        int randNum = Math.round((float)Math.random() * 210);
+                        while(byteMap[randNum] != 100){
+                            randNum = Math.round((float)Math.random() * 210);
+                        }
+                        byte[] tmp = robot.getPixy().getCoordinateColor(157, y);
+                        byteMap[randNum] = Math.abs(tmp[tmp.length-2] & 0xFF);
+                        counter ++;
+                        telemetry.addData("Counter", counter);
+                        if(counter >= 210){
+                            deactivateThis();
+                            stateMachine.activateLogic("main");
+                        }
+                    }
+                });
+                exemptedLogicstates.put("main", new LogicState(statemachine) {
                     int counter = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -120,10 +138,11 @@ public class NewRedAutonomous extends BasicOpmode {
                         byteMap[counter] = Math.abs(tmp[tmp.length-2] & 0xFF);
                         y += 1;
                         counter ++;
-                        if(y == 210){
+                        if(y == 210) {
                             y = 207;
                             counter = 41;
                         }
+
                     }
                 });
                 logicStates.put("readout", new LogicState(statemachine) {
