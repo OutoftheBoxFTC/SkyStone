@@ -21,6 +21,7 @@ import math.Vector4;
 public class TeleOpTesting extends BasicOpmode {
     int currPosition = 1;
     boolean capInit = false;
+    MediaPlayer mediaPlayer;
     double[] positions = {1, 80, 180, 280, 380, 500, 625, 735, 835, 935, 1035, 1135, 1235};
     public TeleOpTesting() {
         super(1);
@@ -49,7 +50,8 @@ public class TeleOpTesting extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-
+                mediaPlayer = MediaPlayer.create(hardwareMap.appContext, R.raw.boathorn);
+                mediaPlayer.setLooping(true);
             }
         };
         final StateMachineManager teleOpMode1 = new StateMachineManager(statemachine) {
@@ -72,6 +74,16 @@ public class TeleOpTesting extends BasicOpmode {
                         telemetry.addData("Limit", sensors.getLiftLimit());
                         if(sensors.getLiftLimit()){
                             sensors.getCalibration().setLift(sensors.getRawLift());
+                        }
+                        if(gamepad2.dpad_right){
+                            if(!mediaPlayer.isPlaying()){
+                                mediaPlayer.start();
+                            }
+                        }else{
+                            if(mediaPlayer.isPlaying()){
+                                mediaPlayer.pause();
+                                mediaPlayer.seekTo(0);
+                            }
                         }
                     }
                 });

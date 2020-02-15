@@ -96,7 +96,7 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
             locPower = Math.abs(Math.max((totalDistance-mainr)/mainr, 0.1));
         }
         if(linSlowdown){
-            locPower = power * Math.abs(Math.max((mainr)/totalDistance, 0.5));
+            locPower = power * Math.abs(Math.max((mainr)/totalDistance, 0.3));
         }
         x *= locPower;
         y *= locPower;

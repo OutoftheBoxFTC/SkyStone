@@ -61,15 +61,15 @@ public class NewRedAutonomous extends BasicOpmode {
         movements.put("moveFoundationToScoringZone", new Vector3(-12, -30, 0));
         movements.put("driveBackToSkystones", new Vector3(-12, -12, 0));
         movements.put("driveBackToSkystones3", new Vector3(-12, -10, 0));
-        movements.put("driveToSecondSkystone1", new Vector3(-19, -10, 50));
+        movements.put("driveToSecondSkystone1", new Vector3(-19, -8, 50));
         movements.put("driveToSecondSkystone2", new Vector3(-11, -5, 50));
         movements.put("driveToSecondSkystone3", new Vector3(-12, 0, 50));
         movements.put("driveToFoundationV2", new Vector3(-11, -5, 0));
-        movements.put("alignWithFoundationV2", new Vector3(-11, -30, 0));
+        movements.put("alignWithFoundationV2", new Vector3(-11, -35, 0));
         movements.put("driveToThirdStone", new Vector3(-11, -10, 0));
         movements.put("driveToThirdStone3", new Vector3(-10, -20, 0));
         movements.put("moveToAlignToFoundation", new Vector3(-12, -10, 0));
-        movements.put("moveToFoundationV3", new Vector3(-12, -37, 0)); //change y to -40 for 3 stone, change to -30 for 4 stone
+        movements.put("moveToFoundationV3", new Vector3(-12, -40, 0)); //change y to -40 for 3 stone, change to -30 for 4 stone
         movements.put("moveToFourthSkystone", new Vector3(-12, -10, 0));
         movements.put("strafeToAlignToFourthStone", new Vector3(-15, 0, 0));
         movements.put("grabFourthSkystone", new Vector3(-15, 30, 0));
@@ -108,25 +108,7 @@ public class NewRedAutonomous extends BasicOpmode {
                 for(int i = 0; i < map.length; i ++){
                     byteMap[i] = 100;
                 }
-                logicStates.put("init", new LogicState(stateMachine) {
-                    int counter;
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        int randNum = Math.round((float)Math.random() * 210);
-                        while(byteMap[randNum] != 100){
-                            randNum = Math.round((float)Math.random() * 210);
-                        }
-                        byte[] tmp = robot.getPixy().getCoordinateColor(157, y);
-                        byteMap[randNum] = Math.abs(tmp[tmp.length-2] & 0xFF);
-                        counter ++;
-                        telemetry.addData("Counter", counter);
-                        if(counter >= 210){
-                            deactivateThis();
-                            stateMachine.activateLogic("main");
-                        }
-                    }
-                });
-                exemptedLogicstates.put("main", new LogicState(statemachine) {
+                logicStates.put("main", new LogicState(statemachine) {
                     int counter = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -366,12 +348,11 @@ public class NewRedAutonomous extends BasicOpmode {
             }
         };
         StateMachineManager strafeToClearSkystones = new StateMachineManager(statemachine) {
-            RelativeOrientationTerminator relativeOrientationTerminator;
+            OrientationTerminator relativeOrientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveForward(new Vector3(-2.5, 0, 0), 1));
-                relativeOrientationTerminator = new RelativeOrientationTerminator(position, new Vector3(-2.5, 0, 0), 2);
-                relativeOrientationTerminator.start();
+                driveState.put("main", system.driveToPoint(new Vector3(12, position.getB(), position.getC()), 0.5));
+                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(12, position.getB(), position.getC()), 2, 4);
             }
 
             @Override
@@ -854,8 +835,8 @@ public class NewRedAutonomous extends BasicOpmode {
 
                     @Override
                     public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 500;
-                        timer2 = System.currentTimeMillis() + 1000;
+                        timer = System.currentTimeMillis() + 400;
+                        timer2 = System.currentTimeMillis() + 650;
                     }
 
                     @Override
@@ -1164,7 +1145,7 @@ public class NewRedAutonomous extends BasicOpmode {
 
                     @Override
                     public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 500;
+                        timer = System.currentTimeMillis() + 750;
                     }
 
                     @Override

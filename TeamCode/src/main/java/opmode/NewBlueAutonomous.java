@@ -64,7 +64,7 @@ public class NewBlueAutonomous extends BasicOpmode {
         movements.put("strafeToAlignToFourthStone", new Vector3(-15, 0, 0));
         movements.put("grabFourthSkystone", new Vector3(-15, 30, 0));
         movements.put("alignWithFoundationV4", new Vector3(7.5, 0, 0));
-        movements.put("park", new Vector3(0, 10, 0));
+        movements.put("park", new Vector3(0, 15, 0));
         final HashMap<String, Vector3> defaultTurns = new HashMap<>();
         defaultTurns.put("turnFoundation", new Vector3(0, 0, 0));
         defaultTurns.put("turnToLatchOn", new Vector3(0, 0, 270));
