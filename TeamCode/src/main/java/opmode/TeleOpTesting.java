@@ -19,9 +19,9 @@ import math.Vector4;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOpTesting extends BasicOpmode {
-    int currPosition = 0;
+    int currPosition = 1;
     boolean capInit = false;
-    double[] positions = {1, 80, 180, 280, 380, 480, 580, 680, 780, 880, 980, 1080, 1180};
+    double[] positions = {1, 80, 180, 280, 380, 500, 625, 735, 835, 935, 1035, 1135, 1235};
     public TeleOpTesting() {
         super(1);
     }
@@ -126,36 +126,94 @@ public class TeleOpTesting extends BasicOpmode {
 
                     }
                 });
-                exemptedLogicstates.put("reset", HardwareConstants.resetLift(statemachine, "lift"));
+                exemptedLogicstates.put("resetMain", new LogicState(stateMachine) {
+                    long timer = 0;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        timer = System.currentTimeMillis() + 500;
+                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(System.currentTimeMillis() >= timer){
+                            stateMachine.activateLogic("reset");
+                            deactivateThis();
+                        }
+                    }
+                });
+                exemptedLogicstates.put("reset", new LogicState(stateMachine) {
+                    int state = 0;
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(state == 0) {
+                            if (sensors.getLiftLimit()) {
+                                hardware.setLiftMotors(0.7);
+                            }else{
+                                state = 1;
+                            }
+                        }else if(state == 1){
+                            if (sensors.getLiftLimit()) {
+                                state = 2;
+                            }else{
+                                hardware.setLiftMotors(-0.4);
+                            }
+                        }else if(state == 2){
+                            hardware.setLiftMotors(0);
+                            stateMachine.activateLogic("lift");
+                            state = 0;
+                            deactivateThis();
+                        }
+                        if(Math.abs(gamepad2.left_stick_y) > 0.1){
+                            hardware.setLiftMotors(0);
+                            stateMachine.activateLogic("lift");
+                            state = 0;
+                            deactivateThis();
+                        }
+                    }
+                });
                 logicStates.put("lift", new LogicState(statemachine) {
+                    boolean changeActive = false;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(currPosition >= positions.length){
                             currPosition = positions.length-1;
                         }
+                        telemetry.addData("gamepad2", gamepad2.left_stick_y);
                         if(gamepad2.dpad_up){
-                            statemachine.activateLogic("raiseLift");
-                            deactivateThis();
-                        }else if(gamepad2.dpad_down){
-                            currPosition --;
-                            if(currPosition < 0){
-                                currPosition = 0;
+                            if(!changeActive) {
+                                currPosition++;
+                                if (currPosition > 12) {
+                                    currPosition = 12;
+                                }
+                                changeActive = true;
                             }
+                        }else if(gamepad2.dpad_down){
+                            if(!changeActive) {
+                                currPosition--;
+                                if (currPosition < 1) {
+                                    currPosition = 1;
+                                }
+                                changeActive = true;
+                            }
+                        }else{
+                            changeActive = false;
                         }
-                        if(gamepad2.y){
-                            stateMachine.activateLogic("resetLiftDown");
+                        if(gamepad2.right_stick_y > 0.4){
+                            stateMachine.activateLogic("resetMain");
                             deactivateThis();
-                        }else if(gamepad2.a){
-                            stateMachine.activateLogic("lowerLift");
+                        }else if(gamepad2.right_stick_y < -0.4){
+                            stateMachine.activateLogic("raiseLift");
                             deactivateThis();
                         }
                         if(Math.abs(gamepad2.left_stick_y) > 0.1) {
                             if((-gamepad2.left_stick_y) < 0){
                                 if(!sensors.getLiftLimit()) {
                                     if(gamepad2.left_trigger > 0.1) {
-                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.1), -0.3));
+                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.05), -0.3));
                                     }else{
-                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.4), -0.3));
+                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.05), -0.3));
                                     }
                                 }
                             }else{
@@ -201,12 +259,12 @@ public class TeleOpTesting extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0) {
-                            hardware.setLiftMotors(Math.max(0.4, ((sensors.getLift()-50) / positions[currPosition])/10));
+                            hardware.setLiftMotors(Math.max(0.9, (positions[currPosition] - sensors.getLift())/50));
                             if ((sensors.getLift()-50) >= positions[currPosition]) {
                                 state = 1;
                             }
                         }else if(state == 1){
-                            hardware.setLiftMotors(0.4);
+                            hardware.setLiftMotors(0.9);
                             hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
                             if((sensors.getLift()) >= positions[currPosition]){
                                 state = 2;
@@ -216,6 +274,13 @@ public class TeleOpTesting extends BasicOpmode {
                             hardware.setLiftMotors(0.25);
                             statemachine.activateLogic("lift");
                             currPosition ++;
+                            deactivateThis();
+                        }
+                        if(Math.abs(gamepad2.left_stick_y) > 0.1){
+                            hardware.setLiftMotors(0);
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                            stateMachine.activateLogic("lift");
+                            state = 0;
                             deactivateThis();
                         }
                     }
@@ -284,7 +349,7 @@ public class TeleOpTesting extends BasicOpmode {
                         if(gamepad2.right_stick_x > 0.4){
                             hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
                         }
-                        if(gamepad2.right_stick_y > 0.4){
+                        if(gamepad2.y){
                             hardware.setLiftServo(HardwareConstants.LIFT_OUT);
                         }
                         if(gamepad2.left_bumper){
@@ -299,10 +364,19 @@ public class TeleOpTesting extends BasicOpmode {
                     }
                 });
                 logicStates.put("intakeServo", new LogicState(statemachine) {
+                    int frames = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(sensors.getIntakeTripwire() <= 12){
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                        if(Math.abs(hardware.getIntakePowers().getA()) > 0.1) {
+                            if (sensors.getIntakeTripwire() <= 9) {
+                                frames ++;
+                            } else {
+                                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                                frames = 0;
+                            }
+                            if(frames > 5){
+                                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                            }
                         }else{
                             hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         }
@@ -324,59 +398,6 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                         if(System.currentTimeMillis() > timer){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
-                        }
-                    }
-                });
-                exemptedLogicstates.put("resetLiftDown", new LogicState(stateMachine) {
-                    long timer = 0;
-                    double state = -1, armCalib = 0;
-                    @Override
-                    public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 10;
-                    }
-
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(state == -1){
-                            if(System.currentTimeMillis() > timer){
-                                state = 0;
-                                armCalib = sensors.getLift();
-                            }
-                        }
-                        if(Math.abs(gamepad2.left_stick_y) > 0.1){
-                            stateMachine.activateLogic("lift");
-                            deactivateThis();
-                        }
-                        if(state == 0) {
-                            if ((sensors.getLift() - armCalib) < 10) {
-                                hardware.setLiftMotors(0.7);
-                            }else{
-                                state = 1;
-                            }
-                        }else if(state == 1){
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                            if (sensors.getLiftLimit()) {
-                                state = 2;
-                            }else{
-                                hardware.setLiftMotors(-0.4);
-                            }
-                        }else if(state == 2){
-                            if (sensors.getLiftLimit()) {
-                                hardware.setLiftMotors(0.5);
-                            }else{
-                                state = 3;
-                            }
-                        }else if(state == 3){
-                            if (sensors.getLiftLimit()) {
-                                state = 4;
-                            }else{
-                                hardware.setLiftMotors(-0.2);
-                            }
-                        }else if(state == 4){
-                            hardware.setLiftMotors(0);
-                            stateMachine.activateLogic("lift");
-                            state = -1;
-                            deactivateThis();
                         }
                     }
                 });

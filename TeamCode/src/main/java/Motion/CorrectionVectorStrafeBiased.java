@@ -33,6 +33,19 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
         specialStr = 1;
         this.velocity = velocity;
     }
+    public CorrectionVectorStrafeBiased(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity, boolean slowdown){
+        super(stateMachine);
+        this.position = position;
+        this.target = new Vector2(target.getA(), target.getB());
+        targetRot = target.getC();
+        this.power = power;
+        this.start = new Vector2(position.getA(), position.getB());
+        this.velocities = Vector3.ZERO();
+        specialFor = 1;
+        specialStr = 1;
+        this.velocity = velocity;
+        this.linSlowdown = slowdown;
+    }
     @Override
     public void init(SensorData sensors, HardwareData hardware){
         system = new VelocitySystem();
@@ -72,22 +85,22 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
         if(Math.abs(y) < 5){
             y *= 0.1;
         }
-        specialFor = Math.abs(target.getB() - position.getB());
-        y *= specialFor;
-        x *= specialStr;
+        specialFor = Math.max(Math.abs(target.getA() - position.getA()) * 2, 1);
+        x = x/specialFor;
+        y *= specialStr;
         double comb = Math.abs(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
         x = x/comb;
         y = y/comb;
+        double locPower = power;
         if(reimannSlowdown) {
-            power = Math.abs(Math.max((totalDistance-mainr)/mainr, 0.1));
+            locPower = Math.abs(Math.max((totalDistance-mainr)/mainr, 0.1));
         }
         if(linSlowdown){
-            power = Math.abs(Math.max((mainr)/totalDistance, 0.1));
+            locPower = power * Math.abs(Math.max((mainr)/totalDistance, 0.5));
         }
-
-        x *= power;
-        y *= power;
-        RobotLog.i("Target: " + target.toString() + " Position: " + position.toString() + " Power: " + new Vector2(x, y).toString());
+        x *= locPower;
+        y *= locPower;
+        RobotLog.i("Target: " + target.toString() + " Position: " + position.toString() + " Power: " + new Vector2(y, x).toString());
         RobotLog.i("Mainr: " + mainr + " total distance: " + totalDistance + " power: " + power);
         double rotation = (targetRot - Math.toDegrees(sensors.getGyro()));
         if(rotation > 180){
@@ -96,7 +109,8 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
             rotation = ((360 + targetRot) - Math.toDegrees(sensors.getGyro()));
         }
         rotation *= 0.01;
-        velocities.set(system.update(new Vector3(y, -x, rotation), (mainr/totalDistance)));
+        //velocities.set(system.update(new Vector3(y, -x, rotation), (mainr/totalDistance)));
+        velocities.set(new Vector3(y, -x, rotation));
     }
 
 }

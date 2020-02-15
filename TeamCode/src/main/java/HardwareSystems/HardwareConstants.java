@@ -22,6 +22,7 @@ public class HardwareConstants {
     public static final Vector2 LIFT_INTAKE = new Vector2(SQUARE_WAVE_TO_POSITION(840), SQUARE_WAVE_TO_POSITION(865)); //The servo position for the four bar servos when in the INTAKE position, or the position when intaking. It is in the order {
     public static final Vector2 LIFT_SCORING_POSITION = new Vector2(SQUARE_WAVE_TO_POSITION(1785), SQUARE_WAVE_TO_POSITION(1770)); //The servo position for the four bar servos when in the SCORING position. It is in the order {left, right}
     public static final Vector2 LIFT_OUT = new Vector2(SQUARE_WAVE_TO_POSITION(2015), SQUARE_WAVE_TO_POSITION(2015)); //The servo position for the four bar servos when in the OUT position, or when the arm is all the way out on the outtake side. It is in the order {left, right}
+    public static final Vector2 LIFT_OUT_AUTO = new Vector2(SQUARE_WAVE_TO_POSITION(1880), SQUARE_WAVE_TO_POSITION(1880));
     public static final double CAPSTONE_LATCH_ON = SQUARE_WAVE_TO_POSITION(1800);
     public static final double CAPSTONE_LATCH_OFF = SQUARE_WAVE_TO_POSITION(900);
     public static LogicState resetLift(StateMachine stateMachine){
@@ -78,18 +79,6 @@ public class HardwareConstants {
                         hardware.setLiftMotors(-0.4);
                     }
                 }else if(state == 2){
-                    if (sensors.getLiftLimit()) {
-                        hardware.setLiftMotors(0.5);
-                    }else{
-                        state = 3;
-                    }
-                }else if(state == 3){
-                    if (sensors.getLiftLimit()) {
-                        state = 4;
-                    }else{
-                        hardware.setLiftMotors(-0.2);
-                    }
-                }else if(state == 4){
                     hardware.setLiftMotors(0);
                     stateMachine.activateLogic(nextState);
                     state = 0;
