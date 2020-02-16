@@ -7,6 +7,7 @@ import math.Vector4;
 
 public class HardwareData {
     private double timeStamp, frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor, latchRight, latchLeft, intakeLeft, intakeRight, intakeServoLeft, intakeServoRight, liftMotor, liftServo, intakeLatch, liftServoOffset, capstoneLatch;
+    double battery = 0;
     private RevBlinkinLedDriver.BlinkinPattern pattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
     boolean disableCaptoneLatch = false;
     Vector2 intakeServos;
@@ -232,6 +233,14 @@ public class HardwareData {
 
     public double getCapstoneLatch(){
         return capstoneLatch;
+    }
+
+    public void setBattery(double battery){
+        this.battery = battery;
+    }
+
+    public double getBattery(){
+        return battery;
     }
 
     /**

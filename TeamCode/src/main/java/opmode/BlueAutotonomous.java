@@ -387,7 +387,7 @@ public class BlueAutotonomous extends BasicOpmode {
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
+                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_AUTO);
                         hardware.setIntakePowers(1);
                         terminate = true;
                     }
@@ -708,7 +708,7 @@ public class BlueAutotonomous extends BasicOpmode {
                 logicStates.put("main", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
+                        hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_AUTO);
                         hardware.setIntakePowers(1);
                         terminate = true;
                     }

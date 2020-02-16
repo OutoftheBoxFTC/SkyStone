@@ -22,7 +22,7 @@ public class TeleOpTesting extends BasicOpmode {
     int currPosition = 1;
     boolean capInit = false;
     MediaPlayer mediaPlayer;
-    double[] positions = {1, 80, 180, 280, 380, 500, 625, 735, 835, 935, 1035, 1135, 1235};
+    double[] positions = {1, 40, 160, 260, 420, 590, 715, 840, 1010, 1120, 1240, 1440, 1540};
     public TeleOpTesting() {
         super(1);
     }
@@ -63,7 +63,7 @@ public class TeleOpTesting extends BasicOpmode {
                         if(!gamepad1.left_bumper) {
                             return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x));
                         }else{
-                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x/2, gamepad1.left_stick_y/2, -gamepad1.right_stick_x/2));
+                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x * 0.3, gamepad1.left_stick_y * 0.3, -gamepad1.right_stick_x * 0.3));
                         }
                     }
 
@@ -75,7 +75,7 @@ public class TeleOpTesting extends BasicOpmode {
                         if(sensors.getLiftLimit()){
                             sensors.getCalibration().setLift(sensors.getRawLift());
                         }
-                        if(gamepad2.dpad_right){
+                        if(gamepad2.b){
                             if(!mediaPlayer.isPlaying()){
                                 mediaPlayer.start();
                             }

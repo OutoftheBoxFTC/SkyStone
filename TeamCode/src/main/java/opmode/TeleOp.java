@@ -120,12 +120,12 @@ public class TeleOp extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad1.right_trigger > 0){
                             hardware.setIntakePowers(gamepad1.right_trigger);
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
+                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                         }else if(gamepad1.right_bumper){
                             hardware.setIntakePowers(1);
                             hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         }else if(gamepad1.left_trigger > 0){
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE_TELEOP);
+                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                             hardware.setIntakePowers(-gamepad1.left_trigger);
                         }else{
                             hardware.setIntakePowers(0);

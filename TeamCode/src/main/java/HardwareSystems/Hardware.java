@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.BatteryChecker;
 import com.qualcomm.robotcore.util.RobotLog;
 
@@ -39,7 +40,6 @@ public class Hardware {
     private BNO055IMU imu;
     private Pixycam pixy;
     private TouchSensor liftLimit;
-
 
 
     /**
@@ -167,6 +167,7 @@ public class Hardware {
             frontRight.setPower(motorPowers.getB());
             backLeft.setPower(motorPowers.getC());
             backRight.setPower(motorPowers.getD());
+            data.setBattery(getBatteryLevel());
         }
         if(enabledDevices.contains(HardwareDevices.LATCH_SERVOS)){
             Vector2 servoPositions = data.getLatchPositions();
@@ -287,6 +288,17 @@ public class Hardware {
 
     public Pixycam getPixy(){
         return pixy;
+    }
+
+    public double getBatteryLevel(){
+        double result = Double.POSITIVE_INFINITY;
+        for(VoltageSensor v : opmode.hardwareMap.voltageSensor){
+            if(v.getVoltage() > 0){
+                double voltage = v.getVoltage();
+                result = Math.min(result, voltage);
+            }
+        }
+        return result;
     }
 
     public SmartMotor getLiftMotorLeft(){

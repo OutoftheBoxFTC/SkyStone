@@ -19,6 +19,7 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
     private boolean relative = false;
     private double specialFor;
     private double specialStr;
+    private double minSpeed;
     private boolean reimannSlowdown = false, linSlowdown = false;
     VelocitySystem system;
     public CorrectionVectorStrafeBiased(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity){
@@ -32,6 +33,7 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
         specialFor = 1;
         specialStr = 1;
         this.velocity = velocity;
+        minSpeed = 0.3;
     }
     public CorrectionVectorStrafeBiased(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity, boolean slowdown){
         super(stateMachine);
@@ -45,6 +47,21 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
         specialStr = 1;
         this.velocity = velocity;
         this.linSlowdown = slowdown;
+        minSpeed = 0.3;
+    }
+    public CorrectionVectorStrafeBiased(StateMachine stateMachine, Vector3 position, Vector3 target, double power, Vector3 velocity, boolean slowdown, double minSpeed){
+        super(stateMachine);
+        this.position = position;
+        this.target = new Vector2(target.getA(), target.getB());
+        targetRot = target.getC();
+        this.power = power;
+        this.start = new Vector2(position.getA(), position.getB());
+        this.velocities = Vector3.ZERO();
+        specialFor = 1;
+        specialStr = 1;
+        this.velocity = velocity;
+        this.linSlowdown = slowdown;
+        this.minSpeed = minSpeed;
     }
     @Override
     public void init(SensorData sensors, HardwareData hardware){
@@ -96,7 +113,7 @@ public class CorrectionVectorStrafeBiased extends VelocityDriveState {
             locPower = Math.abs(Math.max((totalDistance-mainr)/mainr, 0.1));
         }
         if(linSlowdown){
-            locPower = power * Math.abs(Math.max((mainr)/totalDistance, 0.3));
+            locPower = power * Math.abs(Math.max((mainr)/totalDistance, minSpeed));
         }
         x *= locPower;
         y *= locPower;
