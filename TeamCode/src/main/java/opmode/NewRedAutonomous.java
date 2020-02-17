@@ -59,15 +59,15 @@ public class NewRedAutonomous extends BasicOpmode {
         movements.put("driveToFoundation", new Vector3(-12, -40, 0));
         movements.put("turnAndDriveToFoundation", new Vector3(-18, -40, -90));
         movements.put("moveFoundationToScoringZone", new Vector3(-14, -30, 0));
-        movements.put("driveBackToSkystones", new Vector3(-12, -14, 0));
-        movements.put("driveBackToSkystones3", new Vector3(-12, -10, 0));
-        movements.put("driveToSecondSkystone1", new Vector3(-19, -8, 50));
-        movements.put("driveToSecondSkystone2", new Vector3(-12, -5, 50));
-        movements.put("driveToSecondSkystone3", new Vector3(-12, 0, 50));
+        movements.put("driveBackToSkystones", new Vector3(-12, -17, 0));
+        movements.put("driveBackToSkystones3", new Vector3(-12, -15, 0));
+        movements.put("driveToSecondSkystone1", new Vector3(-19, -12.5, 50));
+        movements.put("driveToSecondSkystone2", new Vector3(-12, -8.5, 50));
+        movements.put("driveToSecondSkystone3", new Vector3(-12, -4.5, 50));
         movements.put("driveToFoundationV2", new Vector3(-13, -5, 0));
         movements.put("alignWithFoundationV2", new Vector3(-13, -30, 0));
         movements.put("driveToThirdStone", new Vector3(-11, -10, 0));
-        movements.put("driveToThirdStone3", new Vector3(-10, -20, 0));
+        movements.put("driveToThirdStone3", new Vector3(-10, -25, 0));
         movements.put("moveToAlignToFoundation", new Vector3(-12, -10, 0));
         movements.put("moveToFoundationV3", new Vector3(-12, -37, 0)); //change y to -40 for 3 stone, change to -30 for 4 stone
         movements.put("moveToFourthSkystone", new Vector3(-12, -10, 0));
@@ -136,19 +136,15 @@ public class NewRedAutonomous extends BasicOpmode {
                     int counter = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(y > 207){
+                        if(y > 160){
                             y = 0;
                             counter = 0;
                         }
                         byte[] tmp = robot.getPixy().getCoordinateColor(157, counter);
                         byteMap[counter] = Math.abs(tmp[tmp.length-2] & 0xFF);
+                        counter = y;
                         y += 1;
                         counter ++;
-                        if(y % 2 == 0){
-                            counter = y;
-                        }else{
-                            counter = 210-y;
-                        }
                         if(y == 210){
                             y = 207;
                             counter = 41;
@@ -168,17 +164,17 @@ public class NewRedAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         for(int i = 0; i < 50; i ++){
-                            if(byteMap[i] < 255){
+                            if(byteMap[i] < 235){
                                 pos3 ++;
                             }
                         }
                         for(int i = 50; i < 100; i ++){
-                            if(byteMap[i] < 255){
+                            if(byteMap[i] < 235){
                                 pos2 ++;
                             }
                         }
-                        for(int i = 110; i < 160; i ++){
-                            if(byteMap[i] < 255){
+                        for(int i = 100; i < 150; i ++){
+                            if(byteMap[i] < 23){
                                 pos1 ++;
                             }
                         }
@@ -188,6 +184,9 @@ public class NewRedAutonomous extends BasicOpmode {
                         telemetry.addData("Max3", pos1);
                         telemetry.addData("Position", max == pos1 ? "3" : (max == pos2 ? "2" : "1"));
                         skystonePos = (max == pos1 ? 3 : (max == pos2 ? 2 : 1));
+                        if(pos1 == 0 && pos2 == 0 && pos3 == 0){
+                            skystonePos = 3;
+                        }
                         telemetry.addData("SkystonePos", skystonePos);
                         double conf1 = pos3;
                         double conf2 = pos2;
@@ -378,15 +377,17 @@ public class NewRedAutonomous extends BasicOpmode {
         };
         StateMachineManager driveToClearSkystones = new StateMachineManager(statemachine) {
             OrientationTerminator terminator;
+            CombinedORTerminator combinedORTerminator;
             @Override
             public void setup() {
                 driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToClearSkystones"), 0.4, Vector3.ZERO(), true, 0.5));
                 terminator = new OrientationTerminator(position, movements.get("driveToClearSkystones"), 3, 1);
+                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), terminator, new TimerTerminator(position, Vector3.ZERO(), 1500));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = terminator.shouldTerminate(sensors);
+                terminate = combinedORTerminator.shouldTerminate(sensors);
             }
 
             @Override

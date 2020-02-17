@@ -335,7 +335,11 @@ public class TeleOpTesting extends BasicOpmode {
                         }else if(gamepad1.left_trigger > 0){
                             hardware.setIntakePowers(-gamepad1.left_trigger);
                         }else{
-                            hardware.setIntakePowers(0);
+                            if(gamepad1.right_bumper){
+                                hardware.setIntakePowers(-1);
+                            }else {
+                                hardware.setIntakePowers(0);
+                            }
                         }
                         if(sensors.getIntakeTripwire() <= 12){
                             hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
@@ -383,14 +387,22 @@ public class TeleOpTesting extends BasicOpmode {
                             if (sensors.getIntakeTripwire() <= 9) {
                                 frames ++;
                             } else {
-                                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                                if(gamepad1.right_bumper){
+                                    hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                                }else {
+                                    hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                                }
                                 frames = 0;
                             }
                             if(frames > 5){
                                 hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                             }
                         }else{
-                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                            if(gamepad1.right_bumper){
+                                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                            }else {
+                                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                            }
                         }
                     }
                 });
