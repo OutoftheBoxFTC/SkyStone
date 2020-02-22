@@ -36,16 +36,26 @@ public class LiftSystem extends BasicOpmode {
             public void setup() {
                 //exemptedLogicstates.put("reset", HardwareConstants.resetLift(statemachine, "main"));
                 logicStates.put("main", new LogicState(statemachine) {
+                    double power = 0;
+                    boolean updated = false;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftMotors(gamepad1.dpad_up ? 1 : (gamepad1.dpad_down ? (sensors.getLiftLimit() ? 0 : -0.4) : 0.25));
+                        if(gamepad1.dpad_up || gamepad1.dpad_down) {
+                            if(!updated){
+                                power += gamepad1.dpad_up ? 0.025 : -0.025;
+                                updated = true;
+                            }
+                        }else{
+                            updated = false;
+                        }
+                        hardware.setLiftMotors(power);
                         if(gamepad1.y){
                             //statemachine.activateLogic("reset");
                             //deactivateThis();
                         }
                         telemetry.addData("Lift", sensors.getLift());
                         telemetry.addData("Reset", sensors.getLiftLimit());
-                        telemetry.addData("Powers", gamepad1.dpad_up ? 1 : (gamepad1.dpad_down ? (sensors.getLiftLimit() ? 0 : -0.4) : 0.05));
+                        telemetry.addData("Powers", power);
                         if(sensors.getLiftLimit()){
                             sensors.getCalibration().setLift(sensors.getRawLift());
                         }

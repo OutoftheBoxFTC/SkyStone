@@ -223,7 +223,13 @@ public class TeleOpTesting extends BasicOpmode {
                             if((-gamepad2.left_stick_y) < 0){
                                 if(!sensors.getLiftLimit()) {
                                     if(gamepad2.left_trigger > 0.1) {
-                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.05), -0.3));
+                                        if(sensors.getLift() > 700) {
+                                            hardware.setLiftMotors((-gamepad2.left_stick_y * 0.4) + 0.4);
+                                        }else if(sensors.getLift() > 300){
+                                            hardware.setLiftMotors((-gamepad2.left_stick_y * 0.4) + 0.3);
+                                        }else{
+                                            hardware.setLiftMotors((-gamepad2.left_stick_y * 0.4) + 0.1);
+                                        }
                                     }else{
                                         hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.05), -0.3));
                                     }
