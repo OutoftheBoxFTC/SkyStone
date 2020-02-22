@@ -2,6 +2,8 @@ package opmode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -61,7 +63,7 @@ public abstract class BasicOpmode extends LinearOpMode {
                 Connector.getInstance().addTelemetry("Hardware Latency", System.currentTimeMillis() - hardware.getTimestamp());
                 Connector.getInstance().addTelemetry("Sensors Latency", System.currentTimeMillis() - sensors.getTimestamp());
                 Connector.getInstance().addTelemetry("Active Manager", stateMachineSwitcher.getActiveManager());
-                Connector.getInstance().addSensorIO("Gyro: " + robot.getAllGyroAngles().toString());
+                //Connector.getInstance().addSensorIO("Gyro", robot.getAllGyroAngles().toString());
             }
             statemachine.update(sensors, hardware);
             currentLoops -= (1/driveLoopIterations);
@@ -78,6 +80,8 @@ public abstract class BasicOpmode extends LinearOpMode {
                         timer = System.currentTimeMillis() + 100;
                     }
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }

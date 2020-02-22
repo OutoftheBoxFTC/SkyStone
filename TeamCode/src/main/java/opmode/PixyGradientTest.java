@@ -3,6 +3,7 @@ package opmode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import Debug.Connector;
 import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
@@ -14,14 +15,14 @@ import State.StateMachineManager;
 public class PixyGradientTest extends BasicOpmode{
     int skystonePos;
     public PixyGradientTest() {
-        super(0);
+        super(0, true);
     }
 
     @Override
     public void setup() {
         robot.enableAll();
         robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
-        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
         StateMachineManager init = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -40,6 +41,9 @@ public class PixyGradientTest extends BasicOpmode{
             int[] byteMap = new int[42];
             @Override
             public void setup() {
+                for(int i = 0; i < byteMap.length; i ++){
+                    byteMap[i]= 0;
+                }
                 logicStates.put("main", new LogicState(statemachine) {
                     int counter = 0;
                     @Override
@@ -63,6 +67,7 @@ public class PixyGradientTest extends BasicOpmode{
                     public void update(SensorData sensors, HardwareData hardware) {
                         for(int i = 0; i < map.length; i ++){
                             telemetry.addData("Position " + (i), byteMap[i]);
+                            Connector.getInstance().addGraphVal(i, byteMap[i]);
                         }
                     }
                 });
@@ -71,17 +76,17 @@ public class PixyGradientTest extends BasicOpmode{
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         for(int i = 0; i < 10; i ++){
-                            if(byteMap[i] < 255){
+                            if(byteMap[i] < 235){
                                 pos3 ++;
                             }
                         }
                         for(int i = 10; i < 20; i ++){
-                            if(byteMap[i] < 255){
+                            if(byteMap[i] < 235){
                                 pos2 ++;
                             }
                         }
-                        for(int i = 26; i < 32; i ++){
-                            if(byteMap[i] < 255){
+                        for(int i = 20; i < 30; i ++){
+                            if(byteMap[i] < 235){
                                 pos1 ++;
                             }
                         }
@@ -91,6 +96,9 @@ public class PixyGradientTest extends BasicOpmode{
                         telemetry.addData("Max3", pos1);
                         telemetry.addData("Position", max == pos1 ? "3" : (max == pos2 ? "2" : "1"));
                         skystonePos = (max == pos1 ? 3 : (max == pos2 ? 2 : 1));
+                        if(pos1 == 0 && pos2 == 0 && pos3 == 0){
+                            skystonePos = 3;
+                        }
                         telemetry.addData("SkystonePos", skystonePos);
                         double conf1 = pos3;
                         double conf2 = pos2;

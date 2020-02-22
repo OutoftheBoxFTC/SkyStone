@@ -1,25 +1,34 @@
 package Debug;
 
-import com.qualcomm.robotcore.util.RobotLog;
-
 import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
-import Debug.JsonFormat.*;
-import math.*;
+import Debug.EditableValue.EditableValue;
+import math.Vector2;
+import math.Vector3;
 
 public class Connector {
     private static Connector instance = new Connector();
     private DatagramSocket socket;
     private Vector3 orientation = Vector3.ZERO();
-    private List<String> telemetry, telemetryHeaders, sensorIO, positions;
-    private RootObject rootObject = new RootObject(new Coordinates(), new SensorIO(), new TelemetryData(), new PathCoordinates());
+    private List<String> telemetry, telemetryHeaders, sensorIO;
+    private List<EditableValue> editableVariables;
+    private ArrayList<Double> graphVals;
     private OutputStream stream;
     private DatagramPacket packet;
     private Receiver reciever;
+    private long timer = 0;
     private Connector(){ }
 
     public static Connector getInstance(){
@@ -30,11 +39,13 @@ public class Connector {
         telemetry = new ArrayList<>();
         telemetryHeaders = new ArrayList<>();
         sensorIO = new ArrayList<>();
-        positions = new ArrayList<>();
+        editableVariables = new ArrayList<>();
         socket = new DatagramSocket(1119);
         socket.setReuseAddress(true);
         socket.setBroadcast(true);
         reciever = new Receiver();
+        graphVals = new ArrayList<>();
+        graphVals.add(10.0);
     }
 
     public void addTelemetry(String header, Object data){
@@ -50,8 +61,17 @@ public class Connector {
         }
     }
 
-    public void addSensorIO(String data){
-        sensorIO.add(data);
+    public void addSensorIO(String sensor, String data){
+
+        sensorIO.add(sensor + ": " + data);
+    }
+
+    public void addGraphVal(int x, double y){
+        if(x < graphVals.size()) {
+            graphVals.add(x, y);
+        }else{
+            graphVals.add(y);
+        }
     }
 
     public void addOrientation(Vector2 position, double rotation){
@@ -62,37 +82,36 @@ public class Connector {
         orientation = position;
     }
 
-    public void addPathCoordinates(HashMap<String, String> map){
-        ArrayList<String> temp = new ArrayList<>();
-        for(String s : map.keySet()){
-            temp.add(s + ": " + map.get(s));
-        }
-        positions.addAll(temp);
-    }
-
-    public void addTurnCoordinates(HashMap<String, String> map){
-        ArrayList<String> temp = new ArrayList<>();
-        for(String s : map.keySet()){
-            temp.add(s + ": " + map.get(s));
+    public void addEditableVariabe(EditableValue editableValue){
+        if(!editableVariables.contains(editableValue)) {
+            editableVariables.add(editableValue);
         }
     }
 
-    public void update() throws IOException {
-        rootObject.TelemetryData.Data = telemetry;
-        rootObject.SensorIO.data = sensorIO;
-        rootObject.Coordinates.x = orientation.getA();
-        rootObject.Coordinates.y = orientation.getB();
-        rootObject.Coordinates.rot = orientation.getC();
-        rootObject.PathCoordinates.positions = positions;
-        String json = SimpleGson.getInstance().toJson(rootObject);
+    public void update() throws IOException, JSONException {
+        JSONObject jsonObject = new JSONObject();
+        JSONArray telemetryJson = new JSONArray();
+        for(String s : telemetry){
+            telemetryJson.put(s);
+        }
+        JSONArray sensorIOJson = new JSONArray();
+        for(String s : sensorIO){
+            sensorIOJson.put(s);
+        }
+        jsonObject.put("telemetry", telemetryJson);
+        jsonObject.put("sensorIO", sensorIOJson);
+        jsonObject.put("orientation", orientation.toString());
+        String json = jsonObject.toString();
         byte[] toSend = json.getBytes();
         int sendLen = toSend.length;
         packet = new DatagramPacket(toSend, sendLen, InetAddress.getByName("255.255.255.255"), 1119);
-        socket.send(packet);
-        for(int i = 0; i < telemetry.size(); i ++){
-            telemetry.remove(i);
-            telemetryHeaders.remove(i);
+        if(System.currentTimeMillis() > timer) {
+            socket.send(packet);
+            timer = System.currentTimeMillis() + 50;
         }
+        telemetry.clear();
+        telemetryHeaders.clear();
+        sensorIO.clear();
     }
 
     public RecievePacket getDataFromMaster(long timeout) {
@@ -100,8 +119,7 @@ public class Connector {
         while(timeout > System.currentTimeMillis() && !reciever.run());
         String s = reciever.getPacket();
         if(!s.equals("No Data")) {
-            RecievePacket format = SimpleGson.getInstance().fromJson(s, RecievePacket.class);
-            return format;
+            return SimpleGson.getInstance().fromJson(s, RecievePacket.class);
         }
         return null;
     }

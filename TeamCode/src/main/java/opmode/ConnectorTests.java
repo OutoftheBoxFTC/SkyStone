@@ -1,5 +1,7 @@
 package opmode;
 
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -10,21 +12,16 @@ import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
-
+@TeleOp
 public class ConnectorTests extends BasicOpmode {
     Registers registers;
+    ArrayList<Double> graphVals = new ArrayList();
+    int index = 0;
     public ConnectorTests(){
         super(0, true);
     }
     @Override
     public void setup() {
-        HashMap<String, String> drive = new HashMap<>();
-        drive.put("Test1", "4, -3, 0");
-        drive.put("Test2", "-30, 15, 0");
-        HashMap<String, String> turn = new HashMap<>();
-        turn.put("Test3", "0, 0, 135");
-        registers = new Registers(drive, turn);
-        Connector.getInstance().addPathCoordinates(drive);
         StateMachineManager main = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -32,19 +29,13 @@ public class ConnectorTests extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         Connector.getInstance().addTelemetry("test", System.currentTimeMillis());
-                        RecievePacket packet = Connector.getInstance().getDataFromMaster(500);
-                        if(!(packet == null)) {
-                            if (packet.positions.size() > 0) {
-                                telemetry.addData("Tester", packet.positions.get(0));
-                            }
-                        }
                     }
                 });
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = gamepad1.b;
+                //terminate = gamepad1.b;
             }
         };
         StateMachineManager updateData = new StateMachineManager(statemachine) {

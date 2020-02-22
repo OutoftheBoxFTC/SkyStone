@@ -155,7 +155,7 @@ public class NewRedAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         for(int i = 0; i < map.length; i ++){
-                            //telemetry.addData("Position " + (i), byteMap[i]);
+                            telemetry.addData("Position " + (i), byteMap[i]);
                         }
                     }
                 });
@@ -174,7 +174,7 @@ public class NewRedAutonomous extends BasicOpmode {
                             }
                         }
                         for(int i = 100; i < 150; i ++){
-                            if(byteMap[i] < 23){
+                            if(byteMap[i] < 235){
                                 pos1 ++;
                             }
                         }

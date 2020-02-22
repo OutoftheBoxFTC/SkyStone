@@ -72,6 +72,10 @@ public class Vector3 {
         c = v.c;
     }
 
+    public Vector2 getVector2(){
+        return new Vector2(a, b);
+    }
+
     public static Vector3 ZERO(){
         return ZERO.clone();
     }

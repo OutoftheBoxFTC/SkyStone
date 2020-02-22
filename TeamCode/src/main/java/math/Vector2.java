@@ -18,6 +18,11 @@ public class Vector2 {
         b = v.getB();
     }
 
+    public void set(Vector2 v){
+        this.a = v.getA();
+        this.b = v.getB();
+    }
+
     public void setA(double a) {
         this.a = a;
     }

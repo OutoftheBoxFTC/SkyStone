@@ -385,16 +385,6 @@ public class TeleOpTesting extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(Math.abs(hardware.getIntakePowers().getA()) > 0.1) {
                             if (sensors.getIntakeTripwire() <= 9) {
-                                frames ++;
-                            } else {
-                                if(gamepad1.right_bumper){
-                                    hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                                }else {
-                                    hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
-                                }
-                                frames = 0;
-                            }
-                            if(frames > 5){
                                 hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                             }
                         }else{
