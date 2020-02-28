@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Testing.Sensors.Pixy;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -10,9 +10,10 @@ import HardwareSystems.SensorData;
 import HardwareSystems.Hardware;
 import State.LogicState;
 import State.StateMachineManager;
+import opmode.BasicOpmode;
 
 @TeleOp
-public class PixyGradientTest extends BasicOpmode{
+public class PixyGradientTest extends BasicOpmode {
     int skystonePos;
     public PixyGradientTest() {
         super(0, true);

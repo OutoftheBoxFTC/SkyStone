@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Testing.Sensors.Pixy;
 
 import android.util.Log;
 
@@ -9,6 +9,8 @@ import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
+import opmode.BasicOpmode;
+
 @TeleOp
 public class PayloadServoTests extends BasicOpmode {
     public PayloadServoTests() {

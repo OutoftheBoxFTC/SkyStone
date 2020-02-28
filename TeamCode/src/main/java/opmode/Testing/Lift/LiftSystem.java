@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Testing.Lift;
 
 import android.util.Log;
 
@@ -10,6 +10,8 @@ import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
+import opmode.BasicOpmode;
+
 @TeleOp
 public class LiftSystem extends BasicOpmode {
     public LiftSystem() {

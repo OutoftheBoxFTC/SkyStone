@@ -21,6 +21,10 @@ public class MotionSystem {
         return new CorrectionVector(stateMachine, position, target, power, velocity, true);
     }
 
+    public CorrectionVector driveToPointLinSlowdown(Vector3 target, double power, double minPower){
+        return new CorrectionVector(stateMachine, position, target, power, velocity, true, minPower);
+    }
+
     public CorrectionVector driveToPointSlowdown(Vector3 target, double power){
         return new CorrectionVector(stateMachine, position, target, power, velocity);
     }

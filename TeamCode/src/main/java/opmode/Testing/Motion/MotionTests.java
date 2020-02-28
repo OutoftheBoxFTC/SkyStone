@@ -1,10 +1,11 @@
-package opmode;
+package opmode.Testing.Motion;
 
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
 import math.Vector2;
+import opmode.BasicOpmode;
 
 public class MotionTests extends BasicOpmode {
     public MotionTests() {

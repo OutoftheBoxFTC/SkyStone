@@ -1,10 +1,12 @@
-package opmode;
+package opmode.Testing.Lift;
 
 import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
+import opmode.BasicOpmode;
+
 public class LiftSystemOverride extends BasicOpmode {
     public LiftSystemOverride() {
         super(0);

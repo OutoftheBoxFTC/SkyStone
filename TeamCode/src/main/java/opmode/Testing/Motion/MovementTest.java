@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Testing.Motion;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -16,6 +16,8 @@ import State.LogicState;
 import State.StateMachineManager;
 import State.VelocityDriveState;
 import math.Vector3;
+import opmode.BasicOpmode;
+
 @TeleOp
 public class MovementTest extends BasicOpmode {
     Vector3 position, velocity;

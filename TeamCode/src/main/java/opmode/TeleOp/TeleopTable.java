@@ -1,4 +1,4 @@
-package opmode;
+package opmode.TeleOp;
 
 import android.media.MediaPlayer;
 
@@ -16,14 +16,13 @@ import State.LogicState;
 import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
+import opmode.BasicOpmode;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
-public class TeleOpTesting extends BasicOpmode {
-    int currPosition = 1;
-    boolean capInit = false;
-    MediaPlayer mediaPlayer;
-    double[] positions = {1, 40, 160, 260, 420, 590, 715, 840, 1010, 1120, 1240, 1440, 1540};
-    public TeleOpTesting() {
+public class TeleopTable extends BasicOpmode {
+    int currPosition = 0;
+    double[] positions = {1, 80, 180, 280, 380, 480, 580, 680, 780, 880, 980, 1080, 1180};
+    public TeleopTable() {
         super(1);
     }
 
@@ -50,8 +49,7 @@ public class TeleOpTesting extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                mediaPlayer = MediaPlayer.create(hardwareMap.appContext, R.raw.boathorn);
-                mediaPlayer.setLooping(true);
+
             }
         };
         final StateMachineManager teleOpMode1 = new StateMachineManager(statemachine) {
@@ -60,11 +58,7 @@ public class TeleOpTesting extends BasicOpmode {
                 driveState.put("drive", new DriveState(stateMachine) {
                     @Override
                     public Vector4 getWheelVelocities(SensorData sensors) {
-                        if(!gamepad1.left_bumper) {
-                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x));
-                        }else{
-                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x * 0.3, gamepad1.left_stick_y * 0.3, -gamepad1.right_stick_x * 0.3));
-                        }
+                        return Vector4.ZERO();
                     }
 
                     @Override
@@ -74,16 +68,6 @@ public class TeleOpTesting extends BasicOpmode {
                         telemetry.addData("Limit", sensors.getLiftLimit());
                         if(sensors.getLiftLimit()){
                             sensors.getCalibration().setLift(sensors.getRawLift());
-                        }
-                        if(gamepad2.b){
-                            if(!mediaPlayer.isPlaying()){
-                                mediaPlayer.start();
-                            }
-                        }else{
-                            if(mediaPlayer.isPlaying()){
-                                mediaPlayer.pause();
-                                mediaPlayer.seekTo(0);
-                            }
                         }
                     }
                 });
@@ -105,7 +89,7 @@ public class TeleOpTesting extends BasicOpmode {
                             }
                         }
                         if(gamepad2.left_bumper){
-                            //robot.calibrate(robot.getCalibration().setLift(sensors.getLift()));
+                            robot.calibrate(robot.getCalibration().setLift(sensors.getLift()));
                         }
                         if(gamepad2.right_trigger > 0.5){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
@@ -138,101 +122,33 @@ public class TeleOpTesting extends BasicOpmode {
 
                     }
                 });
-                exemptedLogicstates.put("resetMain", new LogicState(stateMachine) {
-                    long timer = 0;
-
-                    @Override
-                    public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 500;
-                        hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                    }
-
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(System.currentTimeMillis() >= timer){
-                            stateMachine.activateLogic("reset");
-                            deactivateThis();
-                        }
-                    }
-                });
-                exemptedLogicstates.put("reset", new LogicState(stateMachine) {
-                    int state = 0;
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(state == 0) {
-                            if (sensors.getLiftLimit()) {
-                                hardware.setLiftMotors(0.7);
-                            }else{
-                                state = 1;
-                            }
-                        }else if(state == 1){
-                            if (sensors.getLiftLimit()) {
-                                state = 2;
-                            }else{
-                                hardware.setLiftMotors(-0.4);
-                            }
-                        }else if(state == 2){
-                            hardware.setLiftMotors(0);
-                            stateMachine.activateLogic("lift");
-                            state = 0;
-                            deactivateThis();
-                        }
-                        if(Math.abs(gamepad2.left_stick_y) > 0.1){
-                            hardware.setLiftMotors(0);
-                            stateMachine.activateLogic("lift");
-                            state = 0;
-                            deactivateThis();
-                        }
-                    }
-                });
+                exemptedLogicstates.put("reset", HardwareConstants.resetLift(statemachine, "lift"));
                 logicStates.put("lift", new LogicState(statemachine) {
-                    boolean changeActive = false;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(currPosition >= positions.length){
                             currPosition = positions.length-1;
                         }
-                        telemetry.addData("gamepad2", gamepad2.left_stick_y);
                         if(gamepad2.dpad_up){
-                            if(!changeActive) {
-                                currPosition++;
-                                if (currPosition > 12) {
-                                    currPosition = 12;
-                                }
-                                changeActive = true;
-                            }
-                        }else if(gamepad2.dpad_down){
-                            if(!changeActive) {
-                                currPosition--;
-                                if (currPosition < 1) {
-                                    currPosition = 1;
-                                }
-                                changeActive = true;
-                            }
-                        }else{
-                            changeActive = false;
-                        }
-                        if(gamepad2.right_stick_y > 0.4){
-                            stateMachine.activateLogic("resetMain");
+                            statemachine.activateLogic("raiseLift");
                             deactivateThis();
-                        }else if(gamepad2.right_stick_y < -0.4){
-                            stateMachine.activateLogic("raiseLift");
+                        }else if(gamepad2.dpad_down){
+                            currPosition --;
+                            if(currPosition < 0){
+                                currPosition = 0;
+                            }
+                        }
+                        if(gamepad2.y){
+                            stateMachine.activateLogic("reset");
+                            deactivateThis();
+                        }else if(gamepad2.a){
+                            stateMachine.activateLogic("lowerLift");
                             deactivateThis();
                         }
                         if(Math.abs(gamepad2.left_stick_y) > 0.1) {
                             if((-gamepad2.left_stick_y) < 0){
                                 if(!sensors.getLiftLimit()) {
-                                    if(gamepad2.left_trigger > 0.1) {
-                                        if(sensors.getLift() > 700) {
-                                            hardware.setLiftMotors((-gamepad2.left_stick_y * 0.4) + 0.4);
-                                        }else if(sensors.getLift() > 300){
-                                            hardware.setLiftMotors((-gamepad2.left_stick_y * 0.4) + 0.3);
-                                        }else{
-                                            hardware.setLiftMotors((-gamepad2.left_stick_y * 0.4) + 0.1);
-                                        }
-                                    }else{
-                                        hardware.setLiftMotors(Math.max((sensors.getLift() / 10) * (-gamepad2.left_stick_y * 0.05), -0.3));
-                                    }
+                                    hardware.setLiftMotors(Math.max((sensors.getLift()/10)*(-gamepad2.left_stick_y * 0.4), -0.3));
                                 }
                             }else{
                                 hardware.setLiftMotors(-gamepad2.left_stick_y);
@@ -240,12 +156,9 @@ public class TeleOpTesting extends BasicOpmode {
                         }else{
                             hardware.setLiftMotors(0.25);
                         }
-                        if(gamepad2.right_trigger > 0.3){
+                        if(((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0 || gamepad2.right_trigger > 0))){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                        }
-                        if(((gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0))){
-                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                            hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
+                            //hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
                         }else if(hardware.getLiftServo().getA() == HardwareConstants.LIFT_INTAKE.getA()){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         }
@@ -277,12 +190,12 @@ public class TeleOpTesting extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(state == 0) {
-                            hardware.setLiftMotors(Math.max(0.9, (positions[currPosition] - sensors.getLift())/50));
+                            hardware.setLiftMotors(Math.max(0.4, ((sensors.getLift()-50) / positions[currPosition])/10));
                             if ((sensors.getLift()-50) >= positions[currPosition]) {
                                 state = 1;
                             }
                         }else if(state == 1){
-                            hardware.setLiftMotors(0.9);
+                            hardware.setLiftMotors(0.4);
                             hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
                             if((sensors.getLift()) >= positions[currPosition]){
                                 state = 2;
@@ -292,13 +205,6 @@ public class TeleOpTesting extends BasicOpmode {
                             hardware.setLiftMotors(0.25);
                             statemachine.activateLogic("lift");
                             currPosition ++;
-                            deactivateThis();
-                        }
-                        if(Math.abs(gamepad2.left_stick_y) > 0.1){
-                            hardware.setLiftMotors(0);
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                            stateMachine.activateLogic("lift");
-                            state = 0;
                             deactivateThis();
                         }
                     }
@@ -341,11 +247,7 @@ public class TeleOpTesting extends BasicOpmode {
                         }else if(gamepad1.left_trigger > 0){
                             hardware.setIntakePowers(-gamepad1.left_trigger);
                         }else{
-                            if(gamepad1.right_bumper){
-                                hardware.setIntakePowers(-1);
-                            }else {
-                                hardware.setIntakePowers(0);
-                            }
+                            hardware.setIntakePowers(0);
                         }
                         if(sensors.getIntakeTripwire() <= 12){
                             hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
@@ -369,36 +271,18 @@ public class TeleOpTesting extends BasicOpmode {
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         }
                         if(gamepad2.right_stick_x > 0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
-                        }
-                        if(gamepad2.y){
                             hardware.setLiftServo(HardwareConstants.LIFT_OUT);
-                        }
-                        if(gamepad2.left_bumper){
-                            hardware.setCapstoneLatch(0.2);
-                            capInit = true;
-                        }else{
-                            if(capInit) {
-                                hardware.setCapstoneLatch(1);
-                            }
                         }
                         telemetry.addData("Tripwire", sensors.getIntakeTripwire());
                     }
                 });
                 logicStates.put("intakeServo", new LogicState(statemachine) {
-                    int frames = 0;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(Math.abs(hardware.getIntakePowers().getA()) > 0.1) {
-                            if (sensors.getIntakeTripwire() <= 9) {
-                                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                            }
+                        if(sensors.getIntakeTripwire() <= 12){
+                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                         }else{
-                            if(gamepad1.right_bumper){
-                                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                            }else {
-                                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
-                            }
+                            hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         }
                     }
                 });
@@ -421,7 +305,7 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                     }
                 });
-                exemptedLogicstates.put("capstone", new LogicState(statemachine) {
+                logicStates.put("capstone", new LogicState(statemachine) {
                     public boolean prevState = false, servoState = false;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
@@ -429,7 +313,7 @@ public class TeleOpTesting extends BasicOpmode {
                             servoState = !servoState;
                         }
                         prevState = gamepad2.y;
-                        //hardware.setCapstoneLatch(servoState ? HardwareConstants.CAPSTONE_LATCH_ON : HardwareConstants.CAPSTONE_LATCH_OFF);
+                        hardware.setCapstoneLatch(servoState ? HardwareConstants.CAPSTONE_LATCH_ON : HardwareConstants.CAPSTONE_LATCH_OFF);
                     }
                 });
             }

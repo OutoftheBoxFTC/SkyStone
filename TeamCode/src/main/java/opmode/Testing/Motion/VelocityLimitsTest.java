@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Testing.Motion;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -15,6 +15,8 @@ import State.StateMachineManager;
 import math.Vector2;
 import math.Vector3;
 import math.Vector4;
+import opmode.BasicOpmode;
+
 @TeleOp
 public class VelocityLimitsTest extends BasicOpmode {
     SimpleOdometer odometer;

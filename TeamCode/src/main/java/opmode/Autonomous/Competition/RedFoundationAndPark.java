@@ -1,30 +1,42 @@
-package opmode;
+package opmode.Autonomous.Competition;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import Debug.Connector;
+import Debug.RecievePacket;
 import Debug.Registers;
 import HardwareSystems.Hardware;
 import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import Motion.MotionSystem;
+import Motion.Terminator.CombinedORTerminator;
 import Motion.Terminator.OrientationTerminator;
+import Motion.Terminator.PixyTerminator;
 import Motion.Terminator.RelativeOrientationTerminator;
+import Motion.Terminator.TimerTerminator;
+import Motion.Terminator.TripwireTerminator;
 import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
 import State.StateMachineManager;
+import State.VelocityDriveState;
+import math.Vector2;
 import math.Vector3;
 import math.Vector4;
+import opmode.BasicOpmode;
+
 @Autonomous
-public class BlueAutoWorstCase extends BasicOpmode {
-    SimpleOdometer odometer;
-    Vector3 position, velocity, firstSkystone;
-    Registers registers;
+public class RedFoundationAndPark extends BasicOpmode {
+    private SimpleOdometer odometer;
+    private Vector3 position, velocity, firstSkystone;
+    private Registers registers;
     long fps;
-    public BlueAutoWorstCase() {
+    public RedFoundationAndPark() {
         super(1);
     }
 
@@ -32,14 +44,18 @@ public class BlueAutoWorstCase extends BasicOpmode {
     public void setup() {
         robot.enableAll();
 
-        robot.enableDevice(Hardware.HardwareDevices.LEFT_PIXY);
+        robot.enableDevice(Hardware.HardwareDevices.RIGHT_PIXY);
         firstSkystone = Vector3.ZERO();
         HashMap<String, String> defaults = new HashMap<>();
-        defaults.put("driveToFoundation", "4, -14, 0");
-        defaults.put("driveBack", "4, -8, 0");
-        defaults.put("driveToPark", "-10, -4, 90");
+        defaults.put("driveToFoundation", "-4, -13, 0");
+        defaults.put("driveBack", "2, -6, 0");
+        defaults.put("strafeBeforeMovingToSkystones", "0, 2, -90"); //Relative
+        defaults.put("driveToSeeSkystones", "10, 2, -90");
+        defaults.put("park", "17, -12, -90");
         final HashMap<String, String> defaultTurns = new HashMap<>();
-        defaultTurns.put("turnToSkystones", "9, -1, 90");
+        defaultTurns.put("turnToSkystones", "-9, -1, -90");
+        defaultTurns.put("turnToIntakeSkystone", "0, 0, -180");
+        defaultTurns.put("turnToIntakeSkystoneV2", "0, 0, -145");
         registers = new Registers(defaults, defaultTurns);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
@@ -57,6 +73,7 @@ public class BlueAutoWorstCase extends BasicOpmode {
                 odometer.update(sensors);
                 telemetry.addData("FPS", 1000/(System.currentTimeMillis() - fps));
                 fps = System.currentTimeMillis();
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
             }
         });
         statemachine.appendLogicStates(nonManagedLogicStates);
@@ -69,7 +86,8 @@ public class BlueAutoWorstCase extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
-                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setCapstoneLatch(HardwareConstants.CAPSTONE_LATCH_OFF);
+                hardware.setLiftServo(HardwareConstants.LIFT_REST);
                 terminate = isStarted();
             }
 
@@ -77,25 +95,23 @@ public class BlueAutoWorstCase extends BasicOpmode {
             public void onStop(SensorData sensors, HardwareData hardware){
                 stateMachine.activateLogic("Odometry");
                 robot.disableDevice(Hardware.HardwareDevices.LEFT_PIXY);
-                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
             }
         };
         StateMachineManager driveToFoundation = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToFoundation"), 0.35));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToFoundation"), 0.4));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakePowers(-1);
-                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToFoundation"), 2);
+                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToFoundation"), 3);
             }
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware){
                 hardware.setLatchServos(HardwareConstants.LATCH_ON);
-                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
             }
         };
         StateMachineManager latchOnToFoundation = new StateMachineManager(statemachine) {
@@ -142,18 +158,18 @@ public class BlueAutoWorstCase extends BasicOpmode {
         final StateMachineManager driveFoundationBack = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveBack"), 0.65));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveBack"), 1));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveBack"), 2);
+                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveBack"), 3);
             }
         };
         StateMachineManager turnToSkystones = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.turn(registers.getTurn("turnToSkystones"), 0.5));
+                driveState.put("drive", system.turn(registers.getTurn("turnToSkystones"), 0.75));
             }
 
             @Override
@@ -162,26 +178,26 @@ public class BlueAutoWorstCase extends BasicOpmode {
             }
         };
         StateMachineManager strafeBeforeMovingToSkystones = new StateMachineManager(statemachine) {
-            RelativeOrientationTerminator terminator;
+            TimerTerminator terminator;
             @Override
             public void setup() {
-                terminator = new RelativeOrientationTerminator(position, new Vector3(0, -3, 90), 2);
-                driveState.put("drive", system.driveForward(new Vector3(0, -3, 90), 0.7));
-                logicStates.put("main", new LogicState(statemachine) {
+                terminator = new TimerTerminator(position, Vector3.ZERO(), 1000);
+                driveState.put("drive", new VelocityDriveState(stateMachine) {
                     @Override
-                    public void init(SensorData sensors, HardwareData hardware){
-                        terminator.start();
+                    public Vector3 getVelocities() {
+                        return new Vector3(-0.4, 0, 0);
                     }
+
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        terminate = terminator.shouldTerminate(sensors);
+
                     }
                 });
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-
+                terminate = terminator.shouldTerminate(sensors);
             }
         };
         StateMachineManager latchOffFoundation = new StateMachineManager(statemachine) {
@@ -224,26 +240,21 @@ public class BlueAutoWorstCase extends BasicOpmode {
 
             }
         };
-        StateMachineManager driveToPark = new StateMachineManager(statemachine) {
+        StateMachineManager driveToSeeSkystones = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToPark"), 0.8));
+                driveState.put("drive", system.driveToPoint(registers.getPoint("driveToSeeSkystones"), 0.8));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToPark"), 3);
+                terminate = OrientationTerminator.shouldTerminatePosition(position, registers.getPoint("driveToSeeSkystones"), 3);
             }
         };
         StateMachineManager end = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                driveState.put("stop", new DriveState(statemachine) {
+                driveState.put("stop", new DriveState(stateMachine) {
                     @Override
                     public Vector4 getWheelVelocities(SensorData sensors) {
                         return Vector4.ZERO();
@@ -251,11 +262,16 @@ public class BlueAutoWorstCase extends BasicOpmode {
 
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-
+                        terminate = false;
                     }
                 });
             }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+
+            }
         };
-        stateMachineSwitcher.init(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToPark, end);
+        stateMachineSwitcher.init(init, driveToFoundation, latchOnToFoundation, driveFoundationBack, turnToSkystones, latchOffFoundation, strafeBeforeMovingToSkystones, driveToSeeSkystones, end);
     }
 }

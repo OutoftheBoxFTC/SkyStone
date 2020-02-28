@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Testing.Connector;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -12,6 +12,8 @@ import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import State.LogicState;
 import State.StateMachineManager;
+import opmode.BasicOpmode;
+
 @TeleOp
 public class ConnectorTests extends BasicOpmode {
     Registers registers;

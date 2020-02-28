@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Testing.Motion;
 
 
 import java.util.HashMap;
@@ -12,8 +12,9 @@ import Odometer.SimpleOdometer;
 import State.LogicState;
 import State.StateMachineManager;
 import math.Vector3;
+import opmode.BasicOpmode;
 
-public class VelocityTesting extends BasicOpmode{
+public class VelocityTesting extends BasicOpmode {
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;
     Registers registers;

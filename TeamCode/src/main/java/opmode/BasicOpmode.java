@@ -15,13 +15,13 @@ import math.Vector3;
 
 public abstract class BasicOpmode extends LinearOpMode {
     protected Hardware robot;
-    StateMachine statemachine;
-    StateMachineSwitcher stateMachineSwitcher;
+    public StateMachine statemachine;
+    public StateMachineSwitcher stateMachineSwitcher;
     private double driveLoopIterations;
     private boolean debug;
-    static final double TRANSLATION_FACTOR = (0.0010329132/2);
+    public static final double TRANSLATION_FACTOR = (0.0010329132/2);
     private long timer = 0;
-    SoundMixer mixer;
+    public SoundMixer mixer;
     public BasicOpmode(double driveLoopIterations){
         this.driveLoopIterations = driveLoopIterations;
         debug = false;

@@ -1,4 +1,4 @@
-package opmode;
+package opmode.Autonomous.Competition;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
@@ -6,9 +6,11 @@ import HardwareSystems.HardwareConstants;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import State.StateMachineManager;
+import opmode.BasicOpmode;
+
 @Autonomous
-public class AbsoluteFinalWorstCaseEverythingIsGoingHorriblyWrong extends BasicOpmode {
-    public AbsoluteFinalWorstCaseEverythingIsGoingHorriblyWrong() {
+public class LatchDownPark extends BasicOpmode {
+    public LatchDownPark() {
         super(0);
     }
 
