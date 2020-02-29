@@ -59,13 +59,13 @@ public class RedAutonomous extends BasicOpmode {
         movements.put("moveToSkystone3", new Vector3(-14, 5, 40));
         movements.put("moveToIntakeBlock", new Vector3(-3, 5, 40));
         movements.put("driveToClearSkystones", new Vector3(-12, 2, 0));
-        movements.put("driveToFoundation", new Vector3(-12, -44, 0));
+        movements.put("driveToFoundation", new Vector3(-12, -40, 0));
         movements.put("turnAndDriveToFoundation", new Vector3(-20, -44, -90));
         movements.put("moveFoundationToScoringZone", new Vector3(-12, -30, 15));
         movements.put("driveBackToSkystones", new Vector3(-12, -17, 0));
         movements.put("driveBackToSkystones3", new Vector3(-12, -15, 0));
         movements.put("driveToSecondSkystone1", new Vector3(-19, -12.5, 50));
-        movements.put("driveToSecondSkystone2", new Vector3(-11, -7, 50));
+        movements.put("driveToSecondSkystone2", new Vector3(-11, -6, 50));
         movements.put("driveToSecondSkystone3", new Vector3(-12, -2, 50));
         movements.put("driveToFoundationV2", new Vector3(-11, -5, 0));
         movements.put("alignWithFoundationV2", new Vector3(-11, -40, 0));
@@ -721,8 +721,8 @@ public class RedAutonomous extends BasicOpmode {
             OrientationTerminator relativeOrientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPoint(new Vector3(13, position.getB(), 0), 0.7));
-                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(13, position.getB(), 0), 4, 5);
+                driveState.put("main", system.driveToPoint(new Vector3(14, position.getB(), 0), 0.7));
+                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(14, position.getB(), 0), 4, 5);
             }
 
             @Override

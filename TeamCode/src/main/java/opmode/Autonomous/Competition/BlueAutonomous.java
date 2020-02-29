@@ -50,13 +50,13 @@ public class BlueAutonomous extends BasicOpmode {
         movements.put("moveToSkystone3", new Vector3(-14, 5, 40));
         movements.put("moveToIntakeBlock", new Vector3(-3, 5, 40));
         movements.put("driveToClearSkystones", new Vector3(-11, 2, 0));
-        movements.put("driveToFoundation", new Vector3(-12, -42, 0));
+        movements.put("driveToFoundation", new Vector3(-12, -40, 0));
         movements.put("turnAndDriveToFoundation", new Vector3(-18, -42, -90));
         movements.put("moveFoundationToScoringZone", new Vector3(-12, -30, 15));
         movements.put("driveBackToSkystones", new Vector3(-12, -17, 0));
         movements.put("driveBackToSkystones3", new Vector3(-12, -15, 0));
         movements.put("driveToSecondSkystone1", new Vector3(-19, -12.5, 50));
-        movements.put("driveToSecondSkystone2", new Vector3(-11, -5, 50));
+        movements.put("driveToSecondSkystone2", new Vector3(-11, -4, 50));
         movements.put("driveToSecondSkystone3", new Vector3(-11, -2, 50));
         movements.put("driveToFoundationV2", new Vector3(-11, -5, 0));
         movements.put("alignWithFoundationV2", new Vector3(-11, -40, 0));
@@ -149,7 +149,7 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void setup() {
                 for(int i = 0; i < map.length; i ++){
-                    byteMap[i] = 100;
+                    byteMap[i] = 255;
                 }
                 logicStates.put("main", new LogicState(statemachine) {
                     int counter = 0;
@@ -765,7 +765,7 @@ public class BlueAutonomous extends BasicOpmode {
                         if(sensors.getLift() > 50){
                             hardware.setLiftServo(HardwareConstants.LIFT_OUT_AUTO);
                         }
-                        if(sensors.getLift() > 250){
+                        if(sensors.getLift() > 100){
                             hardware.setLiftMotors(0.2);
                             terminate = true;
                         }
@@ -935,7 +935,7 @@ public class BlueAutonomous extends BasicOpmode {
                             powers = Vector4.ZERO();
                             terminate = true;
                         }else{
-                            powers = MecanumSystem.translate(new Vector3(0, -0.4, 0));
+                            powers = MecanumSystem.translate(new Vector3(0, -0.6, 0));
                         }
                     }
                 });
@@ -947,7 +947,7 @@ public class BlueAutonomous extends BasicOpmode {
                         }
                     }
                 });
-                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5), new TimerTerminator(position, Vector3.ZERO(), 1500));
+                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5), new TimerTerminator(position, Vector3.ZERO(), 1000));
             }
 
             @Override
@@ -1058,7 +1058,7 @@ public class BlueAutonomous extends BasicOpmode {
                         if(sensors.getLift() > 50){
                             hardware.setLiftServo(HardwareConstants.LIFT_OUT_AUTO);
                         }
-                        if(sensors.getLift() > 300){
+                        if(sensors.getLift() > 150){
                             hardware.setLiftMotors(0.2);
                             terminate = true;
                         }

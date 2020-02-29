@@ -20,7 +20,7 @@ public class LatchDownPark extends BasicOpmode {
         StateMachineManager init = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
-                telemetry.addLine("Everything is going HORRIBLY wrong isn't it. I dislike this program");
+                telemetry.addData("Really?", "Everything is going HORRIBLY wrong isn't it. I dislike this program");
             }
 
             @Override
