@@ -26,6 +26,8 @@ public class LatchDownPark extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = isStarted();
+                hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
             }
         };
         StateMachineManager run = new StateMachineManager(statemachine) {
