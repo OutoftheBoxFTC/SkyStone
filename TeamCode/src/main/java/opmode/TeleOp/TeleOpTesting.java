@@ -64,7 +64,7 @@ public class TeleOpTesting extends BasicOpmode {
                         if(!gamepad1.left_bumper) {
                             return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x));
                         }else{
-                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x * 0.3, gamepad1.left_stick_y * 0.3, -gamepad1.right_stick_x * 0.3));
+                            return MecanumSystem.translate(new Vector3(gamepad1.left_stick_x * 0.4, gamepad1.left_stick_y * 0.4, -gamepad1.right_stick_x * 0.4));
                         }
                     }
 
@@ -213,14 +213,14 @@ public class TeleOpTesting extends BasicOpmode {
                         }else{
                             changeActive = false;
                         }
-                        if(gamepad2.right_stick_y > 0.4){
+                        if(gamepad2.right_stick_y > 0.95){
                             stateMachine.activateLogic("resetMain");
                             deactivateThis();
-                        }else if(gamepad2.right_stick_y < -0.4){
+                        }else if(gamepad2.right_stick_y < -0.95){
                             stateMachine.activateLogic("raiseLift");
                             deactivateThis();
                         }
-                        if(Math.abs(gamepad2.left_stick_y) > 0.1) {
+                        if(Math.abs(gamepad2.left_stick_y) > 0.5) {
                             if((-gamepad2.left_stick_y) < 0){
                                 if(!sensors.getLiftLimit()) {
                                     if(gamepad2.left_trigger > 0.1) {

@@ -56,12 +56,12 @@ public class BlueAutonomous extends BasicOpmode {
         movements.put("driveBackToSkystones", new Vector3(-12, -17, 0));
         movements.put("driveBackToSkystones3", new Vector3(-12, -15, 0));
         movements.put("driveToSecondSkystone1", new Vector3(-19, -12.5, 50));
-        movements.put("driveToSecondSkystone2", new Vector3(-11, -4, 50));
+        movements.put("driveToSecondSkystone2", new Vector3(-11, -6, 50));
         movements.put("driveToSecondSkystone3", new Vector3(-11, -2, 50));
         movements.put("driveToFoundationV2", new Vector3(-11, -5, 0));
         movements.put("alignWithFoundationV2", new Vector3(-11, -40, 0));
         movements.put("driveToThirdStone", new Vector3(-11, -10, 0));
-        movements.put("driveToThirdStone3", new Vector3(-10, -12.5, 0));
+        movements.put("driveToThirdStone3", new Vector3(-10, -20, 0));
         movements.put("moveToAlignToFoundation", new Vector3(-12, -5, 0));
         movements.put("moveToFoundationV3", new Vector3(-12, -40, 0)); //change y to -40 for 3 stone, change to -30 for 4 stone
         movements.put("moveToFourthSkystone", new Vector3(-12, -10, 0));
@@ -173,7 +173,7 @@ public class BlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         for(int i = 0; i < map.length; i ++){
-                            telemetry.addData("Position " + (i), byteMap[i]);
+                            //telemetry.addData("Position " + (i), byteMap[i]);
                         }
                     }
                 });
@@ -381,7 +381,7 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void setup() {
                 driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToClearSkystones"), 0.4, Vector3.ZERO(), true));
-                terminator = new OrientationTerminator(position, movements.get("driveToClearSkystones"), 3, 1);
+                terminator = new OrientationTerminator(position, movements.get("driveToClearSkystones"), 5, 1);
                 timerTerminator = new TimerTerminator(position, Vector3.ZERO(), 1500);
                 combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), terminator, timerTerminator);
             }
@@ -606,7 +606,7 @@ public class BlueAutonomous extends BasicOpmode {
             @Override
             public void setup() {
                 driveState.put("main", system.turn(defaultTurns.get("turnToIntake"), 0.35));
-                orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToIntake"), 4, 4);
+                orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToIntake"), 8, 4);
             }
 
             @Override
@@ -965,8 +965,8 @@ public class BlueAutonomous extends BasicOpmode {
             OrientationTerminator relativeOrientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPoint(new Vector3(-12.5, position.getB(), 0), 0.7));
-                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(-12.5, position.getB(), 0), 4, 1);
+                driveState.put("main", system.driveToPoint(new Vector3(-13, position.getB(), 0), 0.7));
+                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(-13, position.getB(), 0), 4, 1);
             }
 
             @Override
@@ -998,8 +998,8 @@ public class BlueAutonomous extends BasicOpmode {
             OrientationTerminator testTerminatorl;
             @Override
             public void setup() {
-                driveState.put("main", system.turn(defaultTurns.get("turnToZero"), 0.35));
-                orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToZero"), 2, 5);
+                driveState.put("main", system.turn(defaultTurns.get("turnToZero"), 0.2));
+                orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToZero"), 4, 2);
                 testTerminatorl = new OrientationTerminator(position, defaultTurns.get("turnToZero"), 2, 20);
             }
 

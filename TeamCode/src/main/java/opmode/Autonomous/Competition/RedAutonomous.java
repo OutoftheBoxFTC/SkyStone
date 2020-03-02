@@ -65,7 +65,7 @@ public class RedAutonomous extends BasicOpmode {
         movements.put("driveBackToSkystones", new Vector3(-12, -17, 0));
         movements.put("driveBackToSkystones3", new Vector3(-12, -15, 0));
         movements.put("driveToSecondSkystone1", new Vector3(-19, -12.5, 50));
-        movements.put("driveToSecondSkystone2", new Vector3(-11, -6, 50));
+        movements.put("driveToSecondSkystone2", new Vector3(-11, -5, 50));
         movements.put("driveToSecondSkystone3", new Vector3(-12, -2, 50));
         movements.put("driveToFoundationV2", new Vector3(-11, -5, 0));
         movements.put("alignWithFoundationV2", new Vector3(-11, -40, 0));
@@ -184,7 +184,7 @@ public class RedAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         for(int i = 0; i < map.length; i ++){
-                            telemetry.addData("Position " + (i), byteMap[i]);
+                            //telemetry.addData("Position " + (i), byteMap[i]);
                         }
                     }
                 });
