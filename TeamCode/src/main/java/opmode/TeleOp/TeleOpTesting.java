@@ -32,6 +32,9 @@ public class TeleOpTesting extends BasicOpmode {
     public void setup() {
         robot.enableAll();
         robot.disableDevice(Hardware.HardwareDevices.SIDE_LASERS);
+        robot.disableDevice(Hardware.HardwareDevices.ODOMETRY);
+        robot.disableDevice(Hardware.HardwareDevices.BLINKIN);
+        robot.disableDevice(Hardware.HardwareDevices.GYRO);
         StateMachineManager initManager = new StateMachineManager(statemachine) {
             @Override
             public void setup() {
@@ -348,6 +351,11 @@ public class TeleOpTesting extends BasicOpmode {
                                 hardware.setIntakePowers(0);
                             }
                         }
+                        if(gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0 || gamepad1.right_bumper){
+                            robot.enableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
+                        }else{
+                            robot.disableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
+                        }
                         if(sensors.getIntakeTripwire() <= 12){
                             hardware.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
                         }
@@ -392,7 +400,14 @@ public class TeleOpTesting extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(Math.abs(hardware.getIntakePowers().getA()) > 0.1) {
                             if (sensors.getIntakeTripwire() <= 9) {
+                                frames ++;
+                            }else{
+                                frames = 0;
+                            }
+                            if(frames > 5){
                                 hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                            }else{
+                                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                             }
                         }else{
                             if(gamepad1.right_bumper){

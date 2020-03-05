@@ -15,6 +15,7 @@ import math.Vector3;
 
 public abstract class BasicOpmode extends LinearOpMode {
     protected Hardware robot;
+    private Thread robotThread;
     public StateMachine statemachine;
     public StateMachineSwitcher stateMachineSwitcher;
     private double driveLoopIterations;
@@ -49,10 +50,13 @@ public abstract class BasicOpmode extends LinearOpMode {
         HardwareData hardware = new HardwareData(System.currentTimeMillis());
         robot.init();
         robot.calibrate();
+        robotThread = new Thread(robot);
+        robotThread.start();
         double currentLoops = 1;
         while(!isStopRequested()){
             hardware.setTimestamp(System.currentTimeMillis());
-            SensorData sensors = robot.update(hardware);
+            robot.setData(hardware);
+            SensorData sensors = robot.getSensors();
             if(!stateMachineSwitcher.isStarted()){
                 stateMachineSwitcher.start(sensors, hardware);
             }
@@ -86,6 +90,7 @@ public abstract class BasicOpmode extends LinearOpMode {
                 }
             }
         }
+        robotThread.interrupt();
         mixer.stopAll();
     }
 

@@ -28,7 +28,7 @@ import math.Vector2;
 import math.Vector3;
 import math.Vector4;
 
-public class Hardware {
+public class Hardware implements Runnable {
     private SmartMotor frontLeft, frontRight, backLeft, backRight, intakeLeft, intakeRight, liftMotorLeft, liftMotorRight;
     private SmartServo leftLatch, rightLatch, intakeServoLeft, intakeServoRight, liftServoLeft, liftServoRight, intakeLatch, capstoneLatch;
     private Rev2mDistanceSensor intakeTripwire, leftSensor, rightSensor;
@@ -40,6 +40,8 @@ public class Hardware {
     private BNO055IMU imu;
     private Pixycam pixy;
     private TouchSensor liftLimit;
+    private SensorData sensors;
+    private HardwareData data;
 
 
     /**
@@ -148,6 +150,7 @@ public class Hardware {
             double tau = Math.PI * 2;
             calibration.setGyro(((yaw % tau) + tau) % tau);
         }
+        sensors = new SensorData(calibration, System.currentTimeMillis());
     }
 
     public void calibrate(CalibrationSystem calibration){
@@ -156,72 +159,81 @@ public class Hardware {
 
     /**
      * updates all sensors and hardware devices from the HardwareData
-     * @param data HardwareData class to assign all hardware devices values
-     * @return SensorData class containing new sensor data
      */
-    public SensorData update(HardwareData data){
-        SensorData sensors = new SensorData(calibration, System.currentTimeMillis());
-        if(enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)){
-            Vector4 motorPowers = data.getMotorPowers();
-            frontLeft.setPower(motorPowers.getA());
-            frontRight.setPower(motorPowers.getB());
-            backLeft.setPower(motorPowers.getC());
-            backRight.setPower(motorPowers.getD());
-            data.setBattery(getBatteryLevel());
-        }
-        if(enabledDevices.contains(HardwareDevices.LATCH_SERVOS)){
-            Vector2 servoPositions = data.getLatchPositions();
-            leftLatch.setPosition(servoPositions.getA());
-            rightLatch.setPosition(servoPositions.getB());
-        }
-        if(enabledDevices.contains(HardwareDevices.ODOMETRY)) {
-            sensors.setOdometryEncoders(intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
-        }
-        if(enabledDevices.contains(HardwareDevices.SIDE_LASERS)){
-            sensors.setLeftLaser(leftSensor.getDistance(DistanceUnit.INCH));
-            sensors.setRightLaser(rightSensor.getDistance(DistanceUnit.INCH));
-        }
-        if(enabledDevices.contains(HardwareDevices.INTAKE)){
-            intakeLeft.setPower(data.getIntakePowers().getA());
-            intakeRight.setPower(data.getIntakePowers().getB());
-            intakeServoLeft.setPosition(data.getIntakeServos().getA());
-            intakeServoRight.setPosition(data.getIntakeServos().getB());
-        }
-        if(enabledDevices.contains(HardwareDevices.GYRO)) {
-            Orientation orientation = imu.getAngularOrientation();
-            double yaw = orientation.firstAngle;
-            double tau = Math.PI * 2;
-            sensors.setGyro(((yaw % tau) + tau) % tau);
-        }
-        if(enabledDevices.contains(HardwareDevices.LEFT_PIXY) || enabledDevices.contains(HardwareDevices.RIGHT_PIXY)){
-            sensors.setPixy(pixy.getCoordinateColor());
-        }
-        if(enabledDevices.contains(HardwareDevices.LIFT_MOTORS)){
-            liftMotorLeft.setPower(data.getLiftMotors());
-            liftMotorRight.setPower(data.getLiftMotors());
-            sensors.setLift(-liftMotorLeft.getMotor().getCurrentPosition());
-            sensors.setLiftLimit(liftLimit.isPressed());
-        }
-        if(enabledDevices.contains(HardwareDevices.LIFT_SERVOS)){
-            liftServoLeft.setPosition(data.getLiftServo().getA());
-            liftServoRight.setPosition(data.getLiftServo().getB());
-        }
-        if(enabledDevices.contains(HardwareDevices.INTAKE_LATCH)){
-            intakeLatch.setPosition(data.getIntakeLatch());
-        }
-        if(enabledDevices.contains(HardwareDevices.INTAKE_TRIPWIRE)){
-            sensors.setIntakeTripwire(intakeTripwire.getDistance(DistanceUnit.INCH));
-        }
-        if(enabledDevices.contains(HardwareDevices.BLINKIN)){
-            blinkinIndicator.setPattern(data.getPattern());
-        }
-        if(enabledDevices.contains(HardwareDevices.CAPSTONE_LATCH)){
-            capstoneLatch.setPosition(data.getCapstoneLatch());
-            if(data.getCaptstoneLatchStatus()){
-                capstoneLatch.disableServo();
+    @Override
+    public void run(){
+        while(!Thread.currentThread().isInterrupted()) {
+            sensors.setTimestamp(System.currentTimeMillis());
+            sensors.setCalibration(calibration);
+            if (enabledDevices.contains(HardwareDevices.DRIVE_MOTORS)) {
+                Vector4 motorPowers = data.getMotorPowers();
+                frontLeft.setPower(motorPowers.getA());
+                frontRight.setPower(motorPowers.getB());
+                backLeft.setPower(motorPowers.getC());
+                backRight.setPower(motorPowers.getD());
+                data.setBattery(getBatteryLevel());
+            }
+            if (enabledDevices.contains(HardwareDevices.LATCH_SERVOS)) {
+                Vector2 servoPositions = data.getLatchPositions();
+                leftLatch.setPosition(servoPositions.getA());
+                rightLatch.setPosition(servoPositions.getB());
+            }
+            if (enabledDevices.contains(HardwareDevices.ODOMETRY)) {
+                sensors.setOdometryEncoders(intakeLeft.getMotor().getCurrentPosition(), intakeRight.getMotor().getCurrentPosition(), frontLeft.getMotor().getCurrentPosition());
+            }
+            if (enabledDevices.contains(HardwareDevices.SIDE_LASERS)) {
+                sensors.setLeftLaser(leftSensor.getDistance(DistanceUnit.INCH));
+                sensors.setRightLaser(rightSensor.getDistance(DistanceUnit.INCH));
+            }
+            if (enabledDevices.contains(HardwareDevices.INTAKE)) {
+                intakeLeft.setPower(data.getIntakePowers().getA());
+                intakeRight.setPower(data.getIntakePowers().getB());
+                intakeServoLeft.setPosition(data.getIntakeServos().getA());
+                intakeServoRight.setPosition(data.getIntakeServos().getB());
+            }
+            if (enabledDevices.contains(HardwareDevices.GYRO)) {
+                Orientation orientation = imu.getAngularOrientation();
+                double yaw = orientation.firstAngle;
+                double tau = Math.PI * 2;
+                sensors.setGyro(((yaw % tau) + tau) % tau);
+            }
+            if (enabledDevices.contains(HardwareDevices.LEFT_PIXY) || enabledDevices.contains(HardwareDevices.RIGHT_PIXY)) {
+                sensors.setPixy(pixy.getCoordinateColor());
+            }
+            if (enabledDevices.contains(HardwareDevices.LIFT_MOTORS)) {
+                liftMotorLeft.setPower(data.getLiftMotors());
+                liftMotorRight.setPower(data.getLiftMotors());
+                sensors.setLift(-liftMotorLeft.getMotor().getCurrentPosition());
+                sensors.setLiftLimit(liftLimit.isPressed());
+            }
+            if (enabledDevices.contains(HardwareDevices.LIFT_SERVOS)) {
+                liftServoLeft.setPosition(data.getLiftServo().getA());
+                liftServoRight.setPosition(data.getLiftServo().getB());
+            }
+            if (enabledDevices.contains(HardwareDevices.INTAKE_LATCH)) {
+                intakeLatch.setPosition(data.getIntakeLatch());
+            }
+            if (enabledDevices.contains(HardwareDevices.INTAKE_TRIPWIRE)) {
+                sensors.setIntakeTripwire(intakeTripwire.getDistance(DistanceUnit.INCH));
+            }
+            if (enabledDevices.contains(HardwareDevices.BLINKIN)) {
+                blinkinIndicator.setPattern(data.getPattern());
+            }
+            if (enabledDevices.contains(HardwareDevices.CAPSTONE_LATCH)) {
+                capstoneLatch.setPosition(data.getCapstoneLatch());
+                if (data.getCaptstoneLatchStatus()) {
+                    capstoneLatch.disableServo();
+                }
             }
         }
+    }
+
+    public SensorData getSensors() {
         return sensors;
+    }
+
+    public void setData(HardwareData data) {
+        this.data = data;
     }
 
     public <T> T getOrNull(HardwareMap map, Class<T> type, String name) {

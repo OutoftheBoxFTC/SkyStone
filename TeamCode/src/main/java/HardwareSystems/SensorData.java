@@ -9,6 +9,21 @@ public class SensorData {
     public SensorData(CalibrationSystem calibration, long timestamp){
         this.timestamp = timestamp;
         this.calibration = calibration;
+        this.leftEncoder = 0;
+        this.rightEncoder = 0;
+        this.auxEncoder = 0;
+        this.gyro = 0;
+        this.lift = 0;
+        this.intakeTripwire = 0;
+        this.leftLaser = 0;
+        this.rightLaser = 0;
+        this.rawLift = 0;
+    }
+    public void setTimestamp(long timestamp){
+        this.timestamp = timestamp;
+    }
+    public void setCalibration(CalibrationSystem calibration){
+        this.calibration = calibration;
     }
     public void setOdometryEncoders(double leftEncoder, double rightEncoder, double auxEncoder){
         this.leftEncoder = leftEncoder - calibration.getLeft();

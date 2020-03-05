@@ -51,26 +51,39 @@ public class CircleCorrectionVector extends VelocityDriveState {
         }
         RobotLog.i(localTarget.toString());
         Vector2 powers = localTarget.add(posCoord.scale(-1));
-        double r = Math.sqrt((powers.getA() * powers.getA()) + (powers.getB() * powers.getB()));
-        double theta = Math.atan2(powers.getB(), powers.getA()) + sensors.getGyro();
-        powers.set(new Vector2(r * (Math.cos(theta)), r * (Math.sin(theta))));
-        double scaleVal = Math.sqrt((powers.getA() * powers.getA()) + (powers.getB() * powers.getB()));
+        double x = powers.getA();
+        double y = powers.getB();
+        double theta = Math.atan2(y,x);
+        double r = Math.sqrt((y * y) + (x * x));
+        theta += sensors.getGyro();
+        x = r * Math.cos(theta);
+        y = r * Math.sin(theta);
+        if(Math.abs(x) < 5){
+            x *= 0.1;
+        }
+        if(Math.abs(y) < 5){
+            y *= 0.1;
+        }
+        double comb = Math.abs(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)));
+        x = x/comb;
+        y = y/comb;
+        x *= power;
+        y *= power;
         double targetRot = target.getC();
-        powers.set(powers.scale((1/scaleVal)));
-        //Connector.getInstance().addTelemetry("Powers", powers.toString());
-        //Connector.getInstance().addTelemetry("Rotation", targetRot);
-        powers.set(powers.scale(power));
         double rotation = (targetRot - Math.toDegrees(sensors.getGyro()));
         if(rotation > 180){
             rotation = (targetRot - (360 + Math.toDegrees(sensors.getGyro())));
         }else if(rotation < -180){
             rotation = ((360 + targetRot) - Math.toDegrees(sensors.getGyro()));
         }
-        RobotLog.i(powers.toString());
-        RobotLog.i(String.valueOf(rotation));
-        rotation = rotation / 360;
-        rotation *= power;
-        velocities.set(new Vector3(powers.getA(), -powers.getB(), 0));
+        if(rotation > 0){
+            rotation = 0.2;
+        }else if(rotation < 0){
+            rotation = -0.2;
+        }else{
+            rotation = 0;
+        }
+        velocities.set(new Vector3(x, -y, rotation));
     }
 
     private Vector4 findLineCircleIntersections(
