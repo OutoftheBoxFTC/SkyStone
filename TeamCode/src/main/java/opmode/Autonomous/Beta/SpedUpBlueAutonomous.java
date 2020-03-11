@@ -11,6 +11,7 @@ import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import Motion.CircleCorrectionVector;
 import Motion.CorrectionVectorStrafeBiased;
+import Motion.CurveBuilder;
 import Motion.MecanumSystem;
 import Motion.MotionSystem;
 import Motion.Terminator.CombinedORTerminator;
@@ -22,6 +23,7 @@ import Odometer.SimpleOdometer;
 import State.DriveState;
 import State.LogicState;
 import State.StateMachineManager;
+import math.Vector2;
 import math.Vector3;
 import math.Vector4;
 import opmode.BasicOpmode;
@@ -44,7 +46,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
         movements.put("driveToFoundation", new Vector3(-12, -40, -90));
         movements.put("turnAndDriveToFoundation", new Vector3(-18, -42, -90));
         movements.put("moveFoundationToScoringZone", new Vector3(-12, -30, 15));
-        movements.put("driveBackToSkystones", new Vector3(-12, -17, 0));
+        movements.put("driveBackToSkystones", new Vector3(-12, -15, 0));
         movements.put("driveBackToSkystones3", new Vector3(-12, -15, 0));
         movements.put("driveToSecondSkystone1", new Vector3(-19, -12.5, 50));
         movements.put("driveToSecondSkystone2", new Vector3(-11, -6, 50));
@@ -73,6 +75,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
         final MotionSystem system = new MotionSystem(statemachine, position, velocity);
         final HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
+        final CurveBuilder curveBuilder = new CurveBuilder(statemachine, position);
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override
             public void init(SensorData sensors, HardwareData hardware){
@@ -84,6 +87,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 odometer.update(sensors);
                 telemetry.addData("Position", position);
                 telemetry.addData("Voltage", hardware.getBattery());
+                telemetry.addData("tripwire", sensors.getIntakeTripwire());
                 RobotLog.i("Voltage: " + hardware.getBattery());
                 RobotLog.i("Time remaining: " + String.valueOf(30 - ((System.currentTimeMillis()-globTimer)/1000.0)));
             }
@@ -93,7 +97,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
 
             @Override
             public void init(SensorData sensors, HardwareData hardware) {
-                timer = System.currentTimeMillis() + 600;
+                timer = System.currentTimeMillis() + 100;
                 hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
             }
 
@@ -102,10 +106,10 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 if(System.currentTimeMillis() > (timer - 200)){
                     hardware.setLiftServo(HardwareConstants.LIFT_REST);
                 }
-                if(System.currentTimeMillis() > (timer)){
+                if(System.currentTimeMillis() >= (timer)){
                     hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
                 }
-                if(System.currentTimeMillis() > (timer + 50)){
+                if(System.currentTimeMillis() > (timer+10)){
                     deactivateThis();
                 }
             }
@@ -113,12 +117,46 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
         nonManagedLogicStates.put("liftScore", new LogicState(statemachine) {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                if(sensors.getLift() < 250){
-                    hardware.setLiftMotors(1);
+                if(sensors.getLift() < 100){
+                    hardware.setLiftMotors(0.5);
                 }else{
                     hardware.setLiftMotors(0.2);
-                    hardware.setLiftServo(HardwareConstants.LIFT_OUT_AUTO);
                     deactivateThis();
+                }
+                if(sensors.getLift() > 50){
+                    hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
+                }
+            }
+        });
+        nonManagedLogicStates.put("scoreBlock", new LogicState(statemachine) {
+            long timer = 0;
+            boolean unlatched = false;
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                if(timer == 0) {
+                    if (sensors.getLift() < 60) {
+                        hardware.setLiftMotors(0.75);
+                    } else {
+                        hardware.setLiftMotors(0.2);
+                        timer = System.currentTimeMillis() + 400;
+                    }
+                    if (sensors.getLift() > 25) {
+                        hardware.setLiftServo(HardwareConstants.LIFT_SCORING_POSITION);
+                    }
+                }
+                if(System.currentTimeMillis() > timer && !unlatched && timer != 0){
+                    hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                    unlatched = true;
+                    timer = System.currentTimeMillis() + 150;
+                }
+                if(System.currentTimeMillis() > timer && unlatched && timer != 0){
+                    hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                    if(!sensors.getLiftLimit()){
+                        hardware.setLiftMotors(-0.4);
+                    }else{
+                        hardware.setLiftMotors(0);
+                        deactivateThis();
+                    }
                 }
             }
         });
@@ -157,6 +195,12 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 }
                 logicStates.put("main", new LogicState(statemachine) {
                     int counter = 0;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        robot.disableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
+                    }
+
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(y > 207){
@@ -303,7 +347,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(System.currentTimeMillis() > timer){
-                            hardware.setIntakePowers(1);
+                            hardware.setIntakePowers(0.6);
                             hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                         }
                     }
@@ -318,7 +362,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-
+                robot.enableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
             }
         };
         StateMachineManager driveToIntakeBlock = new StateMachineManager(statemachine) {
@@ -331,8 +375,14 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 logicStates.put("intake", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(sensors.getIntakeTripwire() < 9){
+                        if(sensors.getIntakeTripwire() < 10){
+                            hardware.setIntakePowers(1);
                             hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+                        }
+                        if(sensors.getLift() < 10){
+                            hardware.setLiftMotors(0.5);
+                        }else{
+                            hardware.setLiftMotors(0.2);
                         }
                     }
                 });
@@ -346,14 +396,14 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                         deactivateThis();
                     }
                 });
-                orientationTerminator = new TimerTerminator(position, Vector3.ZERO(), 1500);
-                tripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 8.5, 1);
+                orientationTerminator = new TimerTerminator(position, Vector3.ZERO(), 1000);
+                tripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 5.5, 5);
                 terminator = new CombinedORTerminator(position, Vector3.ZERO(), orientationTerminator, tripwireTerminator);
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = terminator.shouldTerminate(sensors);
+                terminate = orientationTerminator.shouldTerminate(sensors);
             }
 
             @Override
@@ -361,70 +411,37 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 hardware.setLiftServo(HardwareConstants.LIFT_REST);
             }
         };
-        final StateMachineManager strafeToClearSkystones = new StateMachineManager(statemachine) {
-            OrientationTerminator relativeOrientationTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveToPoint(new Vector3(-12, position.getB(), 0), 1));
-                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(-12, position.getB(), 0), 2, 4);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = relativeOrientationTerminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-                statemachine.activateLogic("clampOn");
-            }
-        };
-        StateMachineManager driveToClearSkystones = new StateMachineManager(statemachine) {
-            OrientationTerminator terminator;
-            TimerTerminator timerTerminator;
-            CombinedORTerminator combinedORTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToClearSkystones"), 0.6, Vector3.ZERO(), true));
-                terminator = new OrientationTerminator(position, movements.get("driveToClearSkystones"), 5, 1);
-                timerTerminator = new TimerTerminator(position, Vector3.ZERO(), 1500);
-                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), terminator, timerTerminator);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = combinedORTerminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
-                hardware.setIntakePowers(-1);
-            }
-        };
-        StateMachineManager driveToSkybridge = new StateMachineManager(statemachine) {
-            OrientationTerminator terminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveToPoint(movements.get("driveToBridge"), 1));
-                terminator = new OrientationTerminator(position, Vector3.ZERO(), 5, 1);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = terminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-
-            }
-        };
         StateMachineManager driveToFoundation = new StateMachineManager(statemachine) {
             OrientationTerminator terminator;
             @Override
             public void setup() {
-                driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToFoundation"), 1, Vector3.ZERO(), true, 0.7));
+                driveState.put("main", curveBuilder.newCurve()
+                                .setSpline(new Vector2(-12, position.getB()))
+                                .setSpline(new Vector2(-12, -35))
+                                .setSpeed(1)
+                                .setMinPower(0.4)
+                                .complete());
+                logicStates.put("timer", new LogicState(stateMachine) {
+                    long timer = 0;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        timer = System.currentTimeMillis() + 300;
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(!sensors.getLiftLimit()){
+                            hardware.setLiftMotors(-0.2);
+                        }else{
+                            hardware.setLiftMotors(0);
+                        }
+                        if(System.currentTimeMillis() > timer){
+                            hardware.setIntakePowers(-0.5);
+                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                        }
+                    }
+                });
                 terminator = new OrientationTerminator(position, movements.get("driveToFoundation"), 10, 1);
             }
 
@@ -435,7 +452,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                stateMachine.activateLogic("liftScore");
+                hardware.setLatchServos(HardwareConstants.LATCH_MID);
             }
         };
         StateMachineManager turnABitMore = new StateMachineManager(statemachine) {
@@ -449,6 +466,12 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = orientationTerminator.shouldTerminateRotation();
+                hardware.setLatchServos(HardwareConstants.LATCH_MID);
+            }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware) {
+                hardware.setLatchServos(HardwareConstants.LATCH_MID);
             }
         };
         StateMachineManager turnToLatchOn = new StateMachineManager(statemachine) {
@@ -467,6 +490,8 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_ON);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                stateMachine.activateLogic("scoreBlock");
             }
         };
         StateMachineManager waitForLatchOn = new StateMachineManager(statemachine) {
@@ -488,7 +513,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
 
                     @Override
                     public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 250;
+                        timer = System.currentTimeMillis() + 1000; //You can't do anything right
                     }
 
                     @Override
@@ -546,6 +571,9 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLatchServos(HardwareConstants.LATCH_OFF);
                 hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+
             }
         };
         StateMachineManager resetLift1 = new StateMachineManager(statemachine) {
@@ -572,13 +600,14 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
 
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftMotors(-0.3);
+                        hardware.setLiftMotors(-0.5);
                         if(System.currentTimeMillis() > timer){
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         }
                         if(sensors.getLiftLimit()){
                             hardware.setLiftMotors(0);
                             hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                            robot.enableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
                             terminate = true;
                         }
                     }
@@ -593,47 +622,13 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLiftMotors(0);
-            }
-        };
-        StateMachineManager driveBackToSkystones = new StateMachineManager(statemachine) {
-            OrientationTerminator orientationTerminator;
-            @Override
-            public void setup() {
-                if(skystonePos == 3){
-                    driveState.put("main", system.driveToPointLinSlowdown(movements.get("driveBackToSkystones3"), 1));
-                    orientationTerminator = new OrientationTerminator(position, movements.get("driveBackToSkystones3"), 4, 1);
-                }else{
-                    driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveBackToSkystones"), 1, Vector3.ZERO(), true));
-                    orientationTerminator = new OrientationTerminator(position, movements.get("driveBackToSkystones"), 4, 1);
-                }
-
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = orientationTerminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-                hardware.setIntakePowers(-1);
+                hardware.setIntakePowers(0.6);
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
-                hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
-            }
-        };
-        StateMachineManager turnToIntake = new StateMachineManager(statemachine) {
-            OrientationTerminator orientationTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.turn(defaultTurns.get("turnToIntake"), 1));
-                orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToIntake"), 8, 10);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = orientationTerminator.shouldTerminateRotation();
-                hardware.setIntakePowers(-1);
-                //terminate = true;
+                hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                if(stateMachine.logicStateActive("scoreBlock")){
+                    stateMachine.deactivateLogic("scoreBlock");
+                }
+                robot.enableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
             }
         };
         StateMachineManager driveBackForSecondSkystone = new StateMachineManager(statemachine) {
@@ -645,40 +640,80 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 logicStates.put("intake", new LogicState(statemachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(sensors.getIntakeTripwire() < 9){
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                        }
+
                     }
                 });
                 telemetry.addData("Skystone", skystonePos);
-                variedTripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 8.5, 1);
                 if(skystonePos == 2){
-                    driveState.put("main", system.driveToPoint(movements.get("driveToSecondSkystone2"), 1));
+                    driveState.put("main", curveBuilder.newCurve()
+                            .setSpline(new Vector2(-12, -15))
+                            .setSpline(new Vector2(-11, -6))
+                            .complete());
                     terminator = new OrientationTerminator(position, movements.get("driveToSecondSkystone2"), 5, 0);
                 }else if(skystonePos == 3){
-                    driveState.put("main", system.driveToPoint(movements.get("driveToSecondSkystone3"), 1));
-                    terminator = new OrientationTerminator(position, movements.get("driveToSecondSkystone3"), 5, 0);
+                    driveState.put("main", curveBuilder.newCurve()
+                            .setSpline(new Vector2(-12, -13))
+                            .setSpline(new Vector2(-12, -6))
+                            .setSpline(new Vector2(-15, -6))
+                            .setAngle(0)
+                            .setTurnStartDistance(10)
+                            .setInitialAngle(0)
+                            .complete());
+                    terminator = new OrientationTerminator(position, new Vector3(-15, -12.5, 0), 5, 0);
                 }else{
-                    driveState.put("main", system.driveToPoint(movements.get("driveToSecondSkystone1"), 1));
-                    terminator = new OrientationTerminator(position, movements.get("driveToSecondSkystone1"), 5, 0);
+                    driveState.put("main", curveBuilder.newCurve()
+                            .setSpline(new Vector2(-12, -13))
+                            .setSpline(new Vector2(-12, -8))
+                            .setSpline(new Vector2(-20, -8))
+                            .setAngle(40)
+                            .setTurnStartDistance(15)
+                            .setInitialAngle(0)
+                            .complete());
+                    terminator = new OrientationTerminator(position, new Vector3(-15, -8, 0), 2, 0);
                 }
-                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new CombinedORTerminator(position, Vector3.ZERO(), terminator, variedTripwireTerminator), new TimerTerminator(position, Vector3.ZERO(), 2000));
+                logicStates.put("lift", new LogicState(stateMachine) {
+                    long timer = 0;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        timer = System.currentTimeMillis();
+                    }
+
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(System.currentTimeMillis() >= timer){
+                            if(stateMachine.logicStateActive("scoreBlock")){
+                                stateMachine.deactivateLogic("scoreBlock");
+                            }
+                            if(sensors.getLift() < 20){
+                                hardware.setLiftMotors(0.5);
+                            }else{
+                                hardware.setLiftMotors(0.3);
+                            }
+                        }
+                    }
+                });
+                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), terminator, new TimerTerminator(position, Vector3.ZERO(), 2000));
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = combinedORTerminator.shouldTerminate(sensors);
                 telemetry.addData("Skystone", skystonePos);
+                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                hardware.setLiftServo(HardwareConstants.LIFT_REST);
             }
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                hardware.setIntakePowers(1);
+                hardware.setIntakePowers(0.8);
                 hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
             }
         };
         StateMachineManager moveABitMoreToGetTheSecondSkystone = new StateMachineManager(statemachine) {
             CombinedORTerminator combinedORTerminator;
+            TimerTerminator timerTerminator;
             @Override
             public void setup() {
                 logicStates.put("intake", new LogicState(statemachine) {
@@ -713,67 +748,91 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                     }
                 });
                 combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new VariedTripwireTerminator(position, Vector3.ZERO(), 8, 1), new TimerTerminator(position, Vector3.ZERO(), 750));
+                timerTerminator = new TimerTerminator(position, Vector3.ZERO(), 750);
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = combinedORTerminator.shouldTerminate(sensors);
+                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
             }
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
+            }
+        };
+        StateMachineManager driveWhileIntakingBlock = new StateMachineManager(statemachine) {
+            OrientationTerminator terminator, orientationTerminator, latchOnTerminator;
+            @Override
+            public void setup() {
+                driveState.put("main", curveBuilder.newCurve()
+                        .setSpline(new Vector2(-10, position.getB()))
+                        .setSpline(new Vector2(-10, -40))
+                        .setRadius(1)
+                        .setSpeed(0.4)
+                        .complete());
+                logicStates.put("lift", new LogicState(stateMachine) {
+                    @Override
+                    public void update(SensorData sensors, HardwareData hardware) {
+                        if(sensors.getIntakeTripwire() < 2) {
+                            if (!sensors.getLiftLimit()) {
+                                hardware.setLiftMotors(-0.5);
+                            } else {
+                                hardware.setLiftMotors(0);
+                                terminate = true;
+                            }
+                        }
+                        if(sensors.getLift() < 20){
+                            hardware.setLiftMotors(0.5);
+                        }else{
+                            hardware.setLiftMotors(0.3);
+                        }
+                    }
+                });
+                terminator = new OrientationTerminator(position, new Vector3(-11, -30, 0), 8, 1);
+            }
+
+            @Override
+            public void update(SensorData sensors, HardwareData hardware) {
+                terminate = (terminator.shouldTerminate(sensors) || (sensors.getIntakeTripwire() < 3));
+                hardware.setIntakePowers(1);
+
+            }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLiftServo(HardwareConstants.LIFT_REST);
             }
         };
-        StateMachineManager strafeToClearSkystonesV2 = new StateMachineManager(statemachine) {
-            OrientationTerminator relativeOrientationTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveToPoint(new Vector3(-12, position.getB(), 0), 1));
-                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(-12, position.getB(), 0), 2, 4);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = relativeOrientationTerminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-                statemachine.activateLogic("clampOn");
-                hardware.setIntakePowers(-1);
-            }
-        };
-        StateMachineManager clearBlocksV2 = new StateMachineManager(statemachine) {
-            OrientationTerminator terminator;
-            @Override
-            public void setup() {
-                driveState.put("main", new CircleCorrectionVector(stateMachine, position, movements.get("driveToBridge2"), movements.get("driveToFoundationV2"), 1, 6));
-                terminator = new OrientationTerminator(position, movements.get("driveToBridge2"), 10, 1);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = terminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-                stateMachine.activateLogic("liftScore");
-            }
-        };
         StateMachineManager driveToFoundationSecondTime = new StateMachineManager(statemachine) {
-            OrientationTerminator terminator;
+            OrientationTerminator terminator, orientationTerminator, latchOnTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPointLinSlowdown(movements.get("alignWithFoundationV2"), 1));
-                terminator = new OrientationTerminator(position, movements.get("alignWithFoundationV2"), 8, 1);
+                driveState.put("main", curveBuilder.newCurve()
+                        .setSpline(new Vector2(-10, position.getB()))
+                        .setSpline(new Vector2(-10, -40))
+                        .setRadius(1)
+                        .setMinPower(0.2)
+                        .complete());
+                terminator = new OrientationTerminator(position, new Vector3(-11, -30, 0), 8, 1);
+                orientationTerminator = new OrientationTerminator(position, new Vector3(-11, -30, 0), 15, 1);
+                latchOnTerminator = new OrientationTerminator(position, new Vector3(-11, -30, 0), 20, 1);
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = terminator.shouldTerminate(sensors);
+                if(latchOnTerminator.shouldTerminate(sensors)){
+                    hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                }
+                hardware.setIntakePowers(1);
+
+            }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware) {
+
             }
         };
         StateMachineManager waitToStopMovingForSecondSkystone = new StateMachineManager(statemachine) {
@@ -791,9 +850,19 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                     }
                 });
                 logicStates.put("main", new LogicState(stateMachine) {
+                    long timer = 0;
+
+                    @Override
+                    public void init(SensorData sensors, HardwareData hardware) {
+                        timer = System.currentTimeMillis() + 100;
+                        //hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                    }
+
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        terminate = true;
+                        if(System.currentTimeMillis() > timer) {
+                            terminate = true;
+                        }
                     }
                 });
             }
@@ -821,24 +890,35 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
 
                     }
                 });
-                logicStates.put("main", new LogicState(statemachine) {
+                logicStates.put("lift", new LogicState(stateMachine) {
                     long timer = 0;
-                    long timer2 = 0;
-
-                    @Override
-                    public void init(SensorData sensors, HardwareData hardware) {
-                        timer = System.currentTimeMillis() + 500;
-                        timer2 = System.currentTimeMillis() + 750;
-                    }
-
+                    boolean unlatched = false;
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        if(System.currentTimeMillis() >= timer){
-                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                        if(timer == 0) {
+                            if (sensors.getLift() < 200) {
+                                hardware.setLiftMotors(0.75);
+                            } else {
+                                hardware.setLiftMotors(0.2);
+                                timer = System.currentTimeMillis() + 150;
+                            }
+                            if (sensors.getLift() > 100) {
+                                hardware.setLiftServo(HardwareConstants.LIFT_OUT_AUTO);
+                            }
                         }
-                        if(System.currentTimeMillis() >= timer2){
-                            //hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
-                            terminate = true;
+                        if(System.currentTimeMillis() > timer && !unlatched && timer != 0){
+                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                            unlatched = true;
+                            timer = System.currentTimeMillis() + 150;
+                        }
+                        if(System.currentTimeMillis() > timer && unlatched && timer != 0){
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
+                            if(!sensors.getLiftLimit()){
+                                hardware.setLiftMotors(-0.5);
+                            }else{
+                                hardware.setLiftMotors(0);
+                                terminate = true;
+                            }
                         }
                     }
                 });
@@ -846,14 +926,14 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-
+                //terminate = (hardware.getIntakeLatch() == HardwareConstants.INTAKE_LATCH_OFF);
             }
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                 hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                hardware.setIntakePowers(-1);
+                //hardware.setIntakePowers(-1);
             }
         };
         StateMachineManager resetLift2 = new StateMachineManager(statemachine) {
@@ -873,9 +953,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 logicStates.put("main", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
-                        hardware.setLiftMotors(-0.3);
                         if(sensors.getLiftLimit()){
-                            hardware.setLiftMotors(0);
                             terminate = true;
                         }
                     }
@@ -890,6 +968,8 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLiftMotors(0);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setIntakePowers(0.6);
             }
         };
         StateMachineManager driveToThirdStone = new StateMachineManager(statemachine) {
@@ -900,8 +980,14 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                     driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToThirdStone3"), 1, Vector3.ZERO()));
                     orientationTerminator = new OrientationTerminator(position, movements.get("driveToThirdStone3"), 6, 1);
                 }else{
-                    driveState.put("main", new CorrectionVectorStrafeBiased(stateMachine, position, movements.get("driveToThirdStone"), 1, Vector3.ZERO()));
-                    orientationTerminator = new OrientationTerminator(position, movements.get("driveToThirdStone"), 6, 1);
+                    driveState.put("main", curveBuilder.newCurve()
+                            .setSpline(new Vector2(-12, -15))
+                            .setSpline(new Vector2(-12, -5))
+                            .setSpline(new Vector2(-20, 5))
+                            .setTurnStartDistance(15)
+                            .setAngle(50)
+                            .complete());
+                    orientationTerminator = new OrientationTerminator(position, new Vector3(-20, 5, 0), 2, 1);
                 }
             }
 
@@ -910,31 +996,11 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 terminate = orientationTerminator.shouldTerminate(sensors);
                 hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
             }
-        };
-        StateMachineManager rotateForThirdStone = new StateMachineManager(statemachine) {
-            OrientationTerminator orientationTerminator;
-            VariedTripwireTerminator variedTripwireTerminator;
-            @Override
-            public void setup() {
-                if(skystonePos != 3) {
-                    driveState.put("main", system.turn(defaultTurns.get("turnToIntake"), 0.15));
-                    orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToIntake"), 4, 4);
-                }else{
-                    driveState.put("main", system.turn(defaultTurns.get("turnToIntake3"), 0.15));
-                    orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToIntake3"), 4, 4);
-                }
-                variedTripwireTerminator = new VariedTripwireTerminator(position, Vector3.ZERO(), 10, 1);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = (orientationTerminator.shouldTerminateRotation() || variedTripwireTerminator.shouldTerminate(sensors));
-            }
 
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
-                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
                 hardware.setIntakePowers(1);
+                hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
             }
         };
         StateMachineManager grabThirdStone = new StateMachineManager(statemachine) {
@@ -986,75 +1052,29 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
                 hardware.setLiftServo(HardwareConstants.LIFT_REST);
             }
         };
-        StateMachineManager strafeToClearSkystones3 = new StateMachineManager(statemachine) {
-            OrientationTerminator relativeOrientationTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveToPoint(new Vector3(-13, position.getB(), 0), 0.7));
-                relativeOrientationTerminator = new OrientationTerminator(position, new Vector3(-13, position.getB(), 0), 4, 1);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = relativeOrientationTerminator.shouldTerminate(sensors);
-                statemachine.activateLogic("clampOn");
-            }
-        };
-        final StateMachineManager earlyPark = new StateMachineManager(statemachine) {
-            OrientationTerminator orientationTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveToPointLinSlowdown(movements.get("earlyPark"), 0.5));
-                orientationTerminator = new OrientationTerminator(position, movements.get("earlyPark"), 5, 1);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = orientationTerminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-                stateMachineSwitcher.setActive(end, sensors, hardware);
-            }
-        };
-        StateMachineManager turnToZero = new StateMachineManager(statemachine) {
-            OrientationTerminator orientationTerminator;
-            OrientationTerminator testTerminatorl;
-            @Override
-            public void setup() {
-                driveState.put("main", system.turn(defaultTurns.get("turnToZero"), 0.2));
-                orientationTerminator = new OrientationTerminator(position, defaultTurns.get("turnToZero"), 4, 2);
-                testTerminatorl = new OrientationTerminator(position, defaultTurns.get("turnToZero"), 2, 20);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = orientationTerminator.shouldTerminateRotation();
-                if(testTerminatorl.shouldTerminateRotation()){
-                    if(sensors.getIntakeTripwire() > 15){
-                        //stateMachineSwitcher.setActive(earlyPark, sensors, hardware);
-                    }
-                }
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-            }
-        };
-        StateMachineManager moveToAlignWithFoundation = StateMachineManager.timer(250, statemachine);
         StateMachineManager moveToFoundationV3 = new StateMachineManager(statemachine) {
             CombinedORTerminator terminator;
+            OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", new CircleCorrectionVector(stateMachine, position, movements.get("moveToFoundationV3"), movements.get("moveToAlignToFoundation"), 1, 6));
-                terminator = new CombinedORTerminator(position, Vector3.ZERO(), new OrientationTerminator(position, movements.get("moveToFoundationV3"), 8, 4), new TimerTerminator(position, Vector3.ZERO(), 2500));
+                driveState.put("main", curveBuilder.newCurve()
+                        .setSpline(new Vector2(-10, -15))
+                        .setSpline(new Vector2(-10, -40))
+                        .setRadius(0.5)
+                        .setMinPower(0.3)
+                        .setRadius(3)
+                        .complete());
+                terminator = new CombinedORTerminator(position, Vector3.ZERO(), new OrientationTerminator(position, new Vector3(-10, -40, 0), 2, 4), new TimerTerminator(position, Vector3.ZERO(), 15000));
+                orientationTerminator = new OrientationTerminator(position, new Vector3(-10, -40, 0), 15, 2);
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                hardware.setIntakePowers(-1);
+                hardware.setIntakePowers(0);
                 terminate = terminator.shouldTerminate(sensors);
+                if(orientationTerminator.shouldTerminate(sensors)){
+                    hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
+                }
             }
 
             @Override
@@ -1168,6 +1188,8 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             @Override
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setLiftMotors(0);
+                hardware.setIntakeServos(HardwareConstants.OPEN_INTAKE);
+                hardware.setIntakePowers(0.6);
             }
         };
         StateMachineManager waitForFourBarToGoDownForThirdSkystone = StateMachineManager.timer(500, statemachine);
@@ -1175,8 +1197,14 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("main", system.driveToPointSlowdown(movements.get("moveToFourthSkystone"), 1));
-                orientationTerminator = new OrientationTerminator(position, movements.get("moveToFourthSkystone"), 4, 4);
+                driveState.put("main", curveBuilder.newCurve()
+                        .setSpline(new Vector2(-12, -15))
+                        .setSpline(new Vector2(-12, 5))
+                        .setSpline(new Vector2(-20, 10))
+                        .setTurnStartDistance(15)
+                        .setAngle(50)
+                        .complete());
+                orientationTerminator = new OrientationTerminator(position, new Vector3(-20, 10, 0), 2, 4);
             }
 
             @Override
@@ -1188,58 +1216,6 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             public void onStop(SensorData sensors, HardwareData hardware) {
                 hardware.setIntakePowers(1);
                 hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-            }
-        };
-        StateMachineManager strafeToAlignToFourthSkystone = new StateMachineManager(statemachine) {
-            OrientationTerminator orientationTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveToPointSlowdown(movements.get("strafeToAlignToFourthStone"), 1));
-                orientationTerminator = new OrientationTerminator(position, movements.get("strafeToAlignToFourthStone"), 4, 4);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = orientationTerminator.shouldTerminate(sensors);
-            }
-        };
-        StateMachineManager grabFourthSkystone = new StateMachineManager(statemachine) {
-            CombinedORTerminator combinedORTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveToPoint(movements.get("grabFourthSkystone"), 0.4));
-                combinedORTerminator = new CombinedORTerminator(position, Vector3.ZERO(), new OrientationTerminator(position, movements.get("grabFourthSkystone"), 4, 4), new VariedTripwireTerminator(position, Vector3.ZERO(), 2.5, 5));
-                logicStates.put("closeIntake", new LogicState(statemachine) {
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(sensors.getIntakeTripwire() < 11){
-                            hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
-                        }
-                    }
-                });
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                terminate = combinedORTerminator.shouldTerminate(sensors);
-            }
-
-            @Override
-            public void onStop(SensorData sensors, HardwareData hardware) {
-                hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
-            }
-        };
-        StateMachineManager strafeToAlignToFoundationV4 = new StateMachineManager(statemachine) {
-            RelativeOrientationTerminator relativeOrientationTerminator;
-            @Override
-            public void setup() {
-                driveState.put("main", system.driveForward(movements.get("alignWithFoundationV4"), 0.4));
-                relativeOrientationTerminator = new RelativeOrientationTerminator(position, movements.get("alignWithFoundationV4"), 2);
-            }
-
-            @Override
-            public void update(SensorData sensors, HardwareData hardware) {
-                relativeOrientationTerminator.shouldTerminate(sensors);
             }
         };
         StateMachineManager park = new StateMachineManager(statemachine) {
@@ -1269,7 +1245,7 @@ public class SpedUpBlueAutonomous extends BasicOpmode {
             public void onStop(SensorData sensors, HardwareData hardware) {
             }
         };
-        stateMachineSwitcher.init(init, waitAfterStart, moveToSkystones, driveToIntakeBlock, strafeToClearSkystones, driveToClearSkystones, driveToSkybridge, driveToFoundation, turnABitMore, turnToLatchOn, waitForLatchOn, driveFoundationToScoreZone, turnFoundation, resetLift1, driveBackToSkystones, turnToIntake, driveBackForSecondSkystone, moveABitMoreToGetTheSecondSkystone, strafeToClearSkystonesV2, clearBlocksV2, driveToFoundationSecondTime, waitToStopMovingForSecondSkystone, unlatchSecondStone, resetLift2, driveToThirdStone, rotateForThirdStone, grabThirdStone, strafeToClearSkystones3, turnToZero, moveToAlignWithFoundation, moveToFoundationV3, raiseLift3, unlatchThirdBlock, resetLift3, waitForFourBarToGoDownForThirdSkystone, park, end, earlyPark);
+        stateMachineSwitcher.init(init, waitAfterStart, moveToSkystones, driveToIntakeBlock, driveToFoundation, turnABitMore, turnToLatchOn, waitForLatchOn, driveFoundationToScoreZone, turnFoundation, resetLift1, driveBackForSecondSkystone, moveABitMoreToGetTheSecondSkystone, driveWhileIntakingBlock, driveToFoundationSecondTime, waitToStopMovingForSecondSkystone, unlatchSecondStone, resetLift2, driveToThirdStone, grabThirdStone, moveToFoundationV3, raiseLift3, unlatchThirdBlock, resetLift3, waitForFourBarToGoDownForThirdSkystone, driveToFourthSkystone, park, end);
     }
     SimpleOdometer odometer;
     Vector3 position, velocity, firstSkystone;

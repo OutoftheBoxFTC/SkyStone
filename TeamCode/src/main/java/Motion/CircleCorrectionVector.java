@@ -1,5 +1,6 @@
 package Motion;
 
+import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import Debug.Connector;
@@ -84,6 +85,26 @@ public class CircleCorrectionVector extends VelocityDriveState {
             rotation = 0;
         }
         velocities.set(new Vector3(x, -y, rotation));
+    }
+
+    private void moveToPoint(Vector3 target, double power){
+        double r = new Vector2(target.getA(), target.getB()).distanceTo(new Vector2(position.getA(), position.getB()));
+        double angle = Math.atan2(target.getB() - position.getB(), target.getA() - position.getA());
+        double targetRot = angle;
+        angle += Math.toRadians(position.getC());
+        Vector2 relativePowers = new Vector2(r * Math.cos(angle), r * Math.sin(angle));
+        double magnitude = Math.abs(relativePowers.getA()) + Math.abs(relativePowers.getB());
+        double rotation = (targetRot - position.getC());
+        if(rotation > 180){
+            rotation = (targetRot - (360 + position.getC()));
+        }else if(rotation < -180){
+            rotation = ((360 + targetRot) - position.getC());
+        }
+        rotation = Range.clip(rotation / 30, -1, 1);
+        if(Math.abs(rotation) < 0.2){
+            rotation = (Math.abs(rotation)/rotation) * 0.2;
+        }
+        velocities.set(relativePowers.getA() / magnitude, relativePowers.getB()/ magnitude, rotation);
     }
 
     private Vector4 findLineCircleIntersections(

@@ -23,6 +23,10 @@ public class Vector2 {
         this.b = v.getB();
     }
 
+    public Vector3 toVector3(double c){
+        return new Vector3(a, b, c);
+    }
+
     public void setA(double a) {
         this.a = a;
     }

@@ -10,7 +10,8 @@ import math.Vector2;
  */
 public class HardwareConstants {
     //Servos
-    public static final Vector2 LATCH_ON = new Vector2(0.10, 0.95); //The servo positions for latching ON the foundation. It is in the order {left, right}
+    public static final Vector2 LATCH_ON = new Vector2(0.15, 0.95); //The servo positions for latching ON the foundation. It is in the order {left, right}
+    public static final Vector2 LATCH_MID = new Vector2(0.4, 0.33);
     public static final Vector2 LATCH_OFF = new Vector2(0.70, 0.29); //The servo positions for latching OFF the foundation. It is in the order {left, right}
     public static final Vector2 OPEN_INTAKE = new Vector2(0.95, 1-0.95); //The servo positions for OPENING the intake. It is in the order {left, right}
     public static final Vector2 INTAKE_INIT = new Vector2(0.85, 1-0.85); //The servo positions for OPENING the intake. It is in the order {left, right}

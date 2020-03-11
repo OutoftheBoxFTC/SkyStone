@@ -3,6 +3,7 @@ package opmode.TeleOp;
 import android.media.MediaPlayer;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.R;
 
@@ -17,14 +18,13 @@ import State.StateMachineManager;
 import math.Vector3;
 import math.Vector4;
 import opmode.BasicOpmode;
-
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp
-public class TeleOpTesting extends BasicOpmode {
+@TeleOp
+public class CleanedUpTeleOp extends BasicOpmode {
     int currPosition = 1;
     boolean capInit = false;
     MediaPlayer mediaPlayer;
     double[] positions = {1, 40, 160, 260, 420, 590, 715, 840, 1010, 1120, 1240, 1440, 1540};
-    public TeleOpTesting() {
+    public CleanedUpTeleOp() {
         super(1);
     }
 
@@ -91,57 +91,6 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                     }
                 });
-                exemptedLogicstates.put("liftOld", new LogicState(statemachine) {
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(Math.abs(gamepad2.left_stick_y) < 0.1){
-                            hardware.setLiftMotors(0.2);
-                        }else if(gamepad2.right_bumper){
-                            hardware.setLiftMotors(-gamepad2.left_stick_y);
-                        } else{
-                            if(sensors.getLift() > 0 && gamepad2.left_stick_y > 0) {
-                                hardware.setLiftMotors(-gamepad2.left_stick_y * (gamepad2.left_trigger > 0.1 ? 0.5 : 1));
-                            }else if(sensors.getLift() < 2150 && gamepad2.left_stick_y < 0){
-                                hardware.setLiftMotors(-gamepad2.left_stick_y * (gamepad2.left_trigger > 0.1 ? 0.5 : 1));
-                            }
-                            else{
-                                hardware.setLiftMotors(0.2);
-                            }
-                        }
-                        if(gamepad2.left_bumper){
-                            //robot.calibrate(robot.getCalibration().setLift(sensors.getLift()));
-                        }
-                        if(gamepad2.right_trigger > 0.5){
-                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                        }
-                        if(((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0))){
-                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                            hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
-                        }else if(hardware.getLiftServo().getA() == HardwareConstants.LIFT_INTAKE.getA()){
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                        }
-                        if(gamepad2.dpad_left){
-                            hardware.setLatchServos(HardwareConstants.LATCH_ON);
-                        }
-                        if(gamepad2.dpad_right){
-                            hardware.setLatchServos(HardwareConstants.LATCH_OFF);
-                        }
-                        if(gamepad2.right_stick_x > 0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                        }
-                        if(gamepad2.right_stick_x < -0.4){
-                            hardware.setLiftServo(HardwareConstants.LIFT_OUT);
-                        }
-                        if(gamepad2.right_stick_y < -0.4){
-                            //hardware.setLiftServo(HardwareConstants.LIFT_MID);
-                        }
-                        if(gamepad2.right_stick_y > 0.4){
-                            //hardware.setLiftServo(HardwareConstants.LIFT_OUT);
-                        }
-                        telemetry.addData("Encoder", sensors.getLift());
-
-                    }
-                });
                 exemptedLogicstates.put("resetMain", new LogicState(stateMachine) {
                     long timer = 0;
 
@@ -155,36 +104,6 @@ public class TeleOpTesting extends BasicOpmode {
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(System.currentTimeMillis() >= timer){
                             stateMachine.activateLogic("reset");
-                            deactivateThis();
-                        }
-                    }
-                });
-                exemptedLogicstates.put("reset", new LogicState(stateMachine) {
-                    int state = 0;
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(state == 0) {
-                            if (sensors.getLiftLimit()) {
-                                hardware.setLiftMotors(0.7);
-                            }else{
-                                state = 1;
-                            }
-                        }else if(state == 1){
-                            if (sensors.getLiftLimit()) {
-                                state = 2;
-                            }else{
-                                hardware.setLiftMotors(-0.4);
-                            }
-                        }else if(state == 2){
-                            hardware.setLiftMotors(0);
-                            stateMachine.activateLogic("lift");
-                            state = 0;
-                            deactivateThis();
-                        }
-                        if(Math.abs(gamepad2.left_stick_y) > 0.1){
-                            hardware.setLiftMotors(0);
-                            stateMachine.activateLogic("lift");
-                            state = 0;
                             deactivateThis();
                         }
                     }
@@ -247,12 +166,6 @@ public class TeleOpTesting extends BasicOpmode {
                         if(gamepad2.right_trigger > 0.3){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
                         }
-                        if(((gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0))){
-                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
-                            hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
-                        }else if(hardware.getLiftServo().getA() == HardwareConstants.LIFT_INTAKE.getA()){
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                        }
                     }
                 });
                 exemptedLogicstates.put("adjustLift", new LogicState(statemachine) {
@@ -307,45 +220,11 @@ public class TeleOpTesting extends BasicOpmode {
                         }
                     }
                 });
-                exemptedLogicstates.put("lowerLift", new LogicState(statemachine) {
-                    int state;
-                    long timer = 0;
-                    @Override
-                    public void init(SensorData sensors, HardwareData hardware) {
-                        state = 0;
-                    }
-
-                    @Override
-                    public void update(SensorData sensors, HardwareData hardware) {
-                        if(state == 0) {
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                            timer = (System.currentTimeMillis() + 251);
-                            if(System.currentTimeMillis() >= timer){
-                                state = 1;
-                            }
-                        }else if(state == 1){
-                            hardware.setLiftMotors(-0.4);
-                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
-                            if((sensors.getLiftLimit())){
-                                state = 2;
-                                hardware.setLiftMotors(0);
-                            }
-                        }else if(state == 2){
-                            hardware.setLiftMotors(0);
-                            statemachine.activateLogic("lift");
-                            deactivateThis();
-                        }
-                    }
-                });
                 logicStates.put("intake", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad1.right_trigger > 0){
-                            if(sensors.getIntakeTripwire() < 12) {
-                                hardware.setIntakePowers(gamepad1.right_trigger);
-                            }else{
-                                hardware.setIntakePowers(gamepad1.right_trigger * .7);
-                            }
+                            hardware.setIntakePowers(gamepad1.right_trigger);
                         }else if(gamepad1.left_trigger > 0){
                             hardware.setIntakePowers(-gamepad1.left_trigger);
                         }else{
@@ -354,6 +233,12 @@ public class TeleOpTesting extends BasicOpmode {
                             }else {
                                 hardware.setIntakePowers(0);
                             }
+                        }
+                        if(((gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0)) && sensors.getIntakeTripwire() > 1){
+                            hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_OFF);
+                            hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
+                        }else if(hardware.getLiftServo().getA() == HardwareConstants.LIFT_INTAKE.getA()){
+                            hardware.setLiftServo(HardwareConstants.LIFT_REST);
                         }
                         if(gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0 || gamepad1.right_bumper){
                             robot.enableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
@@ -403,7 +288,7 @@ public class TeleOpTesting extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(Math.abs(hardware.getIntakePowers().getA()) > 0.1) {
-                            if (sensors.getIntakeTripwire() <= 12) {
+                            if (sensors.getIntakeTripwire() <= 9) {
                                 frames ++;
                             }else{
                                 frames = 0;
@@ -431,10 +316,12 @@ public class TeleOpTesting extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0)){
-                            timer = System.currentTimeMillis() + 150;
+                            if(sensors.getIntakeTripwire() > 1) {
+                                timer = System.currentTimeMillis() + 150;
+                            }
                         }
                         if(gamepad2.right_trigger > 0){
-                            timer = System.currentTimeMillis() + 20000;
+                            timer = System.currentTimeMillis() + 200000;
                         }
                         if(System.currentTimeMillis() > timer){
                             hardware.setIntakeLatch(HardwareConstants.INTAKE_LATCH_ON);
@@ -496,11 +383,7 @@ public class TeleOpTesting extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(gamepad1.right_trigger > 0){
-                            if(sensors.getIntakeTripwire() < 12) {
-                                hardware.setIntakePowers(gamepad1.right_trigger);
-                            }else{
-                                hardware.setIntakePowers(gamepad1.right_trigger * .7);
-                            }
+                            hardware.setIntakePowers(gamepad1.right_trigger);
                         }else if(gamepad1.left_trigger > 0){
                             hardware.setIntakePowers(-gamepad1.left_trigger);
                         }else{
@@ -509,11 +392,6 @@ public class TeleOpTesting extends BasicOpmode {
                             }else {
                                 hardware.setIntakePowers(0);
                             }
-                        }
-                        if(gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0 || gamepad1.right_bumper){
-                            robot.enableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
-                        }else{
-                            robot.disableDevice(Hardware.HardwareDevices.INTAKE_TRIPWIRE);
                         }
                         if(((gamepad1.right_trigger > 0 || gamepad1.right_bumper || gamepad1.left_trigger > 0))){
                             hardware.setLiftServo(HardwareConstants.LIFT_INTAKE);
@@ -563,7 +441,7 @@ public class TeleOpTesting extends BasicOpmode {
                     @Override
                     public void update(SensorData sensors, HardwareData hardware) {
                         if(Math.abs(hardware.getIntakePowers().getA()) > 0.1) {
-                            if (sensors.getIntakeTripwire() <= 12) {
+                            if (sensors.getIntakeTripwire() <= 9) {
                                 hardware.setIntakeServos(HardwareConstants.CLOSE_INTAKE);
                             }
                         }else{

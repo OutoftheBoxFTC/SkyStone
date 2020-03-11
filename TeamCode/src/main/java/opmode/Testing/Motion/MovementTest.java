@@ -9,12 +9,14 @@ import Debug.Registers;
 import HardwareSystems.HardwareData;
 import HardwareSystems.SensorData;
 import Motion.CircleCorrectionVector;
+import Motion.CurveBuilder;
 import Motion.MotionSystem;
 import Motion.Terminator.OrientationTerminator;
 import Odometer.SimpleOdometer;
 import State.LogicState;
 import State.StateMachineManager;
 import State.VelocityDriveState;
+import math.Vector2;
 import math.Vector3;
 import opmode.BasicOpmode;
 
@@ -30,13 +32,12 @@ public class MovementTest extends BasicOpmode {
     @Override
     public void setup() {
         robot.enableAll();
-        movements.put("forward", new Vector3(-10, 10, 90));
-        helperSplines.put("forward", new Vector3(0, 10, 90));
         final HashMap<String, String> defaultTurns = new HashMap<>();
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new SimpleOdometer(TRANSLATION_FACTOR, position, velocity);
         final MotionSystem system = new MotionSystem(statemachine, position, velocity);
+        final CurveBuilder curveBuilder = new CurveBuilder(statemachine, position);
         HashMap<String, LogicState> nonManagedLogicStates = new HashMap<>();
         nonManagedLogicStates.put("Odometry", new LogicState(statemachine) {
             @Override
@@ -60,18 +61,30 @@ public class MovementTest extends BasicOpmode {
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
                 terminate = isStarted();
+            }
+
+            @Override
+            public void onStop(SensorData sensors, HardwareData hardware) {
                 stateMachine.activateLogic("Odometry");
             }
         };
         StateMachineManager forward = new StateMachineManager(statemachine) {
+            OrientationTerminator orientationTerminator;
             @Override
             public void setup() {
-                driveState.put("drive", new CircleCorrectionVector(stateMachine, position, movements.get("forward"), helperSplines.get("forward"), 0.5, 10));
+                driveState.put("main", curveBuilder.newCurve()
+                        .setSpline(new Vector2(0, 10))
+                        .setSpline(new Vector2(40, 10))
+                        .setSpeed(1)
+                        .setAngle(110)
+                        .setMinPower(0.5)
+                        .complete());
+                orientationTerminator = new OrientationTerminator(position, new Vector3(40, 10, 0), 2, 1);
             }
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-                terminate = OrientationTerminator.shouldTerminatePosition(position, movements.get("forward"), 5);
+                terminate = orientationTerminator.shouldTerminate(sensors);
             }
         };
         StateMachineManager end = new StateMachineManager(statemachine) {
@@ -92,7 +105,7 @@ public class MovementTest extends BasicOpmode {
 
             @Override
             public void update(SensorData sensors, HardwareData hardware) {
-
+                telemetry.addData("Error", position.getVector2().distanceTo(new Vector2(20, 15)));
             }
         };
         stateMachineSwitcher.init(init, forward, end);
