@@ -19,11 +19,11 @@ public class HardwareConstants {
     public static final double INTAKE_LATCH_ON = 0.65; //The servo position for the latch on the four bar lift to latch ON to the block
     public static final double INTAKE_LATCH_FEED = 0.25;
     public static final double INTAKE_LATCH_OFF = 0.05; //The servo position for the latch on the four bar lift to latch OFF of the block
-    public static final Vector2 LIFT_REST = new Vector2(SQUARE_WAVE_TO_POSITION(820), SQUARE_WAVE_TO_POSITION(845)); //The servo position for the four bar servos when in the REST position, or all the way forward. It is in the order {left, right}
-    public static final Vector2 LIFT_INTAKE = new Vector2(SQUARE_WAVE_TO_POSITION(840), SQUARE_WAVE_TO_POSITION(850)); //The servo position for the four bar servos when in the INTAKE position, or the position when intaking. It is in the order {
+    public static final Vector2 LIFT_REST = new Vector2(SQUARE_WAVE_TO_POSITION(870), SQUARE_WAVE_TO_POSITION(820)); //The servo position for the four bar servos when in the REST position, or all the way forward. It is in the order {left, right}
+    public static final Vector2 LIFT_INTAKE = new Vector2(SQUARE_WAVE_TO_POSITION(890), SQUARE_WAVE_TO_POSITION(840)); //The servo position for the four bar servos when in the INTAKE position, or the position when intaking. It is in the order {
     public static final Vector2 LIFT_FEED_OUTTAKE = new Vector2(SQUARE_WAVE_TO_POSITION(940), SQUARE_WAVE_TO_POSITION(950));
-    public static final Vector2 LIFT_SCORING_POSITION = new Vector2(SQUARE_WAVE_TO_POSITION(1785), SQUARE_WAVE_TO_POSITION(1770)); //The servo position for the four bar servos when in the SCORING position. It is in the order {left, right}
-    public static final Vector2 LIFT_OUT = new Vector2(SQUARE_WAVE_TO_POSITION(2015), SQUARE_WAVE_TO_POSITION(2015)); //The servo position for the four bar servos when in the OUT position, or when the arm is all the way out on the outtake side. It is in the order {left, right}
+    public static final Vector2 LIFT_SCORING_POSITION = new Vector2(SQUARE_WAVE_TO_POSITION(1810), SQUARE_WAVE_TO_POSITION(1770)); //The servo position for the four bar servos when in the SCORING position. It is in the order {left, right}
+    public static final Vector2 LIFT_OUT = new Vector2(SQUARE_WAVE_TO_POSITION(2015), SQUARE_WAVE_TO_POSITION(1970)); //The servo position for the four bar servos when in the OUT position, or when the arm is all the way out on the outtake side. It is in the order {left, right}
     public static final Vector2 LIFT_OUT_AUTO = new Vector2(SQUARE_WAVE_TO_POSITION(1880), SQUARE_WAVE_TO_POSITION(1880));
     public static final double CAPSTONE_LATCH_ON = SQUARE_WAVE_TO_POSITION(1800);
     public static final double CAPSTONE_LATCH_OFF = SQUARE_WAVE_TO_POSITION(900);
